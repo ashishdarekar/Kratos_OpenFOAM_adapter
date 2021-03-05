@@ -1,0 +1,1 @@
+../KratosOpenfoamAdapterFunctionObject.H

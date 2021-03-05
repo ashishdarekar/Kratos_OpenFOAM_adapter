@@ -1,0 +1,3 @@
+KratosOpenfoamAdapterFunctionObject.C
+
+LIB = $(FOAM_LIBBIN)/libKratosOpenfoamAdapterFunctionObjectFunctionObjects
