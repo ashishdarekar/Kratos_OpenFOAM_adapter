@@ -12,6 +12,10 @@ class CoSimulationAdapter
 {
 
 private:
+        //- Variables required  for CoSimIO
+
+        CoSimIO::Info connect_info;
+        std::string connection_name;
 
 /*     //- OpenFOAM runTime object
     const Foam::Time& runTime_;
@@ -50,6 +54,8 @@ private:
         //- Advance CoSimulaton
         void advance();
 */
+
+
 public:
 
     // Methods called by the functionObject
