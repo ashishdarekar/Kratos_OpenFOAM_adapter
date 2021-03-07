@@ -47,11 +47,11 @@ runTimeModifiable true;
 
 functions
 {
-    TrialFunctionObject1
-    {
-        type TrialFunctionObject;
-        libs ("libfieldFunctionObjects.so");
-    }
+    //TrialFunctionObject1
+    //{
+    //    type TrialFunctionObject;
+    //    libs ("libfieldFunctionObjects.so");
+    //}
 
     fieldMinMax1
     {
