@@ -44,7 +44,7 @@ using namespace std;
 #include "fvMeshFunctionObject.H"
 
 // Main adapter header files
-//#include "Adapter.H"
+#include "/home/ashish/Documents/MS/Master_thesis/Ashish/Thesis/OpenFoam_Kratos_adapter/Adapter/CoSimulationAdapter.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -64,7 +64,7 @@ class KratosOpenfoamAdapterFunctionObject
     // Private Data
 
         //- Adapter's main class instance
-        //CoSimulationAdapter::Adapter adapter_;
+        CoSimulationAdapter CoSimulationAdapter_;
 
     // Private Member Functions
 
@@ -93,7 +93,7 @@ public:
 
     // Member Functions
 
-        //- Read the FUNCTIONOBJECT data
+        //- Read the data/after each change
         virtual bool read(const dictionary&);
 
         //- Execute, currently does nothing
@@ -102,7 +102,7 @@ public:
         //- Execute at the final time-loop, currently does nothing
         virtual bool end();
 
-        //- Write the TrialFunctionObject
+        //- Write data after each loop??
         virtual bool write();
 };
 

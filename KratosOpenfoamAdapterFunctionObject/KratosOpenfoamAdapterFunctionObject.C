@@ -32,7 +32,7 @@ Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::KratosOpenfoamAdapte
     const word& name,
     const Time& runTime,
     const dictionary& dict
-): fvMeshFunctionObject(name, runTime, dict)
+): fvMeshFunctionObject(name, runTime, dict), CoSimulationAdapter_()
 {
     read(dict);
 }
@@ -47,7 +47,7 @@ Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::~KratosOpenfoamAdapt
 
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dictionary& dict)
 {
-    //adapter_.configure();
+    CoSimulationAdapter_.configure();
 
     return true;
 }
@@ -55,7 +55,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 {
-    //adapter_.execute();
+    CoSimulationAdapter_.execute();
 
     return true;
 }
@@ -63,7 +63,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::end()
 {
-    //adapter_.end();
+    CoSimulationAdapter_.end();
 
     return true;
 }
