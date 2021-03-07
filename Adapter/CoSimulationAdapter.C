@@ -27,7 +27,7 @@ mesh_(mesh)
 }
  */
 
-CoSimulationAdapter::CoSimulationAdapter()
+/* CoSimulationAdapter::CoSimulationAdapter()
 {
     std::cout << "CoSimulation Adapter is loaded" << std::endl;
     return;
@@ -79,4 +79,4 @@ CoSimulationAdapter::~CoSimulationAdapter()
 {
     std::cout << "CoSimulation Adapter : Destructor" << std::endl;
     return;
-}
+} */
