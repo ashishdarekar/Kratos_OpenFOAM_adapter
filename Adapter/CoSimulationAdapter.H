@@ -80,7 +80,8 @@ public:
         void configure(){
             std::cout << "CoSimulation Adapter : Configuration" << std::endl;
 
-            /* CoSimIO::Info settings;
+            //Importing data at the beginning from Kratos Cosimulation using CoSimIO
+            CoSimIO::Info settings;
             settings.Set("my_name", "Openfoam_adapter");
             settings.Set("connect_to", "Kratos_CoSimulation");
             settings.Set("echo_level", 1);
@@ -90,13 +91,23 @@ public:
             COSIMIO_CHECK_EQUAL(connect_info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Connected);
             connection_name = connect_info.Get<std::string>("connection_name");
 
-            //Send the dummy vector data at the start of the simulation
-            std::vector<double> data_to_send(4,3.14);
+            std::vector<double> receive_data;
             connect_info.Clear();
             connect_info.Set("identifier", "vector_of_pi");
             connect_info.Set("connection_name", connection_name);
-            connect_info = CoSimIO::ExportData(connect_info, data_to_send);
- */
+            connect_info = CoSimIO::ImportData(connect_info, receive_data);
+
+            for(auto& value : receive_data)
+            {
+                std::cout<< value << std::endl;
+                COSIMIO_CHECK_EQUAL(value, 3.14);
+            }
+
+            CoSimIO::Info disconnect_settings;
+            disconnect_settings.Set("connection_name", connection_name);
+            connect_info = CoSimIO::Disconnect(disconnect_settings); // disconnect afterwards
+            COSIMIO_CHECK_EQUAL(connect_info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Disconnected);
+
             return;
         }
 
