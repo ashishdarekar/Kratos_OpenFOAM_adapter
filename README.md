@@ -9,18 +9,20 @@ For more information about the Thesis, read "Abstract of this Master thesis" -
 
 # Steps to be followed:
 1. Building KratosOpenfomaAdapterFunctionObject:
-    1. Go to the folder .../KratosOpenfoamAdapterfunctionObject (https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/tree/main/KratosOpenfoamAdapterFunctionObject)
-    2. Go to SuperUser: *sudo -E bash*
-    3. *wclean*
-    4. *wmake*
+    1. Add Path of the CoSimulationAdapter.H ($HOME/OpenFoam_Kratos_adapter/Adapter) into your include path.
+    2. Go to the folder .../KratosOpenfoamAdapterfunctionObject (https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/tree/main/KratosOpenfoamAdapterFunctionObject)
+    3. Go to SuperUser: *sudo -E bash*
+    4. *wclean*
+    5. *wmake*
 
-2. To compile export and import data files
-    1. Go to the folder .../Tutorial_cavity (https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/tree/main/Tutorial_cavity)
-    2. Go to SuperUser: *sudo -E bash*
-    3. "g++ trial_exporting_data_using_CoSimIO.cpp -o export"
-    4. "g++ trial_importing_data_using_CoSimIO.cpp -o import"
+2. To compile export and import data files:
+    1. Add Path of the co_sim_io.hpp ($HOME/CoSimIO) into your include path.
+    2. Go to the folder .../Tutorial_cavity (https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/tree/main/Tutorial_cavity)
+    3. Go to SuperUser: *sudo -E bash*
+    4. *g++ trial_exporting_data_using_CoSimIO.cpp -o export*
+    5. *g++ trial_importing_data_using_CoSimIO.cpp -o import*
 
-2. To run the case:
+2. To run the first case:
     1. Go to the folder .../Tutorial_cavity (https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/tree/main/Tutorial_cavity)
     2. Go to SuperUser: *sudo -E bash*
     3. *blockMesh*
