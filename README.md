@@ -1,12 +1,11 @@
 # OpenFoam_Kratos_adapter
-For more information about the Thesis: [Abstract of this Master thesis](https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/blob/main/Abstract_of_Master_Thesis_ashish_darekar.pdf)
+For more information about this Master Thesis: [Abstract of this Master thesis](https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/blob/main/Abstract_of_Master_Thesis_ashish_darekar.pdf)
 
-# How to run a first tutorial: Cavity
 # Requirements:
 1. [OpenFOAM-7](https://openfoam.org/download/7-ubuntu/)
 2. [CoSimIO](https://github.com/KratosMultiphysics/CoSimIO)
 
-# Steps to be followed:
+# How to run the first tutorial: Cavity
 1. **To Build the KratosOpenfomaAdapterFunctionObject:**
     1. Add Path of the **CoSimulationAdapter.H** ($HOME/OpenFoam_Kratos_adapter/Adapter) into your include path.
     2. Go to the folder .../KratosOpenfoamAdapterfunctionObject (https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/tree/main/KratosOpenfoamAdapterFunctionObject)
