@@ -72,7 +72,7 @@ public:
 
         //Default Constructor
         CoSimulationAdapter(){
-            std::cout << "CoSimulation Adapter is loaded" << std::endl;
+            std::cout << "CoSimulation Adapter : Constructor" << std::endl;
             return;
         }
 
