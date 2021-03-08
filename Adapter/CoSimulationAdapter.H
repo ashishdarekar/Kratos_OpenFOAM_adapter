@@ -80,6 +80,47 @@ public:
         void configure(){
             std::cout << "CoSimulation Adapter : Configuration" << std::endl;
 
+            /* CoSimIO::Info settings;
+            settings.Set("my_name", "Openfoam_adapter");
+            settings.Set("connect_to", "Kratos_CoSimulation");
+            settings.Set("echo_level", 1);
+            settings.Set("version", "1.25");
+
+            connect_info = CoSimIO::Connect(settings);
+            COSIMIO_CHECK_EQUAL(connect_info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Connected);
+            connection_name = connect_info.Get<std::string>("connection_name");
+
+            //Send the dummy vector data at the start of the simulation
+            std::vector<double> data_to_send(4,3.14);
+            connect_info.Clear();
+            connect_info.Set("identifier", "vector_of_pi");
+            connect_info.Set("connection_name", connection_name);
+            connect_info = CoSimIO::ExportData(connect_info, data_to_send);
+ */
+            return;
+        }
+
+        //- Called by the functionObject's execute()
+        void execute()
+        {
+            std::cout << "CoSimulation Adapter : Execute" << std::endl;
+
+            //Send the dummy vector data at the end of each iteration
+
+            /* std::vector<double> data_to_send(4,3.14);
+            connect_info.Clear();
+            connect_info.Set("identifier", "vector_of_pi");
+            connect_info.Set("connection_name", connection_name);
+            connect_info = CoSimIO::ExportData(connect_info, data_to_send); */
+
+            return;
+        }
+
+        //- Called by the functionObject's end()
+        void end()
+        {
+            std::cout << "CoSimulation Adapter : end" << std::endl;
+
             CoSimIO::Info settings;
             settings.Set("my_name", "Openfoam_adapter");
             settings.Set("connect_to", "Kratos_CoSimulation");
@@ -90,27 +131,12 @@ public:
             COSIMIO_CHECK_EQUAL(connect_info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Connected);
             connection_name = connect_info.Get<std::string>("connection_name");
 
-            return;
-        }
-
-        //- Called by the functionObject's execute()
-        void execute()
-        {
-            std::cout << "CoSimulation Adapter : Execute" << std::endl;
-
+            //Send the dummy vector data at the end of the simulation
             std::vector<double> data_to_send(4,3.14);
             connect_info.Clear();
             connect_info.Set("identifier", "vector_of_pi");
             connect_info.Set("connection_name", connection_name);
             connect_info = CoSimIO::ExportData(connect_info, data_to_send);
-
-            return;
-        }
-
-        //- Called by the functionObject's end()
-        void end()
-        {
-            std::cout << "CoSimulation Adapter : end" << std::endl;
 
             CoSimIO::Info disconnect_settings;
             disconnect_settings.Set("connection_name", connection_name);
