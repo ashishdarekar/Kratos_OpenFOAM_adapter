@@ -1,7 +1,7 @@
 //Importing Data from Kratos_OpenFoam_adapter
 
 // CoSimulation includes
-#include "/home/ashish/Documents/MS/CoSimIO/co_sim_io/co_sim_io.hpp"
+#include "co_sim_io.hpp"
 
 #define COSIMIO_CHECK_EQUAL(a, b)                                \
     if (a != b) {                                                \
