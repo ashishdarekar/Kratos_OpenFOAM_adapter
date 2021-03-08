@@ -1,6 +1,5 @@
 # OpenFoam_Kratos_adapter
-Master Thesis Work: 
-For more information: Abstract of this Master thesis
+For more information about the Thesis, read "Abstract of this Master thesis" -
 (https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/blob/main/Abstract_of_Master_Thesis_ashish_darekar.pdf)
 
 # How to run a first tutorial: Cavity
