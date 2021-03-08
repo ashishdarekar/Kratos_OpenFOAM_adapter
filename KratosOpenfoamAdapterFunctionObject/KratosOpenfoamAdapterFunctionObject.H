@@ -44,7 +44,7 @@ using namespace std;
 #include "fvMeshFunctionObject.H"
 
 // Main adapter header files
-#include "/home/ashish/Documents/MS/Master_thesis/Ashish/Thesis/OpenFoam_Kratos_adapter/Adapter/CoSimulationAdapter.H"
+#include "CoSimulationAdapter.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
