@@ -3,8 +3,8 @@ This is for my Master Thesis
 
 # How to run a first tutorial: Cavity
 # Requirements:
-1. OpenFOAM 7
-2. CoSimIO
+1. OpenFOAM 7 (https://openfoam.org/download/7-ubuntu/)
+2. CoSimIO (https://github.com/KratosMultiphysics/CoSimIO)
 
 # Steps to be followed:
 1. Building KratosOpenfomaAdapterFunctionObject:
