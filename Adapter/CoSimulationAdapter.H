@@ -3,7 +3,7 @@
 //#include "fvMesh.H"
 
 //CoSimIO header file
-#include "/home/ashish/Documents/MS/CoSimIO/co_sim_io/co_sim_io.hpp"
+#include "co_sim_io.hpp"
 
 //namespace Kratos
 //{
