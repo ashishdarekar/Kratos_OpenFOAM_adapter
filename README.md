@@ -12,8 +12,18 @@ This is for my Master Thesis
     2. Go to SuperUser: *sudo -E bash*
     3. *wclean*
     4. *wmake*
-2. To run a case:
+
+2. To compile export and import data files
+    1. Go to the folder .../Tutorial_cavity (https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/tree/main/Tutorial_cavity)
+    2. Go to SuperUser: *sudo -E bash*
+    3. "g++ trial_exporting_data_using_CoSimIO.cpp -o export"
+    4. "g++ trial_importing_data_using_CoSimIO.cpp -o import"
+
+2. To run the case:
     1. Go to the folder .../Tutorial_cavity (https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/tree/main/Tutorial_cavity)
     2. Go to SuperUser: *sudo -E bash*
     3. *blockMesh*
     4. *icoFoam*
+    5. Simultaneously open another terminal to export and import data in OpenFoam using CoSimIO:
+        1. *./export*
+        2. *./import*
