@@ -29,15 +29,13 @@ int main()
     info = CoSimIO::ImportData(info, receive_data);
 
     for(auto& value : receive_data)
-    {
-        std::cout<< value << std::endl;
         COSIMIO_CHECK_EQUAL(value, 3.14);
-    }
 
     CoSimIO::Info disconnect_settings;
     disconnect_settings.Set("connection_name", connection_name);
     info = CoSimIO::Disconnect(disconnect_settings); // disconnect afterwards
     COSIMIO_CHECK_EQUAL(info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Disconnected);
+
 
     return 0;
 }
