@@ -77,7 +77,7 @@ public:
         }
 
         //- Setup the adapter's configuration
-        void configure(){
+        void Connect(){
             std::cout << "CoSimulation Adapter : Configuration" << std::endl;
 
             //Importing data at the beginning from Kratos Cosimulation using CoSimIO
@@ -152,7 +152,8 @@ public:
             CoSimIO::Info disconnect_settings;
             disconnect_settings.Set("connection_name", connection_name);
             connect_info = CoSimIO::Disconnect(disconnect_settings);
-            COSIMIO_CHECK_EQUAL(connect_info.Get<int>("conection_status"),CoSimIO::ConnectionStatus::Disconnected);
+            std::cerr << connect_info << "\n";
+            COSIMIO_CHECK_EQUAL(connect_info.Get<int>("connection_status"),CoSimIO::ConnectionStatus::Disconnected);
 
             return;
         }
