@@ -32,10 +32,10 @@ SourceFiles
     KratosOpenfoamAdapterFunctionObject.C
 
 \*-----------------------------------------------------------------------*/
-
+/*
 #include <iostream>
 using namespace std;
-#include <iomanip>
+#include <iomanip> */
 
 #ifndef KRATOSOPENFOAMADAPTERFUNCTIONOBJECT_H
 #define KRATOSOPENFOAMADAPTERFUNCTIONOBJECT_H
@@ -44,7 +44,16 @@ using namespace std;
 #include "fvMeshFunctionObject.H"
 
 // Main adapter header files
-#include "CoSimulationAdapter.H"
+// #include "CoSimulationAdapter.H"
+
+//CoSimIO header file
+#include "co_sim_io.hpp"
+
+#define COSIMIO_CHECK_EQUAL(a, b)                                 \
+if (a != b) {                                                     \
+std::cout << "in line " << __LINE__ << " : " << a                 \
+    << " is not equal to " << b << std::endl;                     \
+}
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -64,7 +73,10 @@ class KratosOpenfoamAdapterFunctionObject
     // Private Data
 
         //- Adapter's main class instance
-        CoSimulationAdapter CoSimulationAdapter_;
+        //- CoSimulationAdapter CoSimulationAdapter_;
+        //- Member variables required for CoSimIO
+        CoSimIO::Info connect_info;
+        std::string connection_name;
 
     // Private Member Functions
 
@@ -73,6 +85,8 @@ class KratosOpenfoamAdapterFunctionObject
 
         //- Disallow default bitwise assignment
         void operator=(const KratosOpenfoamAdapterFunctionObject&) = delete;
+
+        //Private function for CoSimIO
 
 public:
     //- Runtime type information
