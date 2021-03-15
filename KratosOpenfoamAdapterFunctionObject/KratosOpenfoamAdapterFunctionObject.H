@@ -24,11 +24,15 @@ Description
 
 Usage
     \table
-        Property            | Description                                       | Required | Default value
-        type                | type name: KratosOpenfoamAdapterFunctionObject    | yes      |
-        participant name    | Name of the participant                           | no       | Fluid
-        readData            | Name of the parameters to Read by OpenFOAM        | yes      |
-        writeData           | Name of the parameters to write by OpenFOAM       | yes      |
+        Property            | Description                                                           | Required | Default value
+        type                | type name: KratosOpenfoamAdapterFunctionObject                        | yes      |
+        my_name             | Name of the participant                                               | no       | Fluid
+        interfaces          | To save the coupling interfaces(Each interface is a subdirectory)     | yes      |
+        mesh                | Name of the coupling mesh                                             | yes      |
+        patches             | WordList of the openFOAM patches which contain the coupling faces
+        locations           | Name of the location in mesh to get the required data                 | yes      | faceCenter
+        readData            | WordList of the variables to Read by OpenFOAM                         | yes      |
+        writeData           | WordList of the variables to write by OpenFOAM                        | yes      |
     \endtable
 
 SourceFiles
@@ -79,7 +83,6 @@ private:
     //- Adapter's main class instance
     //- CoSimulationAdapter CoSimulationAdapter_;
     //- Member variables required for CoSimIO
-    CoSimIO::Info connect_info;
     std::string connection_name;
 
     // Private Member Functions
@@ -96,7 +99,7 @@ protected:
     //- Protected Data to set the parameters required for coupling
 
         //Parameters for Adapter's configuration
-        Foam::word participantName_;
+        Foam::word my_name;
 
         //Vector of string to save the name of the data to be read by Fluid Solver-OpenFOAM
         //Foam::wordList readData_;

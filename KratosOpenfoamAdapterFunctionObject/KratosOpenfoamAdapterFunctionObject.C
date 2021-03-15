@@ -60,9 +60,9 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
     //Reading configuration parameters from ControlDict related to Adapter
     fvMeshFunctionObject::read(dict);
 
-    participantName_ = dict.lookupOrDefault<word>("participant", "fluid");
+    my_name = dict.lookupOrDefault<word>("participant", "fluid");
 
-    std::cout<< "Name of the participant is: " << participantName_ <<std::endl;
+    std::cout<< "Name of the participant is: " << my_name <<std::endl;
 
     // Every interface is a subdictionary of "interfaces",
     // each with an arbitrary name. Read all of them and create a list of dictionaries.
@@ -115,6 +115,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 
     //Importing data at the beginning from Kratos Cosimulation using CoSimIO
     CoSimIO::Info settings;
+    CoSimIO::Info connect_info;
     settings.Set("my_name", "Openfoam_adapter");
     settings.Set("connect_to", "Kratos_CoSimulation");
     settings.Set("echo_level", 1);
@@ -157,6 +158,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::end()
 
     //Exporting the dummy vector data from OpenFOAM to the CoSimulation using CoSimIO
     std::vector<double> data_to_send(4,3.14);
+    CoSimIO::Info connect_info;
     connect_info.Clear();
     connect_info.Set("identifier", "vector_of_pi");
     connect_info.Set("connection_name", connection_name);
