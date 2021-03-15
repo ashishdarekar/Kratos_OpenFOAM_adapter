@@ -24,8 +24,11 @@ Description
 
 Usage
     \table
-        Property     | Description                                       | Required | Default value
-        type         | type name: KratosOpenfoamAdapterFunctionObject    | yes      |
+        Property            | Description                                       | Required | Default value
+        type                | type name: KratosOpenfoamAdapterFunctionObject    | yes      |
+        participant name    | Name of the participant                           | no       | Fluid
+        readData            | Name of the parameters to Read by OpenFOAM        | yes      |
+        writeData           | Name of the parameters to write by OpenFOAM       | yes      |
     \endtable
 
 SourceFiles
@@ -70,13 +73,14 @@ class KratosOpenfoamAdapterFunctionObject
 :
     public fvMeshFunctionObject
 {
-    // Private Data
 
-        //- Adapter's main class instance
-        //- CoSimulationAdapter CoSimulationAdapter_;
-        //- Member variables required for CoSimIO
-        CoSimIO::Info connect_info;
-        std::string connection_name;
+private:
+
+    //- Adapter's main class instance
+    //- CoSimulationAdapter CoSimulationAdapter_;
+    //- Member variables required for CoSimIO
+    CoSimIO::Info connect_info;
+    std::string connection_name;
 
     // Private Member Functions
 
@@ -86,7 +90,19 @@ class KratosOpenfoamAdapterFunctionObject
         //- Disallow default bitwise assignment
         void operator=(const KratosOpenfoamAdapterFunctionObject&) = delete;
 
-        //Private function for CoSimIO
+        //- Private function for CoSimIO
+
+protected:
+    //- Protected Data to set the parameters required for coupling
+
+        //Parameters for Adapter's configuration
+        Foam::word participantName_;
+
+        //Vector of string to save the name of the data to be read by Fluid Solver-OpenFOAM
+        Foam::wordList readData_;
+
+        //Vector of string to save the name of the data to be write by Fluid Solver-OpenFOAM
+        Foam::wordList writeData_;
 
 public:
     //- Runtime type information

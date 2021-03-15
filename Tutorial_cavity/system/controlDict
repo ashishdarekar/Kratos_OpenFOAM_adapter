@@ -96,6 +96,12 @@ functions
     {
         type KratosOpenfoamAdapterFunctionObject;
         libs ("libKratosOpenfoamAdapterFunctionObjectFunctionObjects.so");
+
+        participant Fluid;
+
+        readData    (Displacement, data2, data3);
+        writeData   (Force, data4);
+
     }
 
 }

@@ -13,6 +13,7 @@ Sourcefile for the KratosOpenfoamAdpterFunctionObject.H
 #include "Time.H"
 #include "fvMesh.H"
 #include "addToRunTimeSelectionTable.H"
+#include "IOstreams.H" //Useful for IO operations
 
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
@@ -32,7 +33,9 @@ Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::KratosOpenfoamAdapte
     const word& name,
     const Time& runTime,
     const dictionary& dict
-): fvMeshFunctionObject(name, runTime, dict)//, CoSimulationAdapter_()
+)
+:
+fvMeshFunctionObject(name, runTime, dict)//, CoSimulationAdapter_()
 {
     read(dict);
 }
@@ -47,11 +50,37 @@ Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::~KratosOpenfoamAdapt
 
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dictionary& dict)
 {
+
     //Connect to CoSimIO
     //CoSimulationAdapter_.configure();
     //std::cout << "CoSimulation Adapter : Configuration" << std::endl;
 
     std::cout << "CoSimulation Adapter's function object : read()" << std::endl;
+
+    //Reading configuration parameters from ControlDict related to Adapter
+    fvMeshFunctionObject::read(dict);
+
+    participantName_ = dict.lookupOrDefault<word>("participant", "fluid");
+
+    std::cout<< "Name of the participant is: " << participantName_ <<std::endl;
+
+    dict.lookup("readData") >> readData_;
+
+    dict.lookup("writeData") >> writeData_;
+
+    std::cout << "List of reading data parameters: " << std::endl;
+
+    forAll(readData_, rDatai)
+    {
+        std::cout << readData_[rDatai] << std::endl;
+    }
+
+    std::cout << "List of writing data parameters: " << std::endl;
+
+    forAll(writeData_, wDatai)
+    {
+        std::cout << writeData_[wDatai] << std::endl;
+    }
 
     //Importing data at the beginning from Kratos Cosimulation using CoSimIO
     CoSimIO::Info settings;
