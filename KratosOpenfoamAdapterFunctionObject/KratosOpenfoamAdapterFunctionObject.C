@@ -64,23 +64,54 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 
     std::cout<< "Name of the participant is: " << participantName_ <<std::endl;
 
-    dict.lookup("readData") >> readData_;
+    // Every interface is a subdictionary of "interfaces",
+    // each with an arbitrary name. Read all of them and create a list of dictionaries.
+    const dictionary * interfaceSubdictPtr = dict.subDictPtr("interfaces");
 
-    dict.lookup("writeData") >> writeData_;
+    std::cout << "Interfaces Reading: Start" << std::endl;
 
-    std::cout << "List of reading data parameters: " << std::endl;
-
-    forAll(readData_, rDatai)
+    if(!interfaceSubdictPtr)
     {
-        std::cout << readData_[rDatai] << std::endl;
+        std::cout << "No Interfaces found" << std::endl;
+    }
+    else
+    {
+        for(const entry& interfaceSubdictEntry : *interfaceSubdictPtr)
+        {
+            if(interfaceSubdictEntry.isDict())
+            {
+                dictionary interfaceSubdict = interfaceSubdictEntry.dict();
+                struct InterfaceData interfacedata;
+
+                interfacedata.meshName = interfaceSubdict.lookupType<word>("mesh");
+
+                interfacedata.locationsType = interfaceSubdict.lookupOrDefault<word>("locations", "faceCenters"); //Default value is faceCenter
+
+                wordList patches = interfaceSubdict.lookupType<wordList>("patches");
+                for(auto patch : patches)
+                {
+                    interfacedata.patchNames.push_back(patch);
+                }
+
+                wordList readData = interfaceSubdict.lookupType<wordList>("readData");
+                for(auto rData : readData)
+                {
+                    interfacedata.readData.push_back(rData);
+                }
+
+                wordList writeData = interfaceSubdict.lookupType<wordList>("writeData");
+                for(auto wData : writeData)
+                {
+                    interfacedata.writeData.push_back(wData);
+                }
+
+                //Add this interface in the Array of all interfaces
+                interfaces_.push_back(interfacedata);
+            }
+        }
     }
 
-    std::cout << "List of writing data parameters: " << std::endl;
-
-    forAll(writeData_, wDatai)
-    {
-        std::cout << writeData_[wDatai] << std::endl;
-    }
+    std::cout << "Interfaces Reading: Done" << std::endl;
 
     //Importing data at the beginning from Kratos Cosimulation using CoSimIO
     CoSimIO::Info settings;

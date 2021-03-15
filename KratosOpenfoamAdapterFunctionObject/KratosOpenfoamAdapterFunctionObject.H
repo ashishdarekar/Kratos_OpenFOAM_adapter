@@ -99,10 +99,24 @@ protected:
         Foam::word participantName_;
 
         //Vector of string to save the name of the data to be read by Fluid Solver-OpenFOAM
-        Foam::wordList readData_;
+        //Foam::wordList readData_;
 
         //Vector of string to save the name of the data to be write by Fluid Solver-OpenFOAM
-        Foam::wordList writeData_;
+        //Foam::wordList writeData_;
+
+        //Every interface need to know the coupling Mesh, the OpenFOAM patches that consists the coupling surface, reading data on it and writing data.
+        //Hence Strucutre is made to save all this data related to an interface
+        struct InterfaceData
+        {
+            std::string meshName;
+            std::string locationsType;
+            std::vector<std::string> patchNames;
+            std::vector<std::string> readData;
+            std::vector<std::string> writeData;
+        };
+
+        //Array of strctures to save all interfaces
+        std::vector<struct InterfaceData> interfaces_;
 
 public:
     //- Runtime type information

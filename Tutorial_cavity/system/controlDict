@@ -99,8 +99,26 @@ functions
 
         participant Fluid;
 
-        readData    (Displacement, data2, data3);
-        writeData   (Force, data4);
+        interfaces
+        {
+            Interface1
+            {
+                mesh        Fluid-Mesh-Nodes;
+                patches     (interface);
+                locations   faceNodes;
+                readData    (Displacement0);
+                writeData   ();
+            }
+
+            Interface2
+            {
+                mesh        Fluid-Mesh-Faces;
+                patches     (interface);
+                locations   faceCenters;
+                readData    ();
+                writeData   (Force0);
+            }
+        }
 
     }
 
