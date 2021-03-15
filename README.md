@@ -17,8 +17,7 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
     1. Add Path of the **co_sim_io.hpp** ($HOME/CoSimIO) into your include path.
     2. Go to the folder .../Tutorial_cavity (https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/tree/main/Tutorial_cavity)
     3. Go to SuperUser: *sudo -E bash*
-    4. *g++ trial_exporting_data_using_CoSimIO.cpp -o export*
-    5. *g++ trial_importing_data_using_CoSimIO.cpp -o import*
+    4. *g++ trial_export_import_data_using_CoSimIO.cpp -o export_import*
 
 2. **To run the first tutorial case:**
     1. Go to the folder .../Tutorial_cavity (https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/tree/main/Tutorial_cavity)
@@ -26,5 +25,4 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
     3. *blockMesh*
     4. *icoFoam*
     5. Simultaneously open another terminal to export and import data in OpenFoam using CoSimIO:
-        1. *./export*
-        2. *./import*
+        1. *./export_import*
