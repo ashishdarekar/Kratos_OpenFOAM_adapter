@@ -24,15 +24,15 @@ Description
 
 Usage
     \table
-        Property            | Description                                                           | Required | Default value
-        type                | type name: KratosOpenfoamAdapterFunctionObject                        | yes      |
-        my_name             | Name of the participant                                               | no       | Fluid
-        interfaces          | To save the coupling interfaces(Each interface is a subdirectory)     | yes      |
-        mesh                | Name of the coupling mesh                                             | yes      |
+        Property            | Description                                                                   | Required | Default value
+        type                | type name: KratosOpenfoamAdapterFunctionObject                                | yes      |
+        my_name             | Name of the participant                                                       | no       | Fluid
+        interfaces          | To save the coupling interfaces(Each interface is a subdirectory)             | yes      |
+        mesh                | Name of the coupling mesh                                                     | yes      |
         patches             | WordList of the openFOAM patches which contain the coupling faces
-        locations           | Name of the location in mesh to get the required data                 | yes      | faceCenter
-        readData            | WordList of the variables to Read by OpenFOAM                         | yes      |
-        writeData           | WordList of the variables to write by OpenFOAM                        | yes      |
+        locations           | Name of the location in mesh to get the required data (faceCenter/facenode)   | yes      | faceCenter
+        readData            | WordList of the variables to Read by OpenFOAM                                 | yes      |
+        writeData           | WordList of the variables to write by OpenFOAM                                | yes      |
     \endtable
 
 SourceFiles
@@ -82,6 +82,7 @@ private:
 
     //- Adapter's main class instance
     //- CoSimulationAdapter CoSimulationAdapter_;
+
     //- Member variables required for CoSimIO
     std::string connection_name;
 
@@ -140,13 +141,13 @@ public:
 
     // Member Functions
 
-        //- Read the data/after each change
+        //- Read the data/after each change and connection with CoSimIO
         virtual bool read(const dictionary&);
 
-        //- Execute, currently does nothing
+        //- Execute, Exchaging required data on the coupling interfaces
         virtual bool execute();
 
-        //- Execute at the final time-loop, currently does nothing
+        //- Execute at the final time-loop/ Disconection from CoSimIO
         virtual bool end();
 
         //- Write data after each loop??
