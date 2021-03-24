@@ -49,6 +49,11 @@ using namespace std;
 
 // OpenFOAM header files
 #include "fvMeshFunctionObject.H"
+#include "Time.H"
+#include "fvMesh.H"
+#include "volFields.H"
+#include "addToRunTimeSelectionTable.H"
+#include "IOstreams.H" //Useful for IO operations
 
 // Main adapter header files
 // #include "CoSimulationAdapter.H"
@@ -85,6 +90,9 @@ private:
 
     //- Member variables required for CoSimIO
     std::string connection_name;
+
+    //- Member for OpenFOAM
+    int time_step = 0 ;
 
     // Private Member Functions
 

@@ -9,12 +9,6 @@ Sourcefile for the KratosOpenfoamAdpterFunctionObject.H
 
 #include "KratosOpenfoamAdapterFunctionObject.H"
 
-// OpenFOAM header files
-#include "Time.H"
-#include "fvMesh.H"
-#include "addToRunTimeSelectionTable.H"
-#include "IOstreams.H" //Useful for IO operations
-
 // * * * * * * * * * * * * * * Static Data Members * * * * * * * * * * * * * //
 
 namespace Foam
@@ -24,7 +18,7 @@ namespace functionObjects
     defineTypeNameAndDebug(KratosOpenfoamAdapterFunctionObject, 0);
     addToRunTimeSelectionTable(functionObject, KratosOpenfoamAdapterFunctionObject, dictionary);
 }
-}
+
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
 
@@ -61,8 +55,16 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
     fvMeshFunctionObject::read(dict);
 
     my_name = dict.lookupOrDefault<word>("participant", "fluid");
-
     std::cout<< "Name of the participant is: " << my_name <<std::endl;
+
+    //Check the total number of registered objects in the PolyMesh Object Registry related to Given Solver
+    std::cout<< "Name of all registered objects in Foam::PolyMesh object Registry are:" << std::endl;
+    Foam::wordList Objectnames_ = mesh_.names(); //List of all Objects in the polymesh class::mesh_object
+    forAll(Objectnames_,i)
+    {
+        std::cout << Objectnames_[i] << ", ";
+    }
+    std::cout<<"\n";
 
     // Every interface is a subdictionary of "interfaces",
     // each with an arbitrary name. Read all of them and create a list of dictionaries.
@@ -113,7 +115,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 
     std::cout << "Interfaces Reading: Done" << std::endl;
 
-    //Importing data at the beginning from Kratos Cosimulation using CoSimIO
+    //Connection between OpneFOAM and Kratos-CoSimulation using CoSimIO
     CoSimIO::Info settings;
     CoSimIO::Info connect_info;
     settings.Set("my_name", "Openfoam_adapter");
@@ -125,7 +127,8 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
     COSIMIO_CHECK_EQUAL(connect_info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Connected);
     connection_name = connect_info.Get<std::string>("connection_name");
 
-    std::vector<double> receive_data;
+    //Importing data at the beginning from Kratos Cosimulation using CoSimIO
+/*     std::vector<double> receive_data;
     connect_info.Clear();
     connect_info.Set("identifier", "vector_of_pi");
     connect_info.Set("connection_name", connection_name);
@@ -135,7 +138,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
     {
         std::cout<< value << std::endl;
         COSIMIO_CHECK_EQUAL(value, 3.14);
-    }
+    } */
 
     return true;
 }
@@ -144,6 +147,48 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 {
     //CoSimulationAdapter_.execute();
+
+    //Currently only sending Data at time = 0.5
+    if(time_step == 10)
+    {
+        std::cout << "CoSimulation Adapter's function object : execution()" << std::endl;
+
+        //pressure Data values in the simulation
+        if(mesh_.foundObject<volScalarField>("p"))
+        {
+            std::cout<< "Pressure field is found" << std::endl;
+
+            const volScalarField& pressure_ = mesh_.lookupObject<volScalarField>("p");
+            std::cout<< "Size of the array is " << pressure_.size() << std::endl;
+
+            //Export this pressure arrat to CoSimulation
+            CoSimIO::Info connect_info;
+            connect_info.Clear();
+            connect_info.Set("identifier", "pressure_values");
+            connect_info.Set("connection_name", connection_name);
+            connect_info = CoSimIO::ExportData(connect_info, pressure_);
+
+/*             forAll(pressure_, i)
+            {
+                std::cout << pressure_[i] << std::endl;
+            } */
+        }
+
+        //Velocity Data values in the simulation
+/*         if(mesh_.foundObject<volVectorField>("U"))
+        {
+            std::cout<< "Velocity field is found" << std::endl;
+
+            const volVectorField& velocity_ = mesh_.lookupObject<volVectorField>("U");
+            std::cout<< "Size of the array is " << velocity_.size() << std::endl;
+            forAll(velocity_, i)
+            {
+                std::cout << "(" << velocity_[i][1] <<  "," << velocity_[i][2] << "," << velocity_[i][3] << ")" << std::endl;
+            }
+        } */
+    }
+
+    time_step++;
 
     return true;
 }
@@ -157,17 +202,19 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::end()
     std::cout << "CoSimulation Adapter's function object : end()" << std::endl;
 
     //Exporting the dummy vector data from OpenFOAM to the CoSimulation using CoSimIO
-    std::vector<double> data_to_send(4,3.14);
+/*     std::vector<double> data_to_send(4,3.14);
     CoSimIO::Info connect_info;
     connect_info.Clear();
     connect_info.Set("identifier", "vector_of_pi");
     connect_info.Set("connection_name", connection_name);
-    connect_info = CoSimIO::ExportData(connect_info, data_to_send);
+    connect_info = CoSimIO::ExportData(connect_info, data_to_send); */
 
+    //DisConnection between OpneFOAM and Kratos-CoSimulation using CoSimIO
+    CoSimIO::Info connect_info;
     CoSimIO::Info disconnect_settings;
     disconnect_settings.Set("connection_name", connection_name);
     connect_info = CoSimIO::Disconnect(disconnect_settings); // disconnect afterwards
-    COSIMIO_CHECK_EQUAL(connect_info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Disconnected);
+    //COSIMIO_CHECK_EQUAL(connect_info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Disconnected);
 
     return true;
 }
@@ -180,5 +227,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::write()
 
     return true;
 }
+
+}//namespace Foam
 
 // ************************************************************************* //
