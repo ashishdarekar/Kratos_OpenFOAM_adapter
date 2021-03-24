@@ -117,13 +117,13 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 
     //Connection between OpneFOAM and Kratos-CoSimulation using CoSimIO
     CoSimIO::Info settings;
-    CoSimIO::Info connect_info;
+    //CoSimIO::Info connect_info;
     settings.Set("my_name", "Openfoam_adapter");
     settings.Set("connect_to", "Kratos_CoSimulation");
     settings.Set("echo_level", 1);
     settings.Set("version", "1.25");
 
-    connect_info = CoSimIO::Connect(settings);
+    auto connect_info = CoSimIO::Connect(settings);
     COSIMIO_CHECK_EQUAL(connect_info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Connected);
     connection_name = connect_info.Get<std::string>("connection_name");
 
@@ -148,8 +148,8 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 {
     //CoSimulationAdapter_.execute();
 
-    //Currently only sending Data at time = 0.5
-    if(time_step == 10)
+    //Currently, exporting Data on 3rd timestep
+    if(time_step == 3)
     {
         std::cout << "CoSimulation Adapter's function object : execution()" << std::endl;
 
@@ -161,21 +161,28 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
             const volScalarField& pressure_ = mesh_.lookupObject<volScalarField>("p");
             std::cout<< "Size of the array is " << pressure_.size() << std::endl;
 
+            std::vector<double> data_to_send;
+            data_to_send.resize(pressure_.size());
+
+            forAll(pressure_, i)
+            {
+                std::cout << pressure_[i] << std::endl;
+                data_to_send[i] = pressure_[i];
+            }
+
             //Export this pressure arrat to CoSimulation
             CoSimIO::Info connect_info;
             connect_info.Clear();
             connect_info.Set("identifier", "pressure_values");
             connect_info.Set("connection_name", connection_name);
-            connect_info = CoSimIO::ExportData(connect_info, pressure_);
+            connect_info = CoSimIO::ExportData(connect_info, data_to_send);
 
-/*             forAll(pressure_, i)
-            {
-                std::cout << pressure_[i] << std::endl;
-            } */
+            std::cout<< "Data has been exported from OpenFOAM to CoSimulation" <<std::endl;
+
         }
 
-        //Velocity Data values in the simulation
-/*         if(mesh_.foundObject<volVectorField>("U"))
+        /*//Velocity Data values in the simulation
+         if(mesh_.foundObject<volVectorField>("U"))
         {
             std::cout<< "Velocity field is found" << std::endl;
 
@@ -185,7 +192,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
             {
                 std::cout << "(" << velocity_[i][1] <<  "," << velocity_[i][2] << "," << velocity_[i][3] << ")" << std::endl;
             }
-        } */
+        }*/
     }
 
     time_step++;

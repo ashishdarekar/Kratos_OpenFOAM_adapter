@@ -39,6 +39,8 @@ int main()
     info.Set("connection_name", connection_name);
     info = CoSimIO::ImportData(info, receive_data);
 
+    std::cout<< "Data Received from OpneFOAM:" << std::endl;
+
     for(auto& value : receive_data){
         std::cout<< value << std::endl;
         //COSIMIO_CHECK_EQUAL(value, 3.14);
