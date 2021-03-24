@@ -53,45 +53,6 @@ functions
     //    libs ("libfieldFunctionObjects.so");
     //}
 
-    fieldMinMax1
-    {
-        type                fieldMinMax;
-        functionObjectLibs  ("libfieldFunctionObjects.so");
-
-        write       yes;
-        log         yes;
-        location    yes;
-        mode        magnitude;
-        fields
-        (
-            U
-        );
-    }
-
-    fieldAverage1
-    {
-        type            fieldAverage;
-        libs            ("libfieldFunctionObjects.so");
-        writeControl    writeTime;
-
-        fields
-        (
-            U
-            {
-                mean        on;
-                prime2Mean  on;
-                base        time;
-            }
-
-            p
-            {
-                mean        on;
-                prime2Mean  on;
-                base        time;
-            }
-        );
-    }
-
     KratosOpenfoamAdapterFunctionObject1
     {
         type KratosOpenfoamAdapterFunctionObject;
