@@ -221,7 +221,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::end()
     CoSimIO::Info disconnect_settings;
     disconnect_settings.Set("connection_name", connection_name);
     connect_info = CoSimIO::Disconnect(disconnect_settings); // disconnect afterwards
-    //COSIMIO_CHECK_EQUAL(connect_info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Disconnected);
+    COSIMIO_CHECK_EQUAL(connect_info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Disconnected);
 
     return true;
 }
