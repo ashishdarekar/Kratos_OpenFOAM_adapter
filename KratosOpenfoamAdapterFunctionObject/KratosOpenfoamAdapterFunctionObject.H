@@ -158,7 +158,7 @@ public:
         //- Execute at the final time-loop/ Disconection from CoSimIO
         virtual bool end();
 
-        //- Write data after each loop??
+        //- Write data after each loop??/ Currently not doing anything
         virtual bool write();
 };
 

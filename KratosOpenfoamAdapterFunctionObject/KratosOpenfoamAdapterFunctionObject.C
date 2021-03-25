@@ -117,7 +117,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 
     //Connection between OpneFOAM and Kratos-CoSimulation using CoSimIO
     CoSimIO::Info settings;
-    //CoSimIO::Info connect_info;
     settings.Set("my_name", "Openfoam_adapter");
     settings.Set("connect_to", "Kratos_CoSimulation");
     settings.Set("echo_level", 1);
@@ -126,19 +125,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
     auto connect_info = CoSimIO::Connect(settings);
     COSIMIO_CHECK_EQUAL(connect_info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Connected);
     connection_name = connect_info.Get<std::string>("connection_name");
-
-    //Importing data at the beginning from Kratos Cosimulation using CoSimIO
-/*     std::vector<double> receive_data;
-    connect_info.Clear();
-    connect_info.Set("identifier", "vector_of_pi");
-    connect_info.Set("connection_name", connection_name);
-    connect_info = CoSimIO::ImportData(connect_info, receive_data);
-
-    for(auto& value : receive_data)
-    {
-        std::cout<< value << std::endl;
-        COSIMIO_CHECK_EQUAL(value, 3.14);
-    } */
 
     return true;
 }
@@ -207,14 +193,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::end()
     //CoSimulationAdapter_.end();
 
     std::cout << "CoSimulation Adapter's function object : end()" << std::endl;
-
-    //Exporting the dummy vector data from OpenFOAM to the CoSimulation using CoSimIO
-/*     std::vector<double> data_to_send(4,3.14);
-    CoSimIO::Info connect_info;
-    connect_info.Clear();
-    connect_info.Set("identifier", "vector_of_pi");
-    connect_info.Set("connection_name", connection_name);
-    connect_info = CoSimIO::ExportData(connect_info, data_to_send); */
 
     //DisConnection between OpneFOAM and Kratos-CoSimulation using CoSimIO
     CoSimIO::Info connect_info;
