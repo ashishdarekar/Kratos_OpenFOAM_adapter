@@ -23,13 +23,25 @@ int main()
     COSIMIO_CHECK_EQUAL(info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Connected);
     const std::string connection_name = info.Get<std::string>("connection_name");
 
-    // ************ Exporting Data ******************//
-/*     std::cout << "CoSimIO is tyring to Export the data" << std::endl;
-    std::vector<double> data_to_send(4,3.14);
-    info.Clear();
-    info.Set("identifier", "vector_of_pi");
-    info.Set("connection_name", connection_name);
-    info = CoSimIO::ExportData(info, data_to_send); */
+    // *********** Import Mesh **************//
+    std::cout << "Importing All interface meshes: Start" << std::endl;
+    std::vector<std::unique_ptr<CoSimIO::ModelPart>> model_part_interfaces_;
+    int num_interfaces_ = 2 ; //We need to transfer this data as well to CoSimulation
+
+    for(std::size_t j=0; j < num_interfaces_; j++)
+    {
+        std::string interface_name = "interface" + std::to_string(j+1);
+        model_part_interfaces_.push_back(CoSimIO::make_unique<CoSimIO::ModelPart>(interface_name));
+
+        info.Clear();
+        info.Set("identifier", "fluid_mesh");
+        info.Set("connection_name", connection_name); // connection_name is obtained from calling "Connect"
+
+        auto import_info = CoSimIO::ImportMesh(info, *model_part_interfaces_.at(j));
+
+        std::cout << "Name of the imported mesh is " << model_part_interfaces_.at(j)->Name() << std::endl;
+    }
+    std::cout << "Importing All interface meshes: Done" << std::endl;
 
     // ************ Importing Data ******************//
     std::cout << "CoSimIO is tyring to Import the data" << std::endl;
@@ -42,7 +54,7 @@ int main()
     std::cout<< "Data Received from OpneFOAM:" << std::endl;
 
     for(auto& value : receive_data){
-        std::cout<< value << std::endl;
+        //std::cout<< value << std::endl;
         //COSIMIO_CHECK_EQUAL(value, 3.14);
     }
 
