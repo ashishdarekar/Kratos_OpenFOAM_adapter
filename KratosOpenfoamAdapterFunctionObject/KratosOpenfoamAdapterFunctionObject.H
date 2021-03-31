@@ -92,7 +92,8 @@ private:
     std::string connection_name;
 
     //- Member for OpenFOAM
-    int time_step = 0 ;
+    std::size_t time_step_ = 0 ;
+    std::size_t num_interfaces_ = 0;
 
     // Private Member Functions
 
@@ -129,6 +130,10 @@ protected:
 
         //Array of strctures to save all interfaces
         std::vector<struct InterfaceData> interfaces_;
+
+        //Array of CoSimIO::Model parts for all coupling interfaces
+        //std::vector<CoSimIO::ModelPart> model_part_interfaces_;
+        std::vector<std::unique_ptr<CoSimIO::ModelPart>> model_part_interfaces_;
 
 public:
     //- Runtime type information

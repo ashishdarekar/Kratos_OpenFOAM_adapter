@@ -109,11 +109,14 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 
                 //Add this interface in the Array of all interfaces
                 interfaces_.push_back(interfacedata);
+
+                num_interfaces_++;
             }
         }
     }
 
     std::cout << "Interfaces Reading: Done" << std::endl;
+    std::cout << "Number of interfaces found: " << num_interfaces_<< std::endl;
 
     //Connection between OpneFOAM and Kratos-CoSimulation using CoSimIO
     CoSimIO::Info settings;
@@ -126,6 +129,31 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
     COSIMIO_CHECK_EQUAL(connect_info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Connected);
     connection_name = connect_info.Get<std::string>("connection_name");
 
+    //*********************** Export Fluid-OpenFOAM Mesh to CoSimulation using CoSimIO *********************//
+    //Create one CoSimIO::ModelPart for each coupling interface
+
+    std::cout << "Exporting Mesh: Start" << std::endl;
+
+    for(std::size_t j=0; j < num_interfaces_; j++)
+    {
+        std::string interface_name = "interface" + std::to_string(j+1);
+
+        //model_part_interfaces_.push_back(CoSimIO::ModelPart(interface_name));
+        model_part_interfaces_.push_back(CoSimIO::make_unique<CoSimIO::ModelPart>(interface_name));
+
+        std::cout<< "name of the model part: " << model_part_interfaces_.at(j)->Name() << std::endl;
+
+        //Create a mesh as a ModelPart
+
+        //Import mesh to Cosimulation using CoSimIO
+        CoSimIO::Info info;
+        info.Clear();
+        info.Set("identifier", "fluid_mesh");
+        info.Set("connection_name", connection_name);
+        auto export_info = CoSimIO::ExportMesh(info, *model_part_interfaces_.at(j));
+    }
+    std::cout << "Exporting Mesh: Done" << std::endl;
+
     return true;
 }
 
@@ -135,7 +163,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
     //CoSimulationAdapter_.execute();
 
     //Currently, exporting Data on 3rd timestep
-    if(time_step == 3)
+    if(time_step_ == 3)
     {
         std::cout << "CoSimulation Adapter's function object : execution()" << std::endl;
 
@@ -152,7 +180,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 
             forAll(pressure_, i)
             {
-                std::cout << pressure_[i] << std::endl;
+                //std::cout << pressure_[i] << std::endl;
                 data_to_send[i] = pressure_[i];
             }
 
@@ -181,7 +209,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         }*/
     }
 
-    time_step++;
+    time_step_++;
 
     return true;
 }
