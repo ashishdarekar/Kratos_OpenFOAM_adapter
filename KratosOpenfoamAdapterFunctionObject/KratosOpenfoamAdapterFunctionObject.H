@@ -95,6 +95,8 @@ private:
     std::size_t time_step_ = 0 ;
     std::size_t num_interfaces_ = 0;
 
+    int dim = 3; //Dimension of the problem, need to check how we can get this?
+
     // Private Member Functions
 
         //- Disallow default bitwise copy construct

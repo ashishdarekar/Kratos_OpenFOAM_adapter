@@ -143,7 +143,97 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 
         std::cout<< "name of the model part: " << model_part_interfaces_.at(j)->Name() << std::endl;
 
-        //Create a mesh as a ModelPart
+        // **************************Create a mesh as a ModelPart********************************//
+        std::cout << "Creating Mesh as a ModelPart: Start" << std::endl;
+        std::vector<int> patchIDs;
+        uint numDataLocations = 0;
+
+        // For every patch that participates in the coupling
+        for (uint i = 0; i < interfaces_.at(j).patchNames.size(); i++)
+        {
+            // Get the patchID
+            int patchID = mesh_.boundaryMesh().findPatchID((interfaces_.at(j).patchNames).at(i));
+
+            // Throw an error if the patch was not found
+            if (patchID == -1)
+            {
+                std::cout<< "ERROR: Patch " << (interfaces_.at(j).patchNames).at(i) << " does not exist." << std::endl;
+            }
+
+        // Add the patch in the list
+        patchIDs.push_back(patchID);
+        }
+
+        if( interfaces_.at(j).locationsType == "faceCenters" )
+        {
+            // Count the data locations for all the patches
+            for (uint i = 0; i < patchIDs.size(); i++)
+            {
+                numDataLocations += mesh_.boundaryMesh()[patchIDs.at(i)].faceCentres().size();
+            }
+            std::cout << "Number of face centres: " << numDataLocations << std::endl;
+
+            // Array of the indices of the mesh vertices. Each vertex has one index, but three coordinates.
+            int * vertexIDs;
+            vertexIDs = new int[numDataLocations];
+
+            // Get the locations of the mesh vertices (here: face centers), for all the patches
+            for (uint i = 0; i < patchIDs.size(); i++)
+            {
+                // Get the face centers of the current patch
+                const vectorField faceCenters = mesh_.boundaryMesh()[patchIDs.at(i)].faceCentres();
+
+                //-Make CoSimIO Nodes
+                for(uint k = 0; k< numDataLocations; k++)
+                {
+                    vertexIDs[k] = k+1;
+                    CoSimIO::Node& node = model_part_interfaces_.at(j)->CreateNewNode( vertexIDs[k], faceCenters[k].x(), faceCenters[k].y(), faceCenters[k].z());
+                    if(vertexIDs[k] == 3)//testing
+                    {
+                        std::cout << "Coordinates of node with Id 3 in interface2 are: (" << faceCenters[k].x() << "," << faceCenters[k].y()
+                                                                                             << "," << faceCenters[k].z() << ")." << std::endl;
+                    }
+                }
+                //-Make CoSimIO Elements
+            }
+        }
+        else if( interfaces_.at(j).locationsType == "faceNodes" )
+        {
+            // Count the data locations for all the patches
+            for (uint i = 0; i < patchIDs.size(); i++)
+            {
+                numDataLocations += mesh_.boundaryMesh()[patchIDs.at(i)].faceCentres().size();
+            }
+            std::cout << "Number of face Nodes: " << numDataLocations << std::endl;
+
+            // Array of the indices of the mesh vertices. Each vertex has one index, but three coordinates.
+            int * vertexIDs;
+            vertexIDs = new int[numDataLocations];
+
+            // Get the locations of the mesh vertices (here: face centers), for all the patches
+            for (uint i = 0; i < patchIDs.size(); i++)
+            {
+                // Get the face centers of the current patch
+                const pointField faceNodes = mesh_.boundaryMesh()[patchIDs.at(i)].localPoints();
+
+                //-Make CoSimIO Nodes
+                for(uint k = 0; k< numDataLocations; k++)
+                {
+                    vertexIDs[k] = k+1;
+                    CoSimIO::Node& node = model_part_interfaces_.at(j)->CreateNewNode( vertexIDs[k], faceNodes[k].x(), faceNodes[k].y(), faceNodes[k].z());
+                    if(vertexIDs[k] == 3)//testing
+                    {
+                        std::cout << "Coordinates of node with Id 3 in interface1 are: (" << faceNodes[k].x() << "," << faceNodes[k].y()
+                                                                                             << "," << faceNodes[k].z() << ")." << std::endl;
+                    }
+                }
+                //-Make CoSimIO Elements
+
+            }
+        }
+
+        std::cout << "Creating Mesh as a ModelPart: Done" << std::endl;
+        // **************************Done: Create a mesh as a ModelPart********************************//
 
         //Import mesh to Cosimulation using CoSimIO
         CoSimIO::Info info;
@@ -152,6 +242,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         info.Set("connection_name", connection_name);
         auto export_info = CoSimIO::ExportMesh(info, *model_part_interfaces_.at(j));
     }
+
     std::cout << "Exporting Mesh: Done" << std::endl;
 
     return true;

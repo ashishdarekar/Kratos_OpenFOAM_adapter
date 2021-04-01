@@ -43,6 +43,12 @@ int main()
     }
     std::cout << "Importing All interface meshes: Done" << std::endl;
 
+    //Checking the nodal data of received meshes
+    std::cout << "Coordinates of node with Id 3 in interface1 are: (" << model_part_interfaces_.at(0)->GetNode(3).X() << "," << model_part_interfaces_.at(0)->GetNode(3).Y()
+    << "," << model_part_interfaces_.at(0)->GetNode(3).Z() << ")." << std::endl;
+    std::cout << "Coordinates of node with Id 3 in interface2 are: (" << model_part_interfaces_.at(1)->GetNode(3).X() << "," << model_part_interfaces_.at(1)->GetNode(3).Y()
+    << "," << model_part_interfaces_.at(1)->GetNode(3).Z() << ")." << std::endl;
+
     // ************ Importing Data ******************//
     std::cout << "CoSimIO is tyring to Import the data" << std::endl;
     std::vector<double> receive_data;

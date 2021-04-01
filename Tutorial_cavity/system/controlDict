@@ -65,7 +65,7 @@ functions
             Interface1
             {
                 mesh        Fluid-Mesh-Nodes;
-                patches     (interface);
+                patches     (frontAndBack);
                 locations   faceNodes;
                 readData    (Displacement0);
                 writeData   ();
@@ -74,7 +74,7 @@ functions
             Interface2
             {
                 mesh        Fluid-Mesh-Faces;
-                patches     (interface);
+                patches     (frontAndBack);
                 locations   faceCenters;
                 readData    ();
                 writeData   (Force0);
