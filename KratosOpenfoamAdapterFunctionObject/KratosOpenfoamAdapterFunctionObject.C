@@ -202,7 +202,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             // Count the data locations for all the patches
             for (uint i = 0; i < patchIDs.size(); i++)
             {
-                numDataLocations += mesh_.boundaryMesh()[patchIDs.at(i)].faceCentres().size();
+                numDataLocations += mesh_.boundaryMesh()[patchIDs.at(i)].localPoints().size();
             }
             std::cout << "Number of face Nodes: " << numDataLocations << std::endl;
 
