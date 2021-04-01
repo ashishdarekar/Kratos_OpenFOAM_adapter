@@ -131,7 +131,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 
     //*********************** Export Fluid-OpenFOAM Mesh to CoSimulation using CoSimIO *********************//
     //Create one CoSimIO::ModelPart for each coupling interface
-
     std::cout << "Exporting Mesh: Start" << std::endl;
 
     for(std::size_t j=0; j < num_interfaces_; j++)
@@ -146,7 +145,8 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         // **************************Create a mesh as a ModelPart********************************//
         std::cout << "Creating Mesh as a ModelPart: Start" << std::endl;
         std::vector<int> patchIDs;
-        uint numDataLocations = 0;
+        uint numNodes = 0;
+        uint numElements = 0;
 
         // For every patch that participates in the coupling
         for (uint i = 0; i < interfaces_.at(j).patchNames.size(); i++)
@@ -164,72 +164,46 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         patchIDs.push_back(patchID);
         }
 
-        if( interfaces_.at(j).locationsType == "faceCenters" )
+        // Count the Nodes for all the patches
+        for (uint i = 0; i < patchIDs.size(); i++)
         {
-            // Count the data locations for all the patches
-            for (uint i = 0; i < patchIDs.size(); i++)
+            numNodes += mesh_.boundaryMesh()[patchIDs.at(i)].localPoints().size();
+        }
+        std::cout << "Number of Nodes: " << numNodes << std::endl;
+
+        // Array of the indices of the Nodes. Each node has one index.
+        int * NodeIDs;
+        NodeIDs = new int[numNodes];
+
+        // Get the locations of the mesh vertices, for all the patches
+        for (uint i = 0; i < patchIDs.size(); i++)
+        {
+            // Get the face centers of the current patch
+            const pointField Nodes = mesh_.boundaryMesh()[patchIDs.at(i)].localPoints();
+
+            //-Make CoSimIO Nodes
+            for(uint k = 0; k< numNodes; k++)
             {
-                numDataLocations += mesh_.boundaryMesh()[patchIDs.at(i)].faceCentres().size();
-            }
-            std::cout << "Number of face centres: " << numDataLocations << std::endl;
-
-            // Array of the indices of the mesh vertices. Each vertex has one index, but three coordinates.
-            int * vertexIDs;
-            vertexIDs = new int[numDataLocations];
-
-            // Get the locations of the mesh vertices (here: face centers), for all the patches
-            for (uint i = 0; i < patchIDs.size(); i++)
-            {
-                // Get the face centers of the current patch
-                const vectorField faceCenters = mesh_.boundaryMesh()[patchIDs.at(i)].faceCentres();
-
-                //-Make CoSimIO Nodes
-                for(uint k = 0; k< numDataLocations; k++)
-                {
-                    vertexIDs[k] = k+1;
-                    CoSimIO::Node& node = model_part_interfaces_.at(j)->CreateNewNode( vertexIDs[k], faceCenters[k].x(), faceCenters[k].y(), faceCenters[k].z());
-                    if(vertexIDs[k] == 3)//testing
-                    {
-                        std::cout << "Coordinates of node with Id 3 in interface2 are: (" << faceCenters[k].x() << "," << faceCenters[k].y()
-                                                                                             << "," << faceCenters[k].z() << ")." << std::endl;
-                    }
-                }
-                //-Make CoSimIO Elements
+                NodeIDs[k] = k+1; //CoSimIO Starts with 1 while OpenFOAM starts with 0
+                CoSimIO::Node& node = model_part_interfaces_.at(j)->CreateNewNode( NodeIDs[k], Nodes[k].x(), Nodes[k].y(), Nodes[k].z());
             }
         }
-        else if( interfaces_.at(j).locationsType == "faceNodes" )
+
+        // Count the Elements for all the patches
+        for (uint i = 0; i < patchIDs.size(); i++)
         {
-            // Count the data locations for all the patches
-            for (uint i = 0; i < patchIDs.size(); i++)
-            {
-                numDataLocations += mesh_.boundaryMesh()[patchIDs.at(i)].localPoints().size();
-            }
-            std::cout << "Number of face Nodes: " << numDataLocations << std::endl;
+            numElements += mesh_.boundaryMesh()[patchIDs.at(i)].faceCentres().size();
+        }
+        std::cout << "Number of Elements: " << numElements << std::endl;
 
-            // Array of the indices of the mesh vertices. Each vertex has one index, but three coordinates.
-            int * vertexIDs;
-            vertexIDs = new int[numDataLocations];
-
-            // Get the locations of the mesh vertices (here: face centers), for all the patches
-            for (uint i = 0; i < patchIDs.size(); i++)
-            {
-                // Get the face centers of the current patch
-                const pointField faceNodes = mesh_.boundaryMesh()[patchIDs.at(i)].localPoints();
-
-                //-Make CoSimIO Nodes
-                for(uint k = 0; k< numDataLocations; k++)
-                {
-                    vertexIDs[k] = k+1;
-                    CoSimIO::Node& node = model_part_interfaces_.at(j)->CreateNewNode( vertexIDs[k], faceNodes[k].x(), faceNodes[k].y(), faceNodes[k].z());
-                    if(vertexIDs[k] == 3)//testing
-                    {
-                        std::cout << "Coordinates of node with Id 3 in interface1 are: (" << faceNodes[k].x() << "," << faceNodes[k].y()
-                                                                                             << "," << faceNodes[k].z() << ")." << std::endl;
-                    }
-                }
-                //-Make CoSimIO Elements
-
-            }
+        //-Make CoSimIO Elements
+        int * elem_IDs;
+        elem_IDs = new int[numElements];
+        for(uint k = 0; k< numElements; k++)
+        {
+            elem_IDs[k] = k+1;//CoSimIO Starts with 1 while OpenFOAM starts with 0
+            std::vector<CoSimIO::IdType> connectivity {NodeIDs[k], NodeIDs[k+1], NodeIDs[k+2], NodeIDs[k+3] }; //Ids of the nodes
+            CoSimIO::Element& element = model_part_interfaces_.at(j)->CreateNewElement( elem_IDs[k], CoSimIO::ElementType::Quadrilateral3D4, connectivity );
         }
 
         std::cout << "Creating Mesh as a ModelPart: Done" << std::endl;

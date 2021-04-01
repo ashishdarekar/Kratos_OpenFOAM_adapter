@@ -43,13 +43,23 @@ int main()
     }
     std::cout << "Importing All interface meshes: Done" << std::endl;
 
-    //Checking the nodal data of received meshes
+    //Checking the nodal coordinates of the received meshes
     for(int i=1; i<5; i++)
     {
         std::cout << "Coordinates of node with Id "<< i << " in interface1 are: (" << model_part_interfaces_.at(0)->GetNode(i).X() << "," << model_part_interfaces_.at(0)->GetNode(i).Y()
         << "," << model_part_interfaces_.at(0)->GetNode(i).Z() << ")." << std::endl;
+
         std::cout << "Coordinates of node with Id "<< i <<" in interface2 are: (" << model_part_interfaces_.at(1)->GetNode(i).X() << "," << model_part_interfaces_.at(1)->GetNode(i).Y()
         << "," << model_part_interfaces_.at(1)->GetNode(i).Z() << ")." << std::endl;
+    }
+
+    //Checking the Elements of the received meshes
+    for(int i=1; i<3; i++)
+    {
+        std::cout << "Element info in the interface1 is: ( " << model_part_interfaces_.at(0)->GetElement(i).Id() << ","
+        << model_part_interfaces_.at(0)->GetElement(i).NumberOfNodes() << ")" << std::endl;
+        std::cout << "Element info in the interface2 is: ( " << model_part_interfaces_.at(1)->GetElement(i).Id() << ","
+        << model_part_interfaces_.at(1)->GetElement(i).NumberOfNodes() << ")" << std::endl;
     }
 
     // ************ Importing Data ******************//
