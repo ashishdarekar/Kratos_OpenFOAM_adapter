@@ -42,6 +42,8 @@ Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::~KratosOpenfoamAdapt
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
+//const pointField& p = points();
+
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dictionary& dict)
 {
 
@@ -133,6 +135,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
     //Create one CoSimIO::ModelPart for each coupling interface
     std::cout << "Exporting Mesh: Start" << std::endl;
 
+
     for(std::size_t j=0; j < num_interfaces_; j++)
     {
         std::string interface_name = "interface" + std::to_string(j+1);
@@ -147,6 +150,89 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         std::vector<int> patchIDs;
         uint numNodes = 0;
         uint numElements = 0;
+        //int numCells = 0;
+
+        //******************Information about all cells/faces in the boundary patches *************************//
+        const pointField& p = mesh_.points();
+        const labelList& cellPts = mesh_.boundaryMesh()[1].localFaces()[0]; //for 1st cell
+        auto numfaces = mesh_.boundaryMesh()[1].localFaces();
+        std::cout<< typeid(numfaces).name()<< ", " << mesh_.boundaryMesh()[1].meshPoints().size() << "," << mesh_.boundaryMesh()[1].localFaces().size() << std::endl;
+        std::cout<< "Indexes of the nodes for face/cell-0 in this patch are :( " << numfaces[0][0] << "," << numfaces[0][1] <<"," << numfaces[0][2]<< "," << numfaces[0][3] <<" )"  << std::endl;
+        std::cout<< "Indexes of the nodes for face/cell-1 in this patch are :( " << numfaces[1][0] << "," << numfaces[1][1] <<"," << numfaces[1][2]<< "," << numfaces[1][3] <<" )"  << std::endl;
+        std::cout<< "Indexes of the nodes for face/cell-2 in this patch are :( " << numfaces[2][0] << "," << numfaces[2][1] <<"," << numfaces[2][2]<< "," << numfaces[2][3] <<" )"  << std::endl;
+        std::cout<< "Indexes of the nodes for face/cell-3 in this patch are :( " << numfaces[3][0] << "," << numfaces[3][1] <<"," << numfaces[3][2]<< "," << numfaces[3][3] <<" )"  << std::endl;
+        std::cout<< "Indexes of the nodes for face/cell-8 in this patch are :( " << numfaces[8][0] << "," << numfaces[8][1] <<"," << numfaces[8][2]<< "," << numfaces[8][3] <<" )"  << std::endl;
+        std::cout<< "Indexes of the nodes for face/cell-13 in this patch are :( " << numfaces[13][0] << "," << numfaces[13][1] <<"," << numfaces[13][2]<< "," << numfaces[13][3] <<" )"  << std::endl;
+        std::cout<< "Indexes of the nodes for face/cell-23 in this patch are :( " << numfaces[23][0] << "," << numfaces[23][1] <<"," << numfaces[23][2]<< "," << numfaces[23][3] <<" )"  << std::endl;
+        std::cout<< "Indexes of the nodes for face/cell-69 in this patch are :( " << numfaces[69][0] << "," << numfaces[69][1] <<"," << numfaces[69][2]<< "," << numfaces[69][3] <<" )"  << std::endl;
+
+
+        std::cout<< "Coordinates of the node-0 of the 1st face/cell are :( " << p[numfaces[0][0]][0] << "," << p[numfaces[0][0]][1] << "," << p[numfaces[0][0]][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-1 ot the 1st face/cell are :( " << p[numfaces[1][0]][0] << "," << p[numfaces[1][0]][1] << "," << p[numfaces[1][0]][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-2 ot the 1st face/cell are :( " << p[numfaces[2][0]][0] << "," << p[numfaces[2][0]][1] << "," << p[numfaces[2][0]][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-3 ot the 1st face/cell are :( " << p[numfaces[3][0]][0] << "," << p[numfaces[3][0]][1] << "," << p[numfaces[3][0]][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-0 of the 1st face/cell are :( " << p[numfaces[4][0]][0] << "," << p[numfaces[4][0]][1] << "," << p[numfaces[4][0]][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-1 ot the 1st face/cell are :( " << p[numfaces[5][0]][0] << "," << p[numfaces[5][0]][1] << "," << p[numfaces[5][0]][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-2 ot the 1st face/cell are :( " << p[numfaces[6][0]][0] << "," << p[numfaces[6][0]][1] << "," << p[numfaces[6][0]][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-3 ot the 1st face/cell are :( " << p[numfaces[7][0]][0] << "," << p[numfaces[7][0]][1] << "," << p[numfaces[7][0]][2] << " )" << std::endl;
+
+
+        std::cout<< "Coordinates of the node-0 of the 1st face/cell are :( " << p[cellPts[0]][0] << "," << p[cellPts[0]][1] << "," << p[cellPts[0]][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-1 ot the 1st face/cell are :( " << p[cellPts[1]][0] << "," << p[cellPts[1]][1] << "," << p[cellPts[1]][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-2 ot the 1st face/cell are :( " << p[cellPts[2]][0] << "," << p[cellPts[2]][1] << "," << p[cellPts[2]][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-3 ot the 1st face/cell are :( " << p[cellPts[3]][0] << "," << p[cellPts[3]][1] << "," << p[cellPts[3]][2] << " )" << std::endl;
+
+
+        std::cout<< "Coordinates of the node-0 are :( " << mesh_.points()[0][0] << "," << mesh_.points()[0][1] << "," << mesh_.points()[0][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-1 are :( " << mesh_.points()[1][0] << "," << mesh_.points()[1][1] << "," << mesh_.points()[1][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-2 are :( " << mesh_.points()[2][0] << "," << mesh_.points()[2][1] << "," << mesh_.points()[2][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-3 are :( " << mesh_.points()[3][0] << "," << mesh_.points()[3][1] << "," << mesh_.points()[3][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-4 are :( " << mesh_.points()[4][0] << "," << mesh_.points()[4][1] << "," << mesh_.points()[4][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-5 are :( " << mesh_.points()[5][0] << "," << mesh_.points()[5][1] << "," << mesh_.points()[5][2] << " )" << std::endl;
+
+        std::cout<< "Coordinates of the node-0 are :( " << mesh_.boundaryMesh()[1].points()[0][0] << "," << mesh_.boundaryMesh()[1].points()[0][1] << "," << mesh_.boundaryMesh()[1].points()[0][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-1 are :( " << mesh_.boundaryMesh()[1].points()[1][0] << "," << mesh_.boundaryMesh()[1].points()[1][1] << "," << mesh_.boundaryMesh()[1].points()[1][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-2 are :( " << mesh_.boundaryMesh()[1].points()[2][0] << "," << mesh_.boundaryMesh()[1].points()[2][1] << "," << mesh_.boundaryMesh()[1].points()[2][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-3 are :( " << mesh_.boundaryMesh()[1].points()[3][0] << "," << mesh_.boundaryMesh()[1].points()[3][1] << "," << mesh_.boundaryMesh()[1].points()[3][2] << " )" << std::endl;
+
+        vector pointX(0,0,0);
+
+        forAll(mesh_.boundary(), patchID)
+        {
+            const word& patchName = mesh_.boundary()[patchID].name();
+            std::cout << "patchID: " << patchID << " with name "  << patchName << " With size = "<< mesh_.boundary()[patchID].size() << std::endl;
+
+            forAll (mesh_.boundary()[patchID],facei)
+            {
+                const label& faceID = mesh_.boundaryMesh()[patchID].start() + facei;
+                std::cout << "ID of this face: " << faceID << " Which face: "<< facei << std::endl;
+                forAll (mesh_.faces()[faceID], nodei)
+                {
+                    const label& nodeID = mesh_.faces()[faceID][nodei];
+                    pointX = mesh_.points()[nodeID];
+                    std::cout << "Node "<< nodei << " with Id=" << nodeID << ":" << pointX[0] << "," << pointX[1] << "," << pointX[2] << std::endl;
+                }
+            }
+        }
+
+
+        //******************Information about all cells in the domain/Internal Mesh *************************//
+        /* const pointField& p = mesh_.points();
+        auto numCells = mesh_.cellPoints()[0];
+        const labelList& cellPts = mesh_.cellPoints()[0];
+
+        std::cout<< typeid(numCells).name()<< ", " << mesh_.cellPoints().size() << std::endl;
+        std::cout<< "Indexes of the nodes for cell-0 are :( " << numCells[0] << "," << numCells[1] << "," << numCells[2] << "," << numCells[3] << "," << numCells[4] << "," << numCells[5] << "," << numCells[6] << "," << numCells[7] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-0 of that cell are :( " << p[cellPts[0]][0] << "," << p[cellPts[0]][1] << "," << p[cellPts[0]][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-1 ot that cell are :( " << p[cellPts[1]][0] << "," << p[cellPts[1]][1] << "," << p[cellPts[1]][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-2 ot that cell are :( " << p[cellPts[2]][0] << "," << p[cellPts[2]][1] << "," << p[cellPts[2]][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-3 ot that cell are :( " << p[cellPts[3]][0] << "," << p[cellPts[3]][1] << "," << p[cellPts[3]][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-4 ot that cell are :( " << p[cellPts[4]][0] << "," << p[cellPts[4]][1] << "," << p[cellPts[4]][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-5 ot that cell are :( " << p[cellPts[5]][0] << "," << p[cellPts[5]][1] << "," << p[cellPts[5]][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-4 ot that cell are :( " << p[cellPts[6]][0] << "," << p[cellPts[6]][1] << "," << p[cellPts[6]][2] << " )" << std::endl;
+        std::cout<< "Coordinates of the node-5 ot that cell are :( " << p[cellPts[7]][0] << "," << p[cellPts[7]][1] << "," << p[cellPts[7]][2] << " )" << std::endl;
+ */
+
 
         // For every patch that participates in the coupling
         for (uint i = 0; i < interfaces_.at(j).patchNames.size(); i++)
