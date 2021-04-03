@@ -43,24 +43,34 @@ int main()
     }
     std::cout << "Importing All interface meshes: Done" << std::endl;
 
+    // ****************************** Code to test the working of CosimIO::ImportMesh ***********************************************//
     //Checking the nodal coordinates of the received meshes
-    for(int i=1; i<5; i++)
+    for(int i=1; i<142; i++)
     {
         std::cout << "Coordinates of node with Id "<< i << " in interface1 are: (" << model_part_interfaces_.at(0)->GetNode(i).X() << "," << model_part_interfaces_.at(0)->GetNode(i).Y()
         << "," << model_part_interfaces_.at(0)->GetNode(i).Z() << ")." << std::endl;
-
-        std::cout << "Coordinates of node with Id "<< i <<" in interface2 are: (" << model_part_interfaces_.at(1)->GetNode(i).X() << "," << model_part_interfaces_.at(1)->GetNode(i).Y()
-        << "," << model_part_interfaces_.at(1)->GetNode(i).Z() << ")." << std::endl;
     }
 
     //Checking the Elements of the received meshes
-    for(int i=1; i<3; i++)
+    for(int i=1; i<71; i+=10)
     {
-        std::cout << "Element info in the interface1 is: ( " << model_part_interfaces_.at(0)->GetElement(i).Id() << ","
-        << model_part_interfaces_.at(0)->GetElement(i).NumberOfNodes() << ")" << std::endl;
-        std::cout << "Element info in the interface2 is: ( " << model_part_interfaces_.at(1)->GetElement(i).Id() << ","
-        << model_part_interfaces_.at(1)->GetElement(i).NumberOfNodes() << ")" << std::endl;
+        CoSimIO::Element& element = model_part_interfaces_.at(0)->GetElement(i);
+        std::cout << "Element info in the interface1 is: ( Id= " << element.Id() << ", Number of Nodes = " << element.NumberOfNodes() << ")" << std::endl;
+
+        // access Id of element:
+        CoSimIO::IdType element_id = element.Id();
+        // the type can be accessed:
+        CoSimIO::ElementType element_type = element.Type(); // e.g. CoSimIO::ElementType::Point2D or CoSimIO::ElementType::Line2D2
+        std::cout << "Element Type:( " << typeid(element_type).name() << " )" << std::endl;
+
+        // iterate the nodes of the element:
+        for (auto node_it=element.NodesBegin(); node_it!=element.NodesEnd(); ++node_it)
+        {
+            CoSimIO::Node& node = **node_it;
+            std::cout << "Id:( " << node.X() << "," << node.Y() << "," << node.Z() << " )" << std::endl;
+        }
     }
+    // ****************************** Code to test the working of CosimIO::ImportMesh ***********************************************//
 
     // ************ Importing Data ******************//
     std::cout << "CoSimIO is tyring to Import the data" << std::endl;
