@@ -135,7 +135,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
     //Create one CoSimIO::ModelPart for each coupling interface
     std::cout << "Exporting Mesh: Start" << std::endl;
 
-
     for(std::size_t j=0; j < num_interfaces_; j++)
     {
         std::string interface_name = "interface" + std::to_string(j+1);
@@ -167,16 +166,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         patchIDs.push_back(patchID);
         }
 
-        std::cout<< "Moving wall patch Id: " << mesh_.boundaryMesh().findPatchID("movingWall")<< std::endl;
-
-        std::cout<< "fixed wall patch Id: "<< mesh_.boundaryMesh().findPatchID("fixedWalls")<< std::endl;
-
-        std::cout<< "front and back patch Id: "<< mesh_.boundaryMesh().findPatchID("frontAndBack")<< std::endl;
-
-        std::cout<< "internal mesh patch Id: "<< mesh_.boundaryMesh().findPatchID("internalMesh")<< std::endl;
-
-        std::cout<< "ashish patch Id: "<< mesh_.boundaryMesh().findPatchID("ashish")<< std::endl;
-
         // Count the Nodes for all the patches in that interface
         for (uint i = 0; i < patchIDs.size(); i++)
         {
@@ -191,64 +180,16 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         }
         std::cout << "Number of Elements: " << numElements << std::endl;
 
-        //******************Information about all cells/faces in the boundary patches *************************//
-        /* const pointField& p = mesh_.points();
-        const labelList& cellPts = mesh_.boundaryMesh()[1].localFaces()[0]; //for 1st cell
-        auto numfaces = mesh_.boundaryMesh()[1].localFaces();
-        std::cout<< typeid(numfaces).name()<< ", " << mesh_.boundaryMesh()[1].meshPoints().size() << "," << mesh_.boundaryMesh()[1].localFaces().size() << std::endl;
-        std::cout<< "Indexes of the nodes for face/cell-0 in this patch are :( " << numfaces[0][0] << "," << numfaces[0][1] <<"," << numfaces[0][2]<< "," << numfaces[0][3] <<" )"  << std::endl;
-        std::cout<< "Indexes of the nodes for face/cell-1 in this patch are :( " << numfaces[1][0] << "," << numfaces[1][1] <<"," << numfaces[1][2]<< "," << numfaces[1][3] <<" )"  << std::endl;
-        std::cout<< "Indexes of the nodes for face/cell-2 in this patch are :( " << numfaces[2][0] << "," << numfaces[2][1] <<"," << numfaces[2][2]<< "," << numfaces[2][3] <<" )"  << std::endl;
-        std::cout<< "Indexes of the nodes for face/cell-3 in this patch are :( " << numfaces[3][0] << "," << numfaces[3][1] <<"," << numfaces[3][2]<< "," << numfaces[3][3] <<" )"  << std::endl;
-        std::cout<< "Indexes of the nodes for face/cell-8 in this patch are :( " << numfaces[8][0] << "," << numfaces[8][1] <<"," << numfaces[8][2]<< "," << numfaces[8][3] <<" )"  << std::endl;
-        std::cout<< "Indexes of the nodes for face/cell-13 in this patch are :( " << numfaces[13][0] << "," << numfaces[13][1] <<"," << numfaces[13][2]<< "," << numfaces[13][3] <<" )"  << std::endl;
-        std::cout<< "Indexes of the nodes for face/cell-23 in this patch are :( " << numfaces[23][0] << "," << numfaces[23][1] <<"," << numfaces[23][2]<< "," << numfaces[23][3] <<" )"  << std::endl;
-        std::cout<< "Indexes of the nodes for face/cell-69 in this patch are :( " << numfaces[69][0] << "," << numfaces[69][1] <<"," << numfaces[69][2]<< "," << numfaces[69][3] <<" )"  << std::endl;
-
-
-        std::cout<< "Coordinates of the node-0 of the 1st face/cell are :( " << p[numfaces[0][0]][0] << "," << p[numfaces[0][0]][1] << "," << p[numfaces[0][0]][2] << " )" << std::endl;
-        std::cout<< "Coordinates of the node-1 ot the 1st face/cell are :( " << p[numfaces[1][0]][0] << "," << p[numfaces[1][0]][1] << "," << p[numfaces[1][0]][2] << " )" << std::endl;
-        std::cout<< "Coordinates of the node-2 ot the 1st face/cell are :( " << p[numfaces[2][0]][0] << "," << p[numfaces[2][0]][1] << "," << p[numfaces[2][0]][2] << " )" << std::endl;
-        std::cout<< "Coordinates of the node-3 ot the 1st face/cell are :( " << p[numfaces[3][0]][0] << "," << p[numfaces[3][0]][1] << "," << p[numfaces[3][0]][2] << " )" << std::endl;
-        std::cout<< "Coordinates of the node-0 of the 1st face/cell are :( " << p[numfaces[4][0]][0] << "," << p[numfaces[4][0]][1] << "," << p[numfaces[4][0]][2] << " )" << std::endl;
-        std::cout<< "Coordinates of the node-1 ot the 1st face/cell are :( " << p[numfaces[5][0]][0] << "," << p[numfaces[5][0]][1] << "," << p[numfaces[5][0]][2] << " )" << std::endl;
-        std::cout<< "Coordinates of the node-2 ot the 1st face/cell are :( " << p[numfaces[6][0]][0] << "," << p[numfaces[6][0]][1] << "," << p[numfaces[6][0]][2] << " )" << std::endl;
-        std::cout<< "Coordinates of the node-3 ot the 1st face/cell are :( " << p[numfaces[7][0]][0] << "," << p[numfaces[7][0]][1] << "," << p[numfaces[7][0]][2] << " )" << std::endl;
-
-
-        std::cout<< "Coordinates of the node-0 of the 1st face/cell are :( " << p[cellPts[0]][0] << "," << p[cellPts[0]][1] << "," << p[cellPts[0]][2] << " )" << std::endl;
-        std::cout<< "Coordinates of the node-1 ot the 1st face/cell are :( " << p[cellPts[1]][0] << "," << p[cellPts[1]][1] << "," << p[cellPts[1]][2] << " )" << std::endl;
-        std::cout<< "Coordinates of the node-2 ot the 1st face/cell are :( " << p[cellPts[2]][0] << "," << p[cellPts[2]][1] << "," << p[cellPts[2]][2] << " )" << std::endl;
-        std::cout<< "Coordinates of the node-3 ot the 1st face/cell are :( " << p[cellPts[3]][0] << "," << p[cellPts[3]][1] << "," << p[cellPts[3]][2] << " )" << std::endl;
-
-
-        std::cout<< "Coordinates of the node-0 are :( " << mesh_.points()[0][0] << "," << mesh_.points()[0][1] << "," << mesh_.points()[0][2] << " )" << std::endl;
-        std::cout<< "Coordinates of the node-1 are :( " << mesh_.points()[1][0] << "," << mesh_.points()[1][1] << "," << mesh_.points()[1][2] << " )" << std::endl;
-        std::cout<< "Coordinates of the node-2 are :( " << mesh_.points()[2][0] << "," << mesh_.points()[2][1] << "," << mesh_.points()[2][2] << " )" << std::endl;
-        std::cout<< "Coordinates of the node-3 are :( " << mesh_.points()[3][0] << "," << mesh_.points()[3][1] << "," << mesh_.points()[3][2] << " )" << std::endl;
-        std::cout<< "Coordinates of the node-4 are :( " << mesh_.points()[4][0] << "," << mesh_.points()[4][1] << "," << mesh_.points()[4][2] << " )" << std::endl;
-        std::cout<< "Coordinates of the node-5 are :( " << mesh_.points()[5][0] << "," << mesh_.points()[5][1] << "," << mesh_.points()[5][2] << " )" << std::endl;
-
-        std::cout<< "Coordinates of the node-0 are :( " << mesh_.boundaryMesh()[1].points()[0][0] << "," << mesh_.boundaryMesh()[1].points()[0][1] << "," << mesh_.boundaryMesh()[1].points()[0][2] << " )" << std::endl;
-        std::cout<< "Coordinates of the node-1 are :( " << mesh_.boundaryMesh()[1].points()[1][0] << "," << mesh_.boundaryMesh()[1].points()[1][1] << "," << mesh_.boundaryMesh()[1].points()[1][2] << " )" << std::endl;
-        std::cout<< "Coordinates of the node-2 are :( " << mesh_.boundaryMesh()[1].points()[2][0] << "," << mesh_.boundaryMesh()[1].points()[2][1] << "," << mesh_.boundaryMesh()[1].points()[2][2] << " )" << std::endl;
-        std::cout<< "Coordinates of the node-3 are :( " << mesh_.boundaryMesh()[1].points()[3][0] << "," << mesh_.boundaryMesh()[1].points()[3][1] << "," << mesh_.boundaryMesh()[1].points()[3][2] << " )" << std::endl;
- */
-        vector pointX(0,0,0);
-
-        //-For Our Nodes and Element IDs
-
-        //int * NodeIDs;
-        //NodeIDs = new int[numNodes];
+        //-For Nodes and Element IDs for CoSimIO
         std::vector<int> NodeIDs;
         NodeIDs.resize(numNodes);
         int nodeIndex = 1; //As Node indexing starts with 1 in CoSimIO
 
-        //int * elemIDs;
-        //elemIDs = new int[numElements];
         std::vector<int> ElemIDs;
         ElemIDs.resize(numElements);
-        int elemIndex = 1;
+        int elemIndex = 1; //As element indexing starts with 1 in CoSimIO
+
+        vector pointX(0,0,0); //For accessing the Co-ordinates of Nodes
 
         for(uint i = 0; i < patchIDs.size(); i++)
         {
@@ -266,63 +207,21 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                     pointX = mesh_.points()[nodeID];
                     std::cout << "Node "<< nodei << " with Id=" << nodeID << ":" << pointX[0] << "," << pointX[1] << "," << pointX[2] << std::endl;
                     //-Make CoSimIO Nodes
-                    //NodeIDs[nodeIndex++] = nodeID; //Later used to make CoSimIO::Element
-                    //CoSimIO::Node& node = model_part_interfaces_.at(j)->CreateNewNode( nodeID, pointX[0], pointX[1], pointX[2]);
-                    //connectivity.push_back(nodeID); //connectivity to make that element /face
                     NodeIDs.push_back(nodeIndex); //Later used to make CoSimIO::Element
                     CoSimIO::Node& node = model_part_interfaces_.at(j)->CreateNewNode( nodeIndex, pointX[0], pointX[1], pointX[2]);
                     connectivity.push_back(nodeIndex); //connectivity to make that element /face
                     nodeIndex++;
                 }
                 //-Make CoSimIO Element = currently hardcoded to make Quadrilateral3D4
-                //std::vector<CoSimIO::IdType> connectivity {NodeIDs[facei], NodeIDs[facei], NodeIDs[k+2], NodeIDs[k+3] }; //Ids of the nodes
-                //elemIDs[elemIndex++] = faceID; //Maybe useful
-                //CoSimIO::Element& element = model_part_interfaces_.at(j)->CreateNewElement( faceID, CoSimIO::ElementType::Quadrilateral3D4, connectivity );
                 ElemIDs.push_back(elemIndex); //Maybe useful
                 CoSimIO::Element& element = model_part_interfaces_.at(j)->CreateNewElement( elemIndex, CoSimIO::ElementType::Quadrilateral3D4, connectivity );
                 elemIndex++;
             }
         }
-
-        // Array of the indices of the Nodes. Each node has one index.
-/*         int * NodeIDs;
-        NodeIDs = new int[numNodes];
-
-        // Get the locations of the mesh vertices, for all the patches
-        for (uint i = 0; i < patchIDs.size(); i++)
-        {
-            // Get the face centers of the current patch
-            const pointField Nodes = mesh_.boundaryMesh()[patchIDs.at(i)].localPoints();
-
-            //-Make CoSimIO Nodes
-            for(uint k = 0; k< numNodes; k++)
-            {
-                NodeIDs[k] = k+1; //CoSimIO Starts with 1 while OpenFOAM starts with 0
-                CoSimIO::Node& node = model_part_interfaces_.at(j)->CreateNewNode( NodeIDs[k], Nodes[k].x(), Nodes[k].y(), Nodes[k].z());
-            }
-        }
-
-        // Count the Elements for all the patches
-        for (uint i = 0; i < patchIDs.size(); i++)
-        {
-            numElements += mesh_.boundaryMesh()[patchIDs.at(i)].faceCentres().size();
-        }
-        std::cout << "Number of Elements: " << numElements << std::endl;
-
-        //-Make CoSimIO Elements
-        int * elem_IDs;
-        elem_IDs = new int[numElements];
-        for(uint k = 0; k< numElements; k++)
-        {
-            elem_IDs[k] = k+1;//CoSimIO Starts with 1 while OpenFOAM starts with 0
-            std::vector<CoSimIO::IdType> connectivity {NodeIDs[k], NodeIDs[k+1], NodeIDs[k+2], NodeIDs[k+3] }; //Ids of the nodes
-            CoSimIO::Element& element = model_part_interfaces_.at(j)->CreateNewElement( elem_IDs[k], CoSimIO::ElementType::Quadrilateral3D4, connectivity );
-        }*/
-
         std::cout << "Creating Mesh as a ModelPart: Done" << std::endl;
         // **************************Done: Create a mesh as a ModelPart********************************//
 
-        //Import mesh to Cosimulation using CoSimIO
+        //Import InterfaceMesh/ModelPart to CoSimulation using CoSimIO
         CoSimIO::Info info;
         info.Clear();
         info.Set("identifier", "fluid_mesh");
