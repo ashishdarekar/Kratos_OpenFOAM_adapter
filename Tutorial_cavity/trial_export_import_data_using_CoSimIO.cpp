@@ -45,14 +45,14 @@ int main()
 
     // ****************************** Code to test the working of CosimIO::ImportMesh ***********************************************//
     //Checking the nodal coordinates of the received meshes
-    for(int i=1; i<142; i++)
+    for(int i=1; i<5; i++)
     {
         std::cout << "Coordinates of node with Id "<< i << " in interface1 are: (" << model_part_interfaces_.at(0)->GetNode(i).X() << "," << model_part_interfaces_.at(0)->GetNode(i).Y()
         << "," << model_part_interfaces_.at(0)->GetNode(i).Z() << ")." << std::endl;
     }
 
     //Checking the Elements of the received meshes
-    for(int i=1; i<71; i+=10)
+    for(int i=1; i<20; i+=2)
     {
         CoSimIO::Element& element = model_part_interfaces_.at(0)->GetElement(i);
         std::cout << "Element info in the interface1 is: ( Id= " << element.Id() << ", Number of Nodes = " << element.NumberOfNodes() << ")" << std::endl;
