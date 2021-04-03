@@ -133,7 +133,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 
     //*********************** Export Fluid-OpenFOAM Mesh to CoSimulation using CoSimIO *********************//
     //Create one CoSimIO::ModelPart for each coupling interface
-    std::cout << "Exporting Mesh: Start" << std::endl;
+    std::cout << "\n" <<"********************** Exporting InterfaceMesh using ModelPart: Start **********************" << "\n" <<std::endl;
 
     for(std::size_t j=0; j < num_interfaces_; j++)
     {
@@ -142,10 +142,10 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         //model_part_interfaces_.push_back(CoSimIO::ModelPart(interface_name));
         model_part_interfaces_.push_back(CoSimIO::make_unique<CoSimIO::ModelPart>(interface_name));
 
-        std::cout<< "name of the model part: " << model_part_interfaces_.at(j)->Name() << std::endl;
+        std::cout<< "Name of an Interface/model part: " << model_part_interfaces_.at(j)->Name() << std::endl;
 
         // **************************Create a mesh as a ModelPart********************************//
-        std::cout << "Creating Mesh as a ModelPart: Start" << std::endl;
+        std::cout << "Accessing Mesh from OpneFOAM" << std::endl;
         std::vector<int> patchIDs;
         uint numNodes = 0;
         uint numElements = 0;
@@ -171,14 +171,16 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         {
             numNodes += mesh_.boundaryMesh()[patchIDs.at(i)].localPoints().size();
         }
-        std::cout << "Number of Nodes: " << numNodes << std::endl;
+        std::cout << "Total Number of Nodes in this interface: " << numNodes << std::endl;
 
         // Count the number of elements/faces for all the patches in that interface
         for (uint i = 0; i < patchIDs.size(); i++)
         {
             numElements += mesh_.boundary()[patchIDs[i]].size();
         }
-        std::cout << "Number of Elements: " << numElements << std::endl;
+        std::cout << "Total Number of Elements/faces in this interface: " << numElements << std::endl;
+
+        std::cout << "Creating Model Part (Nodes and Elements) for CoSimIO" << std::endl;
 
         //-For Nodes and Element IDs for CoSimIO
         std::vector<int> NodeIDs;
@@ -193,19 +195,19 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 
         for(uint i = 0; i < patchIDs.size(); i++)
         {
-            const word& patchName = mesh_.boundary()[patchIDs[i]].name();
-            std::cout << "patchID: " << patchIDs[i] << " with name "  << patchName << " With size = "<< mesh_.boundary()[patchIDs[i]].size() << std::endl;
+            //const word& patchName = mesh_.boundary()[patchIDs[i]].name();
+            //std::cout << "patchID: " << patchIDs[i] << " with name "  << patchName << " With size = "<< mesh_.boundary()[patchIDs[i]].size() << std::endl;
 
             forAll (mesh_.boundary()[patchIDs[i]],facei)
             {
                 const label& faceID = mesh_.boundaryMesh()[patchIDs[i]].start() + facei;
-                std::cout << "ID of this face: " << faceID << " Which face: "<< facei << std::endl;
+                //std::cout << "ID of this face: " << faceID << " Which face: "<< facei << std::endl;
                 std::vector<CoSimIO::IdType> connectivity;
                 forAll (mesh_.faces()[faceID], nodei)
                 {
                     const label& nodeID = mesh_.faces()[faceID][nodei]; //for OpenFOAM
                     pointX = mesh_.points()[nodeID];
-                    std::cout << "Node "<< nodei << " with Id=" << nodeID << ":" << pointX[0] << "," << pointX[1] << "," << pointX[2] << std::endl;
+                    //std::cout << "Node "<< nodei << " with Id=" << nodeID << ":" << pointX[0] << "," << pointX[1] << "," << pointX[2] << std::endl;
                     //-Make CoSimIO Nodes
                     NodeIDs.push_back(nodeIndex); //Later used to make CoSimIO::Element
                     CoSimIO::Node& node = model_part_interfaces_.at(j)->CreateNewNode( nodeIndex, pointX[0], pointX[1], pointX[2]);
@@ -218,19 +220,20 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                 elemIndex++;
             }
         }
-        std::cout << "Creating Mesh as a ModelPart: Done" << std::endl;
+        std::cout << "Converting InterfaceMesh to a CoSimIO::ModelPart -> End" << std::endl;
         // **************************Done: Create a mesh as a ModelPart********************************//
 
         //Import InterfaceMesh/ModelPart to CoSimulation using CoSimIO
+        std::cout << "Exporting Mesh as a ModelPart: Start for an interface = " << j+1 << std::endl;
         CoSimIO::Info info;
         info.Clear();
         info.Set("identifier", "fluid_mesh");
         info.Set("connection_name", connection_name);
         auto export_info = CoSimIO::ExportMesh(info, *model_part_interfaces_.at(j));
-        std::cout << "Exporting Mesh as a ModelPart: Done for interface = " << j+1 << std::endl;
+        std::cout << "Exporting Mesh as a ModelPart: End for an interface = " << j+1 << "\n " <<std::endl;
     }
 
-    std::cout << "Exporting Mesh: Done" << std::endl;
+    std::cout << "*********************** Exporting InterfaceMesh using ModelPart: End ************************" << "\n" <<std::endl;
 
     return true;
 }
