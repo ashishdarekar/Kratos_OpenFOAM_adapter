@@ -74,7 +74,7 @@ functions
             Interface2
             {
                 mesh        Fluid-Mesh-Faces;
-                patches     (fixedWalls);
+                patches     (movingWall fixedWalls);
                 locations   faceCenters;
                 readData    ();
                 writeData   (Force0);
