@@ -13,9 +13,6 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
     4. *wclean*
     5. *wmake*
 
-** Note: To compile the export and import data files**
-Dont forget to add Path of the **co_sim_io.hpp** ($HOME/CoSimIO) into your include path.
-
 3. **To run the first tutorial case:**
     1. Go to the folder .../Tutorial_cavity (https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/tree/main/Tutorial_cavity)
     2. In one terminal run the OpneFOAM commands:
@@ -35,3 +32,6 @@ Dont forget to add Path of the **co_sim_io.hpp** ($HOME/CoSimIO) into your inclu
     3. Simultaneously open another terminal to export and import data in OpenFoam using CoSimIO:
         1. Go to SuperUser: *sudo -E bash*
         2. *g++ trial_export_import_data_using_CoSimIO.cpp -o export_import*
+
+# Note: To compile the export and import data files
+Dont forget to add Path of the **co_sim_io.hpp** ($HOME/CoSimIO) into your include path.
