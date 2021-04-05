@@ -21,6 +21,8 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
     3. Simultaneously open another terminal to export and import data in OpenFoam using CoSimIO:
         1. Go to SuperUser: *sudo -E bash*
         2. *g++ trial_export_import_data_using_CoSimIO.cpp -o export_import*
+    4. To see the OpenFOAM results:
+        1. *paraFoam -case .*
 
 4. **To run the FSI-Benchmarking case:**
     1. Go to the folder .../Tutorial_benchmark (https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/tree/main/Tutorial_benchmark)
@@ -31,5 +33,7 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
     3. Simultaneously open another terminal to export and import data in OpenFoam using CoSimIO:
         1. Go to SuperUser: *sudo -E bash*
         2. *g++ trial_export_import_data_using_CoSimIO.cpp -o export_import*
+    4. To see the OpenFOAM results:
+        1. *paraFoam -case .*
 
 **Note:** To compile the export and import data files, Dont forget to add Path of the **co_sim_io.hpp** ($HOME/CoSimIO) into your include path.
