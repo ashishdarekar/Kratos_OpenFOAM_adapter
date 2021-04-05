@@ -1,0 +1,89 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  7
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     pimpleFoam;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         0.5;
+
+deltaT          0.05;
+
+writeControl    timeStep;
+
+writeInterval   20;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
+
+functions
+{
+    //TrialFunctionObject1
+    //{
+    //    type TrialFunctionObject;
+    //    libs ("libfieldFunctionObjects.so");
+    //}
+
+    KratosOpenfoamAdapterFunctionObject1
+    {
+        type KratosOpenfoamAdapterFunctionObject;
+        libs ("libKratosOpenfoamAdapterFunctionObjectFunctionObjects.so");
+
+        participant Fluid;
+
+        interfaces
+        {
+            Interface1
+            {
+                mesh        Fluid-Mesh-Nodes;
+                patches     (flap);
+                locations   faceNodes;
+                readData    (Displacement0);
+                writeData   ();
+            }
+
+            Interface2
+            {
+                mesh        Fluid-Mesh-Faces;
+                patches     (flap);
+                locations   faceCenters;
+                readData    ();
+                writeData   (Force0);
+            }
+        }
+
+    }
+
+}
+
+
+// ************************************************************************* //
