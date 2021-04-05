@@ -14,10 +14,10 @@ internalField   uniform (0 0 0);
 boundaryField
 {
 
-    cylinder
+    squareblock
     {
         type            noSlip;
-    }    
+    }
 
     flap
     {
@@ -39,11 +39,11 @@ boundaryField
     {
         // Time-varying inlet velocity
         type            uniformFixedValue;
-        uniformValue    table 
-                        ( 
-                            ( 0 ( 0 0 0 ) ) 
-                            ( 2. ( 2. 0 0 ) ) 
-                            ( 100 ( 2. 0 0 ) ) 
+        uniformValue    table
+                        (
+                            ( 0 ( 0 0 0 ) )
+                            ( 2. ( 2. 0 0 ) )
+                            ( 100 ( 2. 0 0 ) )
                         );
     }
 

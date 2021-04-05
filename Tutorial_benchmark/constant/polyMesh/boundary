@@ -64,7 +64,7 @@ FoamFile
         nFaces          90;
         startFace       25319;
     }
-    cylinder
+    squareblock
     {
         type            wall;
         inGroups        List<word> 1(wall);

@@ -25,7 +25,7 @@ boundaryField
         value           uniform (0 0 0);
     }
 
-    cylinder
+    squareblock
     {
         type            fixedValue;
         value           $internalField;
@@ -35,7 +35,7 @@ boundaryField
         type            fixedValue;
         value           $internalField;
     }
-    
+
     top
     {
         type            slip;

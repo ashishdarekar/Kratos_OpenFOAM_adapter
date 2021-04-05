@@ -47,12 +47,6 @@ runTimeModifiable true;
 
 functions
 {
-    //TrialFunctionObject1
-    //{
-    //    type TrialFunctionObject;
-    //    libs ("libfieldFunctionObjects.so");
-    //}
-
     KratosOpenfoamAdapterFunctionObject1
     {
         type KratosOpenfoamAdapterFunctionObject;

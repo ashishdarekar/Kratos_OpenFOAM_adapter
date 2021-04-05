@@ -14,12 +14,12 @@ internalField   uniform (0 0 0);
 
 boundaryField
 {
-    cylinder
+    squareblock
     {
         type            calculated;
         value           uniform (0 0 0);
     }
-    
+
     flap
     {
         type            calculated;

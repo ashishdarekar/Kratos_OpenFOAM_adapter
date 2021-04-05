@@ -13,7 +13,7 @@ internalField   uniform 0;
 
 boundaryField
 {
-    cylinder
+    squareblock
     {
         type            zeroGradient;
     }
