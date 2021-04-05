@@ -7,11 +7,10 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
 
 # How to run the first tutorial: Cavity
 1. **To Build the KratosOpenfomaAdapterFunctionObject:**
-    1. Add Path of the **CoSimulationAdapter.H** ($HOME/OpenFoam_Kratos_adapter/Adapter) into your include path.
-    2. Go to the folder .../KratosOpenfoamAdapterfunctionObject (https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/tree/main/KratosOpenfoamAdapterFunctionObject)
-    3. Go to SuperUser: *sudo -E bash*
-    4. *wclean*
-    5. *wmake*
+    1. Go to the folder .../KratosOpenfoamAdapterfunctionObject (https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/tree/main/KratosOpenfoamAdapterFunctionObject)
+    2. Go to SuperUser: *sudo -E bash*
+    3. *wclean*
+    4. *wmake*
 
 3. **To run the first tutorial case:**
     1. Go to the folder .../Tutorial_cavity (https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/tree/main/Tutorial_cavity)
