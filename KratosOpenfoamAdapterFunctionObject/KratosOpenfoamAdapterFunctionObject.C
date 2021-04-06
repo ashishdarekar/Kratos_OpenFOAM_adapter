@@ -249,7 +249,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         std::cout << "CoSimulation Adapter's function object : execution()" << std::endl;
 
         //pressure Data values in the simulation
-        if(mesh_.foundObject<volScalarField>("p"))
+/*         if(mesh_.foundObject<volScalarField>("p"))
         {
             std::cout<< "Pressure field is found" << std::endl;
 
@@ -273,7 +273,37 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
             connect_info = CoSimIO::ExportData(connect_info, data_to_send);
 
             std::cout<< "Data has been exported from OpenFOAM to CoSimulation" <<std::endl;
+        } */
 
+        //Pressure Data values on the Boundary patch "fixed walls" only
+        if(mesh_.foundObject<volScalarField>("p"))
+        {
+            std::cout<< "Pressure field is found" << std::endl;
+
+            label mypatch = mesh_.boundaryMesh().findPatchID("fixedWalls");
+
+            const volScalarField& pressure_ = mesh_.lookupObject<volScalarField>("p");
+            const fvPatchScalarField& pressure_local = pressure_.boundaryField()[mypatch];
+
+            std::cout<< "Size of the array is " << pressure_local.size() << std::endl;
+
+            std::vector<double> data_to_send;
+            data_to_send.resize(pressure_local.size());
+
+            forAll(pressure_local, i)
+            {
+                std::cout << "id = " << i << ", Value = " << pressure_local[i] << std::endl;
+                data_to_send[i] = pressure_local[i];
+            }
+
+            //Export this pressure array to CoSimulation
+            CoSimIO::Info connect_info;
+            connect_info.Clear();
+            connect_info.Set("identifier", "pressure_values");
+            connect_info.Set("connection_name", connection_name);
+            connect_info = CoSimIO::ExportData(connect_info, data_to_send);
+
+            std::cout<< "Data has been exported from OpenFOAM to CoSimulation" <<std::endl;
         }
 
         /*//Velocity Data values in the simulation
