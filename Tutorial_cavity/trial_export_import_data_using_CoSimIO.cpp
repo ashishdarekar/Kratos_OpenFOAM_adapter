@@ -85,7 +85,7 @@ int main()
     int i = 0;
 
     for(auto& value : receive_data){
-        std::cout << "id = " << i << ", Value = " << value << std::endl;
+        //std::cout << "id = " << i << ", Value = " << value << std::endl;
         i++;
         //COSIMIO_CHECK_EQUAL(value, 3.14);
     }
