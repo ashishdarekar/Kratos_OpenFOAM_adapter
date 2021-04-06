@@ -249,7 +249,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         std::cout << "CoSimulation Adapter's function object : execution()" << std::endl;
 
         //pressure Data values in the simulation
-/*         if(mesh_.foundObject<volScalarField>("p"))
+        if(mesh_.foundObject<volScalarField>("p"))
         {
             std::cout<< "Pressure field is found" << std::endl;
 
@@ -273,10 +273,10 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
             connect_info = CoSimIO::ExportData(connect_info, data_to_send);
 
             std::cout<< "Data has been exported from OpenFOAM to CoSimulation" <<std::endl;
-        } */
+        }
 
         //Pressure Data values on the Boundary patch "fixed walls" only
-        if(mesh_.foundObject<volScalarField>("p"))
+/*         if(mesh_.foundObject<volScalarField>("p"))
         {
             std::cout<< "Pressure field is found" << std::endl;
 
@@ -304,7 +304,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
             connect_info = CoSimIO::ExportData(connect_info, data_to_send);
 
             std::cout<< "Data has been exported from OpenFOAM to CoSimulation" <<std::endl;
-        }
+        } */
 
         /*//Velocity Data values in the simulation
          if(mesh_.foundObject<volVectorField>("U"))
