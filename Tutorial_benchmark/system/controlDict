@@ -15,35 +15,34 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-application     pimpleFoam;
+application         pimpleFoam;    // OpenFOAM v1806, OpenFOAM 6, or newer
+// application         pimpleDyMFoam; // OpenFOAM v1712, OpenFOAM 5.x, or older
 
-startFrom       startTime;
+startFrom           startTime;
 
-startTime       0;
+startTime           0;
 
-stopAt          endTime;
+stopAt              endTime;
 
-endTime         0.5;
+endTime             0.01; //25
 
-deltaT          0.05;
+deltaT              0.001;
 
-writeControl    timeStep;
+writeControl        adjustableRunTime;
 
-writeInterval   20;
+writeInterval       0.001;//0.1
 
-purgeWrite      0;
+purgeWrite          0;
 
-writeFormat     ascii;
+writeFormat         ascii;
 
-writePrecision  6;
+writePrecision      10;
 
-writeCompression off;
+writeCompression    off;
 
-timeFormat      general;
+timeFormat          general;
 
-timePrecision   6;
-
-runTimeModifiable true;
+timePrecision       12;
 
 functions
 {
