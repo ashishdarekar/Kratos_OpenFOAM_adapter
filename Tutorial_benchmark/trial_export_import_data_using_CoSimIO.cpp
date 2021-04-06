@@ -45,11 +45,13 @@ int main()
 
     // ****************************** Code to test the working of CosimIO::ImportMesh ***********************************************//
     //Checking the nodal coordinates of the received meshes
+    std::cout << "\n" << "In CoSimIO Node IDs starts with 1 unlike in OpenFOAM which starts with 0 " << std::endl;
     for(int i=1; i<5; i++)
     {
         std::cout << "Coordinates of node with Id "<< i << " in interface1 are: (" << model_part_interfaces_.at(0)->GetNode(i).X() << "," << model_part_interfaces_.at(0)->GetNode(i).Y()
         << "," << model_part_interfaces_.at(0)->GetNode(i).Z() << ")." << std::endl;
     }
+    std::cout << "\n" << "In CoSimIO Element IDs starts with 1 unlike in OpenFOAM which starts with 0 " << std::endl;
 
     //Checking the Elements of the received meshes
     for(int i=1; i<20; i+=2)
