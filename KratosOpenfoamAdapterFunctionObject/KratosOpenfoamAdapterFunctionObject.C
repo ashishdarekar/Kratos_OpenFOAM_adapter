@@ -233,6 +233,48 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 
     std::cout << "*********************** Exporting InterfaceMesh using ModelPart: End ************************" << "\n" <<std::endl;
 
+    //Making Data Vectors on the interfaces only
+    for(std::size_t i=0; i < num_interfaces_; i++)
+    {
+        //For "Wirte Data" variables which need to send
+        for(std::size_t j=0; j< interfaces_.at(i).writeData.size(); j++)
+        {
+            std::string dataName = interfaces_.at(i).writeData.at(j);
+
+            if(dataName.find("force") == 0 || dataName.find("stress") == 0) //If "force" or "stress" string is found it will return 0
+            {
+                if(interfaces_.at(i).locationsType == "faceNodes")
+                {
+                    data_to_send.resize((interfaces_.at(i).numNodes) * dim);
+                }
+                else if(interfaces_.at(i).locationsType == "faceCenters")
+                {
+                    data_to_send.resize((interfaces_.at(i).numElements) * dim);
+                }
+            }
+            //else if() //if some other variables
+        }
+
+        //For "Read Data" variables which need to send
+        for(std::size_t j=0; j< interfaces_.at(i).readData.size(); j++)
+        {
+            std::string dataName = interfaces_.at(i).readData.at(j);
+
+            if(dataName.find("Displacement") == 0 || dataName.find("DisplacementDelta") == 0) //If "Displacement" or "DisplacementDelta" string is found it will return 0
+            {
+                if(interfaces_.at(i).locationsType == "faceNodes")
+                {
+                    data_to_recv.resize((interfaces_.at(i).numNodes) * dim);
+                }
+                else if(interfaces_.at(i).locationsType == "faceCenters")
+                {
+                    data_to_recv.resize((interfaces_.at(i).numElements) * dim);
+                }
+            }
+            //else if() //if some other variables
+        }
+    }
+
     return true;
 }
 
