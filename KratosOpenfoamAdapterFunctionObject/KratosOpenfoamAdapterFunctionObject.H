@@ -106,6 +106,8 @@ private:
         void operator=(const KratosOpenfoamAdapterFunctionObject&) = delete;
 
         //- Private function for CoSimIO
+        std::vector<double> data_to_send;
+        std::vector<double> data_to_recv;
 
 protected:
     //- Protected Data to set the parameters required for coupling
@@ -128,6 +130,8 @@ protected:
             std::vector<std::string> patchNames;
             std::vector<std::string> readData;
             std::vector<std::string> writeData;
+            uint numNodes = 0;
+            uint numElements = 0;
         };
 
         //Array of strctures to save all interfaces

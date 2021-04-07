@@ -42,8 +42,6 @@ Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::~KratosOpenfoamAdapt
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
-//const pointField& p = points();
-
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dictionary& dict)
 {
 
@@ -147,8 +145,8 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         // **************************Create a mesh as a ModelPart********************************//
         std::cout << "Accessing Mesh from OpneFOAM" << std::endl;
         std::vector<int> patchIDs;
-        uint numNodes = 0;
-        uint numElements = 0;
+        /* uint numNodes = 0;
+        uint numElements = 0; */
 
         // For every patch that participates in the coupling interface
         for (uint i = 0; i < interfaces_.at(j).patchNames.size(); i++)
@@ -169,26 +167,26 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         // Count the Nodes for all the patches in that interface
         for (uint i = 0; i < patchIDs.size(); i++)
         {
-            numNodes += mesh_.boundaryMesh()[patchIDs.at(i)].localPoints().size();
+            interfaces_.at(j).numNodes += mesh_.boundaryMesh()[patchIDs.at(i)].localPoints().size();
         }
-        std::cout << "Total Number of Nodes in this interface: " << numNodes << std::endl;
+        std::cout << "Total Number of Nodes in this interface: " << interfaces_.at(j).numNodes  << std::endl;
 
         // Count the number of elements/faces for all the patches in that interface
         for (uint i = 0; i < patchIDs.size(); i++)
         {
-            numElements += mesh_.boundary()[patchIDs[i]].size();
+            interfaces_.at(j).numElements += mesh_.boundary()[patchIDs[i]].size();
         }
-        std::cout << "Total Number of Elements/faces in this interface: " << numElements << std::endl;
+        std::cout << "Total Number of Elements/faces in this interface: " << interfaces_.at(j).numElements << std::endl;
 
         std::cout << "Creating Model Part (Nodes and Elements) for CoSimIO" << std::endl;
 
         //-For Nodes and Element IDs for CoSimIO
         std::vector<int> NodeIDs;
-        NodeIDs.resize(numNodes);
+        NodeIDs.resize( interfaces_.at(j).numNodes );
         int nodeIndex = 1; //As Node indexing starts with 1 in CoSimIO
 
         std::vector<int> ElemIDs;
-        ElemIDs.resize(numElements);
+        ElemIDs.resize(interfaces_.at(j).numElements);
         int elemIndex = 1; //As element indexing starts with 1 in CoSimIO
 
         vector pointX(0,0,0); //For accessing the Co-ordinates of Nodes
@@ -256,7 +254,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
             const volScalarField& pressure_ = mesh_.lookupObject<volScalarField>("p");
             std::cout<< "Size of the array is " << pressure_.size() << std::endl;
 
-            std::vector<double> data_to_send;
+            //std::vector<double> data_to_send;
             data_to_send.resize(pressure_.size());
 
             forAll(pressure_, i)
@@ -318,6 +316,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
                 std::cout << "(" << velocity_[i][1] <<  "," << velocity_[i][2] << "," << velocity_[i][3] << ")" << std::endl;
             }
         }*/
+
     }
 
     time_step_++;
