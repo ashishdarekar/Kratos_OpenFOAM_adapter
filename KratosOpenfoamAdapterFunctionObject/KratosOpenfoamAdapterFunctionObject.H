@@ -51,9 +51,15 @@ using namespace std;
 #include "fvMeshFunctionObject.H"
 #include "Time.H"
 #include "fvMesh.H"
-#include "volFields.H"
+#include "volFields.H" //To use volumeVectorfield
+
 #include "addToRunTimeSelectionTable.H"
 #include "IOstreams.H" //Useful for IO operations
+
+#include "pointMesh.H" //To use pointVectorfield
+#include "pointPatchField.H" //To use pointVectorfield
+#include "fvCFD.H"
+#include "fixedValuePointPatchFields.H"
 
 // Main adapter header files
 // #include "CoSimulationAdapter.H"

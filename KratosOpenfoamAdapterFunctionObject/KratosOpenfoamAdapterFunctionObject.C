@@ -236,7 +236,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
     //Making Data Vectors on the interfaces only
     for(std::size_t i=0; i < num_interfaces_; i++)
     {
-        //For "Wirte Data" variables which need to send
+        //For "Wirte Data" variables which need to send to CoSimulation
         for(std::size_t j=0; j< interfaces_.at(i).writeData.size(); j++)
         {
             std::string dataName = interfaces_.at(i).writeData.at(j);
@@ -255,7 +255,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             //else if() //if some other variables
         }
 
-        //For "Read Data" variables which need to send
+        //For "Read Data" variables which need to receive from CoSimulation
         for(std::size_t j=0; j< interfaces_.at(i).readData.size(); j++)
         {
             std::string dataName = interfaces_.at(i).readData.at(j);
@@ -284,7 +284,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
     //CoSimulationAdapter_.execute();
 
     //Currently, exporting Data on 3rd timestep
-    if(time_step_ == 3)
+    if(time_step_ == 9)
     {
         std::cout << "CoSimulation Adapter's function object : execution()" << std::endl;
 
@@ -304,6 +304,40 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
                 //std::cout << pressure_[i] << std::endl;
                 data_to_send[i] = pressure_[i];
             }
+
+            //Printing PointDisplcement
+            Foam::pointVectorField* point_disp;
+            point_disp = const_cast<pointVectorField*>( &mesh_.lookupObject<pointVectorField>("pointDisplacement") );
+            std::cout<< "Size of the pointDisplacement array is " << point_disp->size() << std::endl;
+
+            forAll(*point_disp, i)
+            {
+                //std::cout << point_disp[i][0] << ", " << point_disp[i][1] << ", " << point_disp[i][2] << std::endl;
+            }
+
+            label patchIndex = mesh_.boundaryMesh().findPatchID("flap");
+
+            // Get the displacement on the patch and assigning some random values
+            fixedValuePointPatchVectorField& pointDisplacementFluidPatch = refCast<fixedValuePointPatchVectorField>(point_disp->boundaryFieldRef()[patchIndex]);
+
+            forAll(point_disp->boundaryFieldRef()[patchIndex] ,i)
+            {
+                pointDisplacementFluidPatch[i][0] = 6;
+                pointDisplacementFluidPatch[i][1] = 7;
+                if (dim ==3)
+                    pointDisplacementFluidPatch[i][2] = 8;
+
+                //std::cout << i << " : "<< pointDisplacementFluidPatch[i][0] << ", " << pointDisplacementFluidPatch[i][1] << ", " << pointDisplacementFluidPatch[i][2] << std::endl;
+            }
+
+            //Printing CellDisplcement
+            const volVectorField& cell_disp = mesh_.lookupObject<volVectorField>("cellDisplacement");
+            std::cout<< "Size of the cellDisplacement array is " << cell_disp.size() << std::endl;
+
+            /* forAll(cell_disp, i)
+            {
+                std::cout << cell_disp[i][0] << ", " << cell_disp[i][1] << ", " << cell_disp[i][2] << std::endl;
+            } */
 
             //Export this pressure arrat to CoSimulation
             CoSimIO::Info connect_info;
