@@ -58,7 +58,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
     std::cout<< "Name of the participant is: " << my_name <<std::endl;
 
     // Check the solver type and determine it if needed
-    solverType_ = dict.lookupType<word>("solvertype");
+    solverType_ = dict.lookupOrDefault<word>("solvertype", "none");
     if (solverType_.compare("compressible") == 0 || solverType_.compare("incompressible") == 0)
     {
         std::cout << "Known solver type: " << solverType_ << std::endl;
@@ -472,14 +472,20 @@ std::string Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::determin
         volScalarField p_ = mesh_.lookupObject<volScalarField>("p");
 
         if (p_.dimensions() == pressureDimensionsCompressible)
+        {
             solverType_ = "compressible";
+            std::cout << "Solver Type : Compressible " << std::endl;
+        }
         else if (p_.dimensions() == pressureDimensionsIncompressible)
+        {
             solverType_ = "incompressible";
+            std::cout << "Solver Type : Compressible " << std::endl;
+        }
     }
 
     if(solverType_  == "unknown")
     {
-        std::cout << "Neither Compressible nor Incompresible" << std::endl;
+        std::cout << "Solver Type: Neither Compressible nor Incompresible" << std::endl;
     }
 
     return solverType_;
