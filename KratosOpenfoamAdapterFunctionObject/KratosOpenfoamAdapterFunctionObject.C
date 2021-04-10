@@ -29,7 +29,7 @@ Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::KratosOpenfoamAdapte
     const dictionary& dict
 )
 :
-fvMeshFunctionObject(name, runTime, dict)//, CoSimulationAdapter_()
+fvMeshFunctionObject(name, runTime, dict), runTime_(runTime)//, CoSimulationAdapter_()
 {
     read(dict);
 }
@@ -56,6 +56,23 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 
     my_name = dict.lookupOrDefault<word>("participant", "fluid");
     std::cout<< "Name of the participant is: " << my_name <<std::endl;
+
+    // Check the solver type and determine it if needed
+    solverType_ = dict.lookupType<word>("solvertype");
+    if (solverType_.compare("compressible") == 0 || solverType_.compare("incompressible") == 0)
+    {
+        std::cout << "Known solver type: " << solverType_ << std::endl;
+    }
+    else if (solverType_.compare("none") == 0)
+    {
+        std::cout << "Determining the solver type..." << std::endl;
+        solverType_ = determineSolverType();
+    }
+    else
+    {
+        std::cout << "Unknown solver type. Determining the solver type..." << std::endl;
+        solverType_ = determineSolverType();
+    }
 
     //Check the total number of registered objects in the PolyMesh Object Registry related to Given Solver
     std::cout<< "Name of all registered objects in Foam::PolyMesh object Registry are:" << std::endl;
@@ -297,7 +314,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
             std::cout<< "Size of the array is " << pressure_.size() << std::endl;
 
             //std::vector<double> data_to_send;
-            data_to_send.resize(pressure_.size());
+            //data_to_send.resize(pressure_.size());
 
             forAll(pressure_, i)
             {
@@ -393,6 +410,22 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
             }
         }*/
 
+        //At the end of time loop, Calculation of the Forces, which need to send to structural solver in FSI problem
+        //Total force = Viscous force + Pressure force
+
+        for(std::size_t i=0; i < num_interfaces_; i++)
+        {
+            //For "Wirte Data" variables which need to send to CoSimulation
+            for(std::size_t j=0; j< interfaces_.at(i).writeData.size(); j++)
+            {
+                std::string dataName = interfaces_.at(i).writeData.at(j);
+
+                if(dataName.find("force") == 0 )
+                {
+                    calculateForces(j);
+                }
+            }
+        }
     }
 
     time_step_++;
@@ -426,6 +459,272 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::write()
 
     return true;
 }
+
+// *********************************************** Some Auxillary Functions **************************************************//
+//Calculate the Solver Type - according to the pressure dimension
+std::string Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::determineSolverType()
+{
+    dimensionSet pressureDimensionsCompressible(1, -1, -2, 0, 0, 0, 0);
+    dimensionSet pressureDimensionsIncompressible(0, 2, -2, 0, 0, 0, 0);
+
+    if (mesh_.foundObject<volScalarField>("p"))
+    {
+        volScalarField p_ = mesh_.lookupObject<volScalarField>("p");
+
+        if (p_.dimensions() == pressureDimensionsCompressible)
+            solverType_ = "compressible";
+        else if (p_.dimensions() == pressureDimensionsIncompressible)
+            solverType_ = "incompressible";
+    }
+
+    if(solverType_  == "unknown")
+    {
+        std::cout << "Neither Compressible nor Incompresible" << std::endl;
+    }
+
+    return solverType_;
+}
+
+
+// ************************** Force / load calculation ************************************//
+//Calculate viscous Force
+Foam::tmp<Foam::volSymmTensorField> Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::devRhoReff() const
+{
+    //For turbulent flows
+    typedef compressible::turbulenceModel cmpTurbModel;
+    typedef incompressible::turbulenceModel icoTurbModel;
+
+    if (mesh_.foundObject<cmpTurbModel>(cmpTurbModel::propertiesName))
+    {
+        const cmpTurbModel & turb
+        (
+            mesh_.lookupObject<cmpTurbModel>(cmpTurbModel::propertiesName)
+        );
+
+        return turb.devRhoReff();
+
+    }
+    else if (mesh_.foundObject<icoTurbModel>(icoTurbModel::propertiesName))
+    {
+        const incompressible::turbulenceModel& turb
+        (
+            mesh_.lookupObject<icoTurbModel>(icoTurbModel::propertiesName)
+        );
+
+        return rho()*turb.devReff();
+    }
+    else
+    {
+        // For laminar flows get the velocity
+        const volVectorField & U
+        (
+            mesh_.lookupObject<volVectorField>("U")
+        );
+
+        return -mu()*dev(twoSymm(fvc::grad(U)));
+    }
+}
+
+//Finding correct rho
+Foam::tmp<Foam::volScalarField> Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::rho() const
+{
+    // If volScalarField exists, read it from registry (for compressible cases)
+    // interFoam is incompressible but has volScalarField rho
+
+    if (mesh_.foundObject<volScalarField>("rho"))
+    {
+        return mesh_.lookupObject<volScalarField>("rho");
+    }
+    else if (solverType_.compare("incompressible") == 0)
+    {
+        const dictionary& FSIDict =
+            mesh_.lookupObject<IOdictionary>("controlDict").subOrEmptyDict("Parameters");
+
+        return tmp<volScalarField>
+        (
+            new volScalarField
+            (
+                IOobject
+                (
+                    "rho",
+                    mesh_.time().timeName(),
+                    mesh_,
+                    IOobject::NO_READ,
+                    IOobject::NO_WRITE
+                ),
+                mesh_,
+                dimensionedScalar(FSIDict.lookup("rho"))
+            )
+        );
+    }
+    else
+    {
+        FatalErrorInFunction << "Exiting the simulation: correct rho not found" << exit(FatalError);
+
+        return volScalarField::null();
+    }
+}
+
+//Finding correct mu
+Foam::tmp<Foam::volScalarField> Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::mu() const
+{
+    if (solverType_.compare("incompressible") == 0)
+    {
+        typedef immiscibleIncompressibleTwoPhaseMixture iitpMixture;
+        if (mesh_.foundObject<iitpMixture>("mixture"))
+        {
+            const iitpMixture& mixture
+            (
+                mesh_.lookupObject<iitpMixture>("mixture")
+            );
+
+            return mixture.mu();
+        }
+        else
+        {
+            const dictionary& FSIDict =
+                mesh_.lookupObject<IOdictionary>("controlDict").subOrEmptyDict("Parameters");
+
+            dimensionedScalar nu(FSIDict.lookup("nu"));
+
+            return tmp<volScalarField>
+            (
+                new volScalarField
+                (
+                    nu*rho()
+                )
+            );
+        }
+
+    }
+    else if (solverType_.compare("compressible") == 0)
+    {
+        return mesh_.lookupObject<volScalarField>("thermo:mu");
+    }
+    else
+    {
+        FatalErrorInFunction << "Exiting the simulation: correct mu not found" << exit(FatalError);
+
+        return volScalarField::null();
+    }
+}
+
+//Calculate Total Force
+bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces(std::size_t interface_index)
+{
+    std::vector<int> patchIDs;
+    // For every patch that participates in the coupling interface
+    for (uint i = 0; i < interfaces_.at(interface_index).patchNames.size(); i++)
+    {
+        // Get the patchID
+        int patchID = mesh_.boundaryMesh().findPatchID((interfaces_.at(interface_index).patchNames).at(i));
+
+        // Throw an error if the patch was not found
+        if (patchID == -1)
+        {
+            std::cout<< "ERROR: Patch " << (interfaces_.at(interface_index).patchNames).at(i) << " does not exist." << std::endl;
+        }
+
+    // Add the patch in the list
+    patchIDs.push_back(patchID);
+    }
+
+    const std::string solverType_; //Compressible or Incompressible try to get this..
+
+    //- Force field
+    Foam::volVectorField * Force_; //Access this real force values from OpenFOAM
+
+    //Initialize the Force -> Need to check
+    Force_ = new volVectorField
+    (
+        IOobject
+        (
+            "Force",
+            runTime_.timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedVector
+        (
+            "fdim",
+            dimensionSet(1,1,-2,0,0,0,0),
+            Foam::vector::zero
+        )
+    );
+
+
+    //Get different force fields from OpenFOAM, See Force Function Object
+    //1. Normal vectors on the boundary, multiplied with the face areas
+    const surfaceVectorField::Boundary& Sfb
+    (
+        mesh_.Sf().boundaryField()
+    );
+
+    //2. Stress tensor boundary field
+    tmp<volSymmTensorField> tdevRhoReff(devRhoReff());
+    const volSymmTensorField::Boundary& devRhoReffb
+    (
+        tdevRhoReff().boundaryField()
+    );
+
+    //3. Density boundary field
+    tmp<volScalarField> trho(rho());
+    const volScalarField::Boundary& rhob = trho().boundaryField();
+
+    //4. Pressure boundary field
+    tmp<volScalarField> tp = mesh_.lookupObject<volScalarField>("p");
+    const volScalarField::Boundary& pb
+    (
+        tp().boundaryField()
+    );
+
+    // For every boundary patch of the interface
+    for(uint j=0; j< patchIDs.size(); j++)
+    {
+        int patchID = patchIDs.at(j);
+
+        //Pressure forces
+        if(solverType_.compare("incompressible") == 0)
+        {
+            Force_->boundaryFieldRef()[patchID] = Sfb[patchID] * pb[patchID] * rhob[patchID];
+        }
+        else if(solverType_.compare("compressible") == 0)
+        {
+            Force_->boundaryFieldRef()[patchID] = Sfb[patchID] * pb[patchID];
+        }
+        else
+        {
+            FatalErrorInFunction << "Forces calculation does only support compressible or incompressible solver type." << exit(FatalError);
+        }
+
+        //Viscous forces
+        Force_->boundaryFieldRef()[patchID] += Sfb[patchID] & devRhoReffb[patchID];
+
+        // Now write this forces into Buffer to send further to the Strctural Solver
+        int bufferIndex = 0;
+        // For every cell of the patch
+        forAll(Force_->boundaryFieldRef()[patchID], i)
+        {
+            // Copy the force into the buffer
+            // x-dimension
+            data_to_send[bufferIndex++] = Force_->boundaryFieldRef()[patchID][i].x();
+
+            // y-dimension
+            data_to_send[bufferIndex++] = Force_->boundaryFieldRef()[patchID][i].y();
+
+            if(dim == 3)
+            {
+                // z-dimension
+                data_to_send[bufferIndex++] = Force_->boundaryFieldRef()[patchID][i].z();
+            }
+        }
+    }
+
+    return true;
+}
+
 
 }//namespace Foam
 

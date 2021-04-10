@@ -56,10 +56,18 @@ using namespace std;
 #include "addToRunTimeSelectionTable.H"
 #include "IOstreams.H" //Useful for IO operations
 
+//Displacement Calculation
 #include "pointMesh.H" //To use pointVectorfield
 #include "pointPatchField.H" //To use pointVectorfield
 #include "fvCFD.H"
 #include "fixedValuePointPatchFields.H"
+
+//Force Calculation
+#include "pointFields.H"
+#include "vectorField.H"
+#include "immiscibleIncompressibleTwoPhaseMixture.H"
+#include "turbulentTransportModel.H"
+#include "turbulentFluidThermoModel.H"
 
 // Main adapter header files
 // #include "CoSimulationAdapter.H"
@@ -93,6 +101,7 @@ private:
 
     //- Adapter's main class instance
     //- CoSimulationAdapter CoSimulationAdapter_;
+    const Foam::Time& runTime_;
 
     //- Member variables required for CoSimIO
     std::string connection_name;
@@ -100,6 +109,9 @@ private:
     //- Member for OpenFOAM
     std::size_t time_step_ = 0 ;
     std::size_t num_interfaces_ = 0;
+
+    //- Solver type compressible/incompressible
+    std::string solverType_ = "unknown";
 
     int dim = 3; //Dimension of the problem, need to check how we can get this?
 
@@ -146,6 +158,17 @@ protected:
         //Array of CoSimIO::Model parts for all coupling interfaces
         //std::vector<CoSimIO::ModelPart> model_part_interfaces_;
         std::vector<std::unique_ptr<CoSimIO::ModelPart>> model_part_interfaces_;
+
+        //Auxiliar functions
+        bool calculateForces(std::size_t interface_index);
+        std::string determineSolverType();
+
+        //- Stress tensor (see the OpenFOAM "Forces" function object)
+        Foam::tmp<Foam::volSymmTensorField> devRhoReff() const;
+
+        Foam::tmp<Foam::volScalarField> rho() const;
+
+        Foam::tmp<Foam::volScalarField> mu() const;
 
 public:
     //- Runtime type information
