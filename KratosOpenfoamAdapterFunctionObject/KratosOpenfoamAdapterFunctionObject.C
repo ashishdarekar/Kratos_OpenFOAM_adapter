@@ -308,19 +308,19 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         //pressure Data values in the simulation
         if(mesh_.foundObject<volScalarField>("p"))
         {
-            std::cout<< "Pressure field is found" << std::endl;
+            //Code to get the pressure field and send it to CoSimulation
+/*             std::cout<< "Pressure field is found" << std::endl;
 
             const volScalarField& pressure_ = mesh_.lookupObject<volScalarField>("p");
             std::cout<< "Size of the array is " << pressure_.size() << std::endl;
 
-            //std::vector<double> data_to_send;
-            //data_to_send.resize(pressure_.size());
+            data_to_send.resize(pressure_.size());
 
             forAll(pressure_, i)
             {
                 //std::cout << pressure_[i] << std::endl;
                 data_to_send[i] = pressure_[i];
-            }
+            } */
 
             //Printing PointDisplcement
             Foam::pointVectorField* point_disp;
@@ -348,22 +348,22 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
             }
 
             //Printing CellDisplcement
-            const volVectorField& cell_disp = mesh_.lookupObject<volVectorField>("cellDisplacement");
+/*             const volVectorField& cell_disp = mesh_.lookupObject<volVectorField>("cellDisplacement");
             std::cout<< "Size of the cellDisplacement array is " << cell_disp.size() << std::endl;
 
-            /* forAll(cell_disp, i)
+            forAll(cell_disp, i)
             {
                 std::cout << cell_disp[i][0] << ", " << cell_disp[i][1] << ", " << cell_disp[i][2] << std::endl;
             } */
 
             //Export this pressure arrat to CoSimulation
-            CoSimIO::Info connect_info;
+/*             CoSimIO::Info connect_info;
             connect_info.Clear();
             connect_info.Set("identifier", "pressure_values");
             connect_info.Set("connection_name", connection_name);
             connect_info = CoSimIO::ExportData(connect_info, data_to_send);
 
-            std::cout<< "Data has been exported from OpenFOAM to CoSimulation" <<std::endl;
+            std::cout<< "Data has been exported from OpenFOAM to CoSimulation" <<std::endl; */
         }
 
         //Pressure Data values on the Boundary patch "fixed walls" only
@@ -394,7 +394,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
             connect_info.Set("connection_name", connection_name);
             connect_info = CoSimIO::ExportData(connect_info, data_to_send);
 
-            std::cout<< "Data has been exported from OpenFOAM to CoSimulation" <<std::endl;
+            std::cout<< "Data has been exported from OpenFOAM to CoSimulation: Pressure Values" <<std::endl;
         } */
 
         /*//Velocity Data values in the simulation
@@ -412,7 +412,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 
         //At the end of time loop, Calculation of the Forces, which need to send to structural solver in FSI problem
         //Total force = Viscous force + Pressure force
-
+        std::cout<< "Force calculation : start" <<std::endl;
         for(std::size_t i=0; i < num_interfaces_; i++)
         {
             //For "Wirte Data" variables which need to send to CoSimulation
@@ -426,6 +426,16 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
                 }
             }
         }
+        std::cout<< "Force calculation : End" <<std::endl;
+
+        //Export this force array to CoSimulation
+        CoSimIO::Info connect_info;
+        connect_info.Clear();
+        connect_info.Set("identifier", "force_values");
+        connect_info.Set("connection_name", connection_name);
+        connect_info = CoSimIO::ExportData(connect_info, data_to_send);
+
+        std::cout<< "Data has been exported from OpenFOAM to CoSimulation: Force values" <<std::endl;
     }
 
     time_step_++;
@@ -726,6 +736,14 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
                 data_to_send[bufferIndex++] = Force_->boundaryFieldRef()[patchID][i].z();
             }
         }
+
+    }
+    int i=0;
+
+    for(auto& value : data_to_send)
+    {
+        std::cout << "id = " << i << ", Value = " << value << std::endl;
+        i++;
     }
 
     return true;
