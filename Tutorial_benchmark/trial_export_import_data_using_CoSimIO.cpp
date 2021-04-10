@@ -73,19 +73,37 @@ int main()
     // ****************************** Code to test the working of CosimIO::ImportMesh ***********************************************//
 
     // ************ Importing Data ******************//
-    std::cout << "CoSimIO is trying to Import the data" << std::endl;
+/*     std::cout << "CoSimIO is trying to Import the data: Pressure Values" << std::endl;
     std::vector<double> receive_data;
     info.Clear();
     info.Set("identifier", "pressure_values");
     info.Set("connection_name", connection_name);
     info = CoSimIO::ImportData(info, receive_data);
 
-    std::cout<< "Data Received from OpenFOAM: size = " << receive_data.size() << std::endl;
+    std::cout<< "Data Received from OpenFOAM: Pressure values with array size = " << receive_data.size() << std::endl;
 
     int i = 0;
 
     for(auto& value : receive_data){
         //std::cout << "id = " << i << ", Value = " << value << std::endl;
+        i++;
+        //COSIMIO_CHECK_EQUAL(value, 3.14);
+    } */
+
+    //Importing Force Values
+    std::cout << "CoSimIO is trying to Import the data: Force Values" << std::endl;
+    std::vector<double> receive_data;
+    info.Clear();
+    info.Set("identifier", "force_values");
+    info.Set("connection_name", connection_name);
+    info = CoSimIO::ImportData(info, receive_data);
+
+    std::cout<< "Data Received from OpenFOAM: Force Values with array size = " << receive_data.size() << std::endl;
+
+    int i = 0;
+
+    for(auto& value : receive_data){
+        std::cout << "id = " << i << ", Value = " << value << std::endl;
         i++;
         //COSIMIO_CHECK_EQUAL(value, 3.14);
     }
