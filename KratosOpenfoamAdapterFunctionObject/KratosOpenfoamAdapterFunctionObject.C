@@ -29,7 +29,7 @@ Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::KratosOpenfoamAdapte
     const dictionary& dict
 )
 :
-fvMeshFunctionObject(name, runTime, dict), runTime_(runTime)//, CoSimulationAdapter_()
+fvMeshFunctionObject(name, runTime, dict), runTime_(runTime), dict_(dict)//, CoSimulationAdapter_()
 {
     read(dict);
 }
@@ -258,7 +258,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         {
             std::string dataName = interfaces_.at(i).writeData.at(j);
 
-            if(dataName.find("force") == 0 || dataName.find("stress") == 0) //If "force" or "stress" string is found it will return 0
+            if(dataName.find("Force") == 0 || dataName.find("Stress") == 0) //If "force" or "stress" string is found it will return 0
             {
                 if(interfaces_.at(i).locationsType == "faceNodes")
                 {
@@ -412,21 +412,23 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 
         //At the end of time loop, Calculation of the Forces, which need to send to structural solver in FSI problem
         //Total force = Viscous force + Pressure force
-        std::cout<< "Force calculation : start" <<std::endl;
+        std::cout<< "Force calculation : start" << std::endl;
         for(std::size_t i=0; i < num_interfaces_; i++)
         {
             //For "Wirte Data" variables which need to send to CoSimulation
             for(std::size_t j=0; j< interfaces_.at(i).writeData.size(); j++)
             {
                 std::string dataName = interfaces_.at(i).writeData.at(j);
+                std::cout<< "interface = "<< i << " with DataName = " << dataName << std::endl;
 
-                if(dataName.find("force") == 0 )
+                if(dataName.find("Force") == 0 )
                 {
+                    std::cout<< "data index = "<< j << std::endl;
                     calculateForces(j);
                 }
             }
         }
-        std::cout<< "Force calculation : End" <<std::endl;
+        std::cout<< "Force calculation : End" << std::endl;
 
         //Export this force array to CoSimulation
         CoSimIO::Info connect_info;
@@ -553,8 +555,7 @@ Foam::tmp<Foam::volScalarField> Foam::functionObjects::KratosOpenfoamAdapterFunc
     }
     else if (solverType_.compare("incompressible") == 0)
     {
-        const dictionary& FSIDict =
-            mesh_.lookupObject<IOdictionary>("controlDict").subOrEmptyDict("Parameters");
+        const dictionary& FSIDict = dict_.subOrEmptyDict("Parameters");
 
         return tmp<volScalarField>
         (
@@ -598,8 +599,7 @@ Foam::tmp<Foam::volScalarField> Foam::functionObjects::KratosOpenfoamAdapterFunc
         }
         else
         {
-            const dictionary& FSIDict =
-                mesh_.lookupObject<IOdictionary>("controlDict").subOrEmptyDict("Parameters");
+            const dictionary& FSIDict = dict_.subOrEmptyDict("Parameters");
 
             dimensionedScalar nu(FSIDict.lookup("nu"));
 
@@ -645,8 +645,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
     patchIDs.push_back(patchID);
     }
 
-    const std::string solverType_; //Compressible or Incompressible try to get this..
-
     //- Force field
     Foam::volVectorField * Force_; //Access this real force values from OpenFOAM
 
@@ -669,7 +667,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
             Foam::vector::zero
         )
     );
-
 
     //Get different force fields from OpenFOAM, See Force Function Object
     //1. Normal vectors on the boundary, multiplied with the face areas
@@ -738,8 +735,8 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
         }
 
     }
-    int i=0;
 
+    int i=0;
     for(auto& value : data_to_send)
     {
         std::cout << "id = " << i << ", Value = " << value << std::endl;

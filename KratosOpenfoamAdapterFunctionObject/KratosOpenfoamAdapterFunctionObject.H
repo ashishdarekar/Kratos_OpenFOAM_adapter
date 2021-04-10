@@ -24,25 +24,22 @@ Description
 
 Usage
     \table
-        Property            | Description                                                                   | Required | Default value
-        type                | type name: KratosOpenfoamAdapterFunctionObject                                | yes      |
-        my_name             | Name of the participant                                                       | no       | Fluid
-        interfaces          | To save the coupling interfaces(Each interface is a subdirectory)             | yes      |
-        mesh                | Name of the coupling mesh                                                     | yes      |
-        patches             | WordList of the openFOAM patches which contain the coupling faces
-        locations           | Name of the location in mesh to get the required data (faceCenter/facenode)   | yes      | faceCenter
-        readData            | WordList of the variables to Read by OpenFOAM                                 | yes      |
-        writeData           | WordList of the variables to write by OpenFOAM                                | yes      |
+        Property            | Description                                                                       | Required | Default value
+        type                | type name: KratosOpenfoamAdapterFunctionObject                                    | yes      |
+        my_name             | Name of the participant                                                           | no       | Fluid
+        interfaces          | To save the coupling interfaces(Each interface is a subdirectory)                 | yes      |
+            mesh            | Name of the coupling mesh                                                         | yes      |
+            patches         | WordList of the openFOAM patches which contain the coupling faces                 | yes      |
+            locations       | Name of the location in mesh to get the required data (faceCenter/facenode)       | yes      | faceCenter
+            readData        | WordList of the variables to Read by OpenFOAM                                     | yes      |
+            writeData       | WordList of the variables to write by OpenFOAM                                    | yes      |
+        parameters          | List of Parameters required for FSI: rho, mu                                      | no       |
     \endtable
 
 SourceFiles
     KratosOpenfoamAdapterFunctionObject.C
 
 \*-----------------------------------------------------------------------*/
-/*
-#include <iostream>
-using namespace std;
-#include <iomanip> */
 
 #ifndef KRATOSOPENFOAMADAPTERFUNCTIONOBJECT_H
 #define KRATOSOPENFOAMADAPTERFUNCTIONOBJECT_H
@@ -101,7 +98,8 @@ private:
 
     //- Adapter's main class instance
     //- CoSimulationAdapter CoSimulationAdapter_;
-    const Foam::Time& runTime_;
+    const Foam::Time& runTime_; //Copy of RunTime Time object
+    const dictionary& dict_; //Copy of Control Dict
 
     //- Member variables required for CoSimIO
     std::string connection_name;
@@ -132,12 +130,6 @@ protected:
 
         //Parameters for Adapter's configuration
         Foam::word my_name;
-
-        //Vector of string to save the name of the data to be read by Fluid Solver-OpenFOAM
-        //Foam::wordList readData_;
-
-        //Vector of string to save the name of the data to be write by Fluid Solver-OpenFOAM
-        //Foam::wordList writeData_;
 
         //Every interface need to know the coupling Mesh, the OpenFOAM patches that consists the coupling surface, reading data on it and writing data.
         //Hence Strucutre is made to save all this data related to an interface
