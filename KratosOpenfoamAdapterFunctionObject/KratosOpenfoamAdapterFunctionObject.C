@@ -306,10 +306,10 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         std::cout << "CoSimulation Adapter's function object : execution()" << std::endl;
 
         //pressure Data values in the simulation
-        if(mesh_.foundObject<volScalarField>("p"))
+        if( mesh_.foundObject<volScalarField>("p") && (!(mesh_.foundObject<pointVectorField>("pointDisplacement"))) ) //For Cavity case, pressure values to Export to CoSimApp
         {
             //Code to get the pressure field and send it to CoSimulation
-/*             std::cout<< "Pressure field is found" << std::endl;
+            std::cout<< "Pressure field is found" << std::endl;
 
             const volScalarField& pressure_ = mesh_.lookupObject<volScalarField>("p");
             std::cout<< "Size of the array is " << pressure_.size() << std::endl;
@@ -318,52 +318,18 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 
             forAll(pressure_, i)
             {
-                //std::cout << pressure_[i] << std::endl;
+                std::cout << pressure_[i] << std::endl;
                 data_to_send[i] = pressure_[i];
-            } */
-
-            //Printing PointDisplcement
-            Foam::pointVectorField* point_disp;
-            point_disp = const_cast<pointVectorField*>( &mesh_.lookupObject<pointVectorField>("pointDisplacement") );
-            std::cout<< "Size of the pointDisplacement array is " << point_disp->size() << std::endl;
-
-            forAll(*point_disp, i)
-            {
-                //std::cout << point_disp[i][0] << ", " << point_disp[i][1] << ", " << point_disp[i][2] << std::endl;
             }
-
-            label patchIndex = mesh_.boundaryMesh().findPatchID("flap");
-
-            // Get the displacement on the patch and assigning some random values
-            fixedValuePointPatchVectorField& pointDisplacementFluidPatch = refCast<fixedValuePointPatchVectorField>(point_disp->boundaryFieldRef()[patchIndex]);
-
-            forAll(point_disp->boundaryFieldRef()[patchIndex] ,i)
-            {
-                pointDisplacementFluidPatch[i][0] = 6;
-                pointDisplacementFluidPatch[i][1] = 7;
-                if (dim ==3)
-                    pointDisplacementFluidPatch[i][2] = 8;
-
-                //std::cout << i << " : "<< pointDisplacementFluidPatch[i][0] << ", " << pointDisplacementFluidPatch[i][1] << ", " << pointDisplacementFluidPatch[i][2] << std::endl;
-            }
-
-            //Printing CellDisplcement
-/*             const volVectorField& cell_disp = mesh_.lookupObject<volVectorField>("cellDisplacement");
-            std::cout<< "Size of the cellDisplacement array is " << cell_disp.size() << std::endl;
-
-            forAll(cell_disp, i)
-            {
-                std::cout << cell_disp[i][0] << ", " << cell_disp[i][1] << ", " << cell_disp[i][2] << std::endl;
-            } */
 
             //Export this pressure arrat to CoSimulation
-/*             CoSimIO::Info connect_info;
+            CoSimIO::Info connect_info;
             connect_info.Clear();
             connect_info.Set("identifier", "pressure_values");
             connect_info.Set("connection_name", connection_name);
             connect_info = CoSimIO::ExportData(connect_info, data_to_send);
 
-            std::cout<< "Data has been exported from OpenFOAM to CoSimulation" <<std::endl; */
+            std::cout<< "Data has been exported from OpenFOAM to CoSimulation" <<std::endl;
         }
 
         //Pressure Data values on the Boundary patch "fixed walls" only
@@ -398,7 +364,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         } */
 
         /*//Velocity Data values in the simulation
-         if(mesh_.foundObject<volVectorField>("U"))
+        if(mesh_.foundObject<volVectorField>("U"))
         {
             std::cout<< "Velocity field is found" << std::endl;
 
@@ -410,34 +376,74 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
             }
         }*/
 
-        //At the end of time loop, Calculation of the Forces, which need to send to structural solver in FSI problem
-        //Total force = Viscous force + Pressure force
-        std::cout<< "Force calculation : start" << std::endl;
-        for(std::size_t i=0; i < num_interfaces_; i++)
+        //Printing PointDisplcement
+        if(mesh_.foundObject<pointVectorField>("pointDisplacement"))
         {
-            //For "Wirte Data" variables which need to send to CoSimulation
-            for(std::size_t j=0; j< interfaces_.at(i).writeData.size(); j++)
+            Foam::pointVectorField* point_disp;
+            point_disp = const_cast<pointVectorField*>( &mesh_.lookupObject<pointVectorField>("pointDisplacement") );
+            std::cout<< "Size of the pointDisplacement array is " << point_disp->size() << std::endl;
+
+            forAll(*point_disp, i)
             {
-                std::string dataName = interfaces_.at(i).writeData.at(j);
-                std::cout<< "interface = "<< i << " with DataName = " << dataName << std::endl;
-
-                if(dataName.find("Force") == 0 )
-                {
-                    std::cout<< "data index = "<< j << std::endl;
-                    calculateForces(j);
-                }
+                //std::cout << point_disp[i][0] << ", " << point_disp[i][1] << ", " << point_disp[i][2] << std::endl;
             }
+
+            label patchIndex = mesh_.boundaryMesh().findPatchID("flap");
+
+            // Get the displacement on the patch and assigning some random values
+            fixedValuePointPatchVectorField& pointDisplacementFluidPatch = refCast<fixedValuePointPatchVectorField>(point_disp->boundaryFieldRef()[patchIndex]);
+
+            forAll(point_disp->boundaryFieldRef()[patchIndex] ,i)
+            {
+                pointDisplacementFluidPatch[i][0] = 6;
+                pointDisplacementFluidPatch[i][1] = 7;
+                if (dim ==3)
+                    pointDisplacementFluidPatch[i][2] = 8;
+
+                //std::cout << i << " : "<< pointDisplacementFluidPatch[i][0] << ", " << pointDisplacementFluidPatch[i][1] << ", " << pointDisplacementFluidPatch[i][2] << std::endl;
+            }
+
+            //Printing CellDisplcement
+/*             const volVectorField& cell_disp = mesh_.lookupObject<volVectorField>("cellDisplacement");
+            std::cout<< "Size of the cellDisplacement array is " << cell_disp.size() << std::endl;
+
+            forAll(cell_disp, i)
+            {
+                std::cout << cell_disp[i][0] << ", " << cell_disp[i][1] << ", " << cell_disp[i][2] << std::endl;
+            } */
+
+
+            //At the end of time loop, Calculation of the Forces, which need to send to structural solver in FSI problem
+            //Total force = Viscous force + Pressure force
+            std::cout<< "Force calculation : start" << std::endl;
+            for(std::size_t i=0; i < num_interfaces_; i++)
+            {
+                //For "Wirte Data" variables which need to send to CoSimulation
+                for(std::size_t j=0; j< interfaces_.at(i).writeData.size(); j++)
+                {
+                    std::string dataName = interfaces_.at(i).writeData.at(j);
+                    std::cout<< "interface = "<< i << " with DataName = " << dataName << std::endl;
+
+                    if(dataName.find("Force") == 0 )
+                    {
+                        std::cout<< "data index = "<< j << std::endl;
+                        calculateForces(j);
+                    }
+                }
+             }
+            std::cout<< "Force calculation : End" << std::endl;
+
+            //Export this force array to CoSimulation
+            CoSimIO::Info connect_info;
+            connect_info.Clear();
+            connect_info.Set("identifier", "force_values");
+            connect_info.Set("connection_name", connection_name);
+            connect_info = CoSimIO::ExportData(connect_info, data_to_send);
+
+            std::cout<< "Data has been exported from OpenFOAM to CoSimulation: Force values" <<std::endl;
         }
-        std::cout<< "Force calculation : End" << std::endl;
 
-        //Export this force array to CoSimulation
-        CoSimIO::Info connect_info;
-        connect_info.Clear();
-        connect_info.Set("identifier", "force_values");
-        connect_info.Set("connection_name", connection_name);
-        connect_info = CoSimIO::ExportData(connect_info, data_to_send);
 
-        std::cout<< "Data has been exported from OpenFOAM to CoSimulation: Force values" <<std::endl;
     }
 
     time_step_++;
