@@ -46,6 +46,7 @@ timePrecision       12;
 
 functions
 {
+
     KratosOpenfoamAdapterFunctionObject1
     {
         type KratosOpenfoamAdapterFunctionObject;
@@ -78,7 +79,23 @@ functions
         {
             rho rho [1 -3 0 0 0 0 0] 1000;
         }
+    }
 
+    //To verify Force readData usinf Froce function object
+    forces1
+    {
+        type                forces;
+        libs                ("libforces.so");
+        patches             (flap);
+        p                   p;
+        U                   U;
+        rho  	            rhoInf;
+        rhoInf              1000;
+        origin              (5.5 5.97 0.005);
+        CofR                (0 0 0);
+        writeFields         yes;
+        outputControl       timeStep;
+        outputInterval      1;
     }
 
 }
