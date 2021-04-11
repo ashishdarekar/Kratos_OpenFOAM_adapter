@@ -376,10 +376,11 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
             }
         }*/
 
-        //Printing PointDisplcement
+        // *************************************** Displcement Related ****************************************** //
         if(mesh_.foundObject<pointVectorField>("pointDisplacement"))
         {
-            Foam::pointVectorField* point_disp;
+            //Printing PointDisplcement
+            /* Foam::pointVectorField* point_disp;
             point_disp = const_cast<pointVectorField*>( &mesh_.lookupObject<pointVectorField>("pointDisplacement") );
             std::cout<< "Size of the pointDisplacement array is " << point_disp->size() << std::endl;
 
@@ -401,7 +402,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
                     pointDisplacementFluidPatch[i][2] = 8;
 
                 //std::cout << i << " : "<< pointDisplacementFluidPatch[i][0] << ", " << pointDisplacementFluidPatch[i][1] << ", " << pointDisplacementFluidPatch[i][2] << std::endl;
-            }
+            } */
 
             //Printing CellDisplcement
 /*             const volVectorField& cell_disp = mesh_.lookupObject<volVectorField>("cellDisplacement");
@@ -422,16 +423,16 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
                 for(std::size_t j=0; j< interfaces_.at(i).writeData.size(); j++)
                 {
                     std::string dataName = interfaces_.at(i).writeData.at(j);
-                    std::cout<< "interface = "<< i << " with DataName = " << dataName << std::endl;
+                    std::cout<< "interface = "<< i+1 << " with DataName = " << dataName << std::endl;
 
                     if(dataName.find("Force") == 0 )
                     {
-                        std::cout<< "data index = "<< j << std::endl;
                         calculateForces(j);
                     }
                 }
              }
-            std::cout<< "Force calculation : End" << std::endl;
+            std::cout<< "Force calculation : Done" << std::endl;
+            std::cout<< "Data to be send from OpenFOAM: with array size = " << data_to_send.size() << std::endl;
 
             //Export this force array to CoSimulation
             CoSimIO::Info connect_info;
@@ -751,7 +752,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
 
     return true;
 }
-
 
 }//namespace Foam
 
