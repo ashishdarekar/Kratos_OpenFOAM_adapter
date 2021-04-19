@@ -135,7 +135,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
     std::cout << "Interfaces Reading: Done" << std::endl;
     std::cout << "Number of interfaces found: " << num_interfaces_<< std::endl;
 
-    //Connection between OpneFOAM and Kratos-CoSimulation using CoSimIO
+    //Connection between openFOAM and Kratos-CoSimulation using CoSimIO
     CoSimIO::Info settings;
     settings.Set("my_name", "Openfoam_adapter");
     settings.Set("connect_to", "Kratos_CoSimulation");
@@ -160,7 +160,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         std::cout<< "Name of an Interface/model part: " << model_part_interfaces_.at(j)->Name() << std::endl;
 
         // **************************Create a mesh as a ModelPart********************************//
-        std::cout << "Accessing Mesh from OpneFOAM" << std::endl;
+        std::cout << "Accessing Mesh from openFOAM" << std::endl;
         std::vector<int> patchIDs;
 
         // For every patch that participates in the coupling interface
@@ -310,29 +310,23 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 
         std::cout<< runTime_.timeName() << " : Data has been imported from CoSimulation to OpenFOAM: Disp values with array size = " << data_to_recv.size() << std::endl;
 
-        /* //Printing PointDisplcement
+        /* // Get the displacement on the patch and assign it those values received from CoSimulation,
+        // currently values are random hence if it may break the solution.
         Foam::pointVectorField* point_disp;
         point_disp = const_cast<pointVectorField*>( &mesh_.lookupObject<pointVectorField>("pointDisplacement") );
-        std::cout<< "Size of the pointDisplacement array is " << point_disp->size() << std::endl;
-
-        forAll(*point_disp, i)
-        {
-            //std::cout << point_disp[i][0] << ", " << point_disp[i][1] << ", " << point_disp[i][2] << std::endl;
-        }
-
+        //std::cout<< "Size of the pointDisplacement array is " << point_disp->size() << std::endl;
         label patchIndex = mesh_.boundaryMesh().findPatchID("flap");
-
-        // Get the displacement on the patch and assigning some random values
         fixedValuePointPatchVectorField& pointDisplacementFluidPatch = refCast<fixedValuePointPatchVectorField>(point_disp->boundaryFieldRef()[patchIndex]);
 
+        int iterator = 0 ; //iterator goes from 0 till (size of recv_array)
         forAll(point_disp->boundaryFieldRef()[patchIndex] ,i)
         {
-            pointDisplacementFluidPatch[i][0] = 6;
-            pointDisplacementFluidPatch[i][1] = 7;
+            pointDisplacementFluidPatch[i][0] = data_to_recv[iterator++];
+            pointDisplacementFluidPatch[i][1] = data_to_recv[iterator++];
             if (dim ==3)
-                pointDisplacementFluidPatch[i][2] = 8;
+                pointDisplacementFluidPatch[i][2] = data_to_recv[iterator++];
 
-            //std::cout << i << " : "<< pointDisplacementFluidPatch[i][0] << ", " << pointDisplacementFluidPatch[i][1] << ", " << pointDisplacementFluidPatch[i][2] << std::endl;
+            std::cout << i << " : "<< pointDisplacementFluidPatch[i][0] << ", " << pointDisplacementFluidPatch[i][1] << ", " << pointDisplacementFluidPatch[i][2] << std::endl;
         } */
 
         // *************************************** Force/Load Related ****************************************** //
@@ -377,7 +371,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::end()
 
     std::cout << "\n" << "CoSimulation Adapter's function object : end()" << std::endl;
 
-    //DisConnection between OpneFOAM and Kratos-CoSimulation using CoSimIO
+    //DisConnection between openFOAM and Kratos-CoSimulation using CoSimIO
     CoSimIO::Info connect_info;
     CoSimIO::Info disconnect_settings;
     disconnect_settings.Set("connection_name", connection_name);

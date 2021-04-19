@@ -17,7 +17,7 @@ int makedummydisplacemetvalues(std::vector<double>& send_data, int size)
     {
         send_data[i++] = i * 1.01;
         send_data[i++] = i * 1.08;
-        send_data[i++] = i * 2.05;
+        send_data[i++] = i * 1.05;
     }
     return 0;
 }
