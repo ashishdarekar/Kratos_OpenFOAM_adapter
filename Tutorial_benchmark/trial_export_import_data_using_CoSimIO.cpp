@@ -1,6 +1,6 @@
-//Exporting Data to Kratos_OpenFoam_adapter
+//-To Commnicate with Kratos_OpenFoam_adapter
 
-// CoSimIO includes
+//-CoSimIO includes
 #include "co_sim_io.hpp"
 
 #define COSIMIO_CHECK_EQUAL(a, b)                                \
@@ -10,9 +10,21 @@
         return 1;                                                \
     }
 
+int makedummydisplacemetvalues(std::vector<double>& send_data, int size)
+{
+    int i = 0;
+    while(i < size)
+    {
+        send_data[i++] = i * 1.01;
+        send_data[i++] = i * 1.08;
+        send_data[i++] = i * 2.05;
+    }
+    return 0;
+}
+
 int main()
 {
-    // ************ Connection setting ******************//
+    // ********************************* Connection setting **********************************************//
     CoSimIO::Info settings;
     settings.Set("my_name", "Kratos_CoSimulation");
     settings.Set("connect_to", "Openfoam_adapter");
@@ -23,7 +35,7 @@ int main()
     COSIMIO_CHECK_EQUAL(info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Connected);
     const std::string connection_name = info.Get<std::string>("connection_name");
 
-    // *********** Import Mesh **************//
+    // ***************************************** Import Mesh *********************************************//
     std::cout << "Importing All interface meshes: Start" << std::endl;
     std::vector<std::unique_ptr<CoSimIO::ModelPart>> model_part_interfaces_;
     int num_interfaces_ = 2 ; //We need to transfer this data as well to CoSimulation
@@ -43,72 +55,49 @@ int main()
     }
     std::cout << "Importing All interface meshes: Done" << std::endl;
 
-    // ****************************** Code to test the working of CosimIO::ImportMesh ***********************************************//
-    //Checking the nodal coordinates of the received meshes
-    for(int i=1; i<5; i++)
+    // ***************************************** Export and Import Data *********************************************//
+    int num_of_nodes = 182;
+    int dim = 3;
+
+    double time_step = 0.001;
+    while(time_step < 0.011)
     {
-        std::cout << "Coordinates of node with Id "<< i << " in interface1 are: (" << model_part_interfaces_.at(0)->GetNode(i).X() << "," << model_part_interfaces_.at(0)->GetNode(i).Y()
-        << "," << model_part_interfaces_.at(0)->GetNode(i).Z() << ")." << std::endl;
-    }
+        //Exporting Displacement values from Structural Solver to OpenFOAM
+        std::cout << "CoSimIO is trying to Export the data: Displacement Values" << std::endl;
+        std::vector<double> send_data;
 
-    //Checking the Elements of the received meshes
-    for(int i=1; i<20; i+=2)
-    {
-        CoSimIO::Element& element = model_part_interfaces_.at(0)->GetElement(i);
-        std::cout << "Element info in the interface1 is: ( Id= " << element.Id() << ", Number of Nodes = " << element.NumberOfNodes() << ")" << std::endl;
+        // Resize it according to the number of the nodes in the Cooupling Interface "Flap" and then Fill the dummy values in it
+        send_data.resize(num_of_nodes * dim);
+        makedummydisplacemetvalues(send_data, num_of_nodes * dim);
 
-        // access Id of element:
-        CoSimIO::IdType element_id = element.Id();
-        // the type can be accessed:
-        CoSimIO::ElementType element_type = element.Type(); // e.g. CoSimIO::ElementType::Point2D or CoSimIO::ElementType::Line2D2
-        std::cout << "Element Type:( " << typeid(element_type).name() << " )" << std::endl;
+        info.Clear();
+        info.Set("identifier", "disp_values");
+        info.Set("connection_name", connection_name);
+        info = CoSimIO::ExportData(info, send_data);
+        std::cout << time_step << " : Data sent to OpenFOAM: displacement Values with array size = " << send_data.size() << "\n" << std::endl;
 
-        // iterate the nodes of the element:
-        for (auto node_it=element.NodesBegin(); node_it!=element.NodesEnd(); ++node_it)
+        //In between we should have one iteration of Coupling Solver/ CoSimulaton in our case, Need to write the code for it
+
+        //Importing Force Values from OpenFOAM
+        std::cout << "CoSimIO is trying to Import the data: Force Values" << std::endl;
+        std::vector<double> receive_data;
+        info.Clear();
+        info.Set("identifier", "force_values");
+        info.Set("connection_name", connection_name);
+        info = CoSimIO::ImportData(info, receive_data);
+        std::cout << time_step << " : Data Received from OpenFOAM: Force Values with array size = " << receive_data.size() << "\n" << "\n" << std::endl;
+
+        time_step+=0.001;
+
+        /* int i = 0;
+        for(auto& value : receive_data)
         {
-            CoSimIO::Node& node = **node_it;
-            std::cout << "Id:( " << node.X() << "," << node.Y() << "," << node.Z() << " )" << std::endl;
-        }
-    }
-    // ****************************** Code to test the working of CosimIO::ImportMesh ***********************************************//
-
-    // ************ Importing Data ******************//
-/*     std::cout << "CoSimIO is trying to Import the data: Pressure Values" << std::endl;
-    std::vector<double> receive_data;
-    info.Clear();
-    info.Set("identifier", "pressure_values");
-    info.Set("connection_name", connection_name);
-    info = CoSimIO::ImportData(info, receive_data);
-
-    std::cout<< "Data Received from OpenFOAM: Pressure values with array size = " << receive_data.size() << std::endl;
-
-    int i = 0;
-
-    for(auto& value : receive_data){
-        //std::cout << "id = " << i << ", Value = " << value << std::endl;
-        i++;
-        //COSIMIO_CHECK_EQUAL(value, 3.14);
-    } */
-
-    //Importing Force Values
-    std::cout << "CoSimIO is trying to Import the data: Force Values" << std::endl;
-    std::vector<double> receive_data;
-    info.Clear();
-    info.Set("identifier", "force_values");
-    info.Set("connection_name", connection_name);
-    info = CoSimIO::ImportData(info, receive_data);
-
-    std::cout<< "Data Received from OpenFOAM: Force Values with array size = " << receive_data.size() << std::endl;
-
-    int i = 0;
-
-    for(auto& value : receive_data){
-        std::cout << "id = " << i << ", Value = " << value << std::endl;
-        i++;
-        //COSIMIO_CHECK_EQUAL(value, 3.14);
+            std::cout << "id = " << i << ", Value = " << value << std::endl;
+            i++;
+        } */
     }
 
-    // ************ DisConnection setting ******************//
+    // ************************************** DisConnection setting ******************************************//
     CoSimIO::Info disconnect_settings;
     disconnect_settings.Set("connection_name", connection_name);
     info = CoSimIO::Disconnect(disconnect_settings); // disconnect afterwards
@@ -116,4 +105,6 @@ int main()
 
     return 0;
 }
+
+
 
