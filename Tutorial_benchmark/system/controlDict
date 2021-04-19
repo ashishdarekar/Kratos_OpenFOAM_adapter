@@ -82,21 +82,21 @@ functions
     }
 
     //To verify Force readData usinf Froce function object
-    forces1
-    {
-        type                forces;
-        libs                ("libforces.so");
-        patches             (flap);
-        p                   p;
-        U                   U;
-        rho  	            rhoInf;
-        rhoInf              1000;
-        origin              (5.5 5.97 0.005);
-        CofR                (0 0 0);
-        writeFields         yes;
-        outputControl       timeStep;
-        outputInterval      1;
-    }
+    //forces1
+    //{
+    //    type                forces;
+    //    libs                ("libforces.so");
+    //    patches             (flap);
+    //    p                   p;
+    //    U                   U;
+    //    rho  	            rhoInf;
+    //    rhoInf              1000;
+    //   origin              (5.5 5.97 0.005);
+    //    CofR                (0 0 0);
+    //    writeFields         yes;
+    //    outputControl       timeStep;
+    //    outputInterval      1;
+    //}
 
 }
 
