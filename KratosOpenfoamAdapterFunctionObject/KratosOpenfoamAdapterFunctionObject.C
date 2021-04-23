@@ -139,7 +139,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
     CoSimIO::Info settings;
     settings.Set("my_name", "Openfoam_Adapter");
     settings.Set("connect_to", "Openfoam_Kratos_Wrapper");
-    settings.Set("echo_level", 0);
+    settings.Set("echo_level", 1);
     settings.Set("version", "1.25");
 
     auto connect_info = CoSimIO::Connect(settings);
