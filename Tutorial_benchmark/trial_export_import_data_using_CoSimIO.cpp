@@ -1,4 +1,4 @@
-//-To Commnicate with Kratos_OpenFoam_adapter
+//-Dummy file To Commnicate between Openfoam_Adapter and Openfoam_Kratos_Wrapper
 
 //-CoSimIO includes
 #include "co_sim_io.hpp"
@@ -26,8 +26,8 @@ int main()
 {
     // ********************************* Connection setting **********************************************//
     CoSimIO::Info settings;
-    settings.Set("my_name", "Kratos_CoSimulation");
-    settings.Set("connect_to", "Openfoam_adapter");
+    settings.Set("my_name", "Openfoam_Kratos_Wrapper");
+    settings.Set("connect_to", "Openfoam_Adapter");
     settings.Set("echo_level", 1);
     settings.Set("version", "1.25");
 
