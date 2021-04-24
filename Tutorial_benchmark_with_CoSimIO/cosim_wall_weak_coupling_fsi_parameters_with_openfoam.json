@@ -15,7 +15,7 @@
             {
                 "type" : "average_value_based",
                 "solver"         : "Openfoam_Kratos_Wrapper",
-                "data_name"      : "load"
+                "data_name"      : "load" //Why this??
             }
         ],
         "data_transfer_operators" : {
@@ -35,8 +35,8 @@
                     "data"              : "load",
                     "from_solver"       : "Openfoam_Kratos_Wrapper",
                     "from_solver_data"  : "load",
-                    "data_transfer_operator" : "mapper",
-                    "data_transfer_operator_options" : ["swap_sign"]
+                    "data_transfer_operator" : "mapper"
+                    //"data_transfer_operator_options" : ["swap_sign"]
                 }
             ],
             "output_data_list": [
