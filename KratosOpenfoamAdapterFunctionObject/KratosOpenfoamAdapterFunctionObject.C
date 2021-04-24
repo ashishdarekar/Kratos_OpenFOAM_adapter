@@ -139,7 +139,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
     CoSimIO::Info settings;
     settings.Set("my_name", "Openfoam_Adapter");
     settings.Set("connect_to", "Openfoam_Kratos_Wrapper");
-    settings.Set("echo_level", 1);
+    settings.Set("echo_level", 0);
     settings.Set("version", "1.25");
 
     auto connect_info = CoSimIO::Connect(settings);
@@ -240,7 +240,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         std::cout << "Exporting Mesh as a ModelPart: Start for an interface = " << j+1 << std::endl;
         CoSimIO::Info info;
         info.Clear();
-        info.Set("identifier", "fluid_mesh");
+        info.Set("identifier", "interface_flap");
         info.Set("connection_name", connection_name);
         auto export_info = CoSimIO::ExportMesh(info, *model_part_interfaces_.at(j));
         std::cout << "Exporting Mesh as a ModelPart: End for an interface = " << j+1 << "\n " <<std::endl;
