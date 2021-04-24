@@ -46,7 +46,7 @@ int main()
         model_part_interfaces_.push_back(CoSimIO::make_unique<CoSimIO::ModelPart>(interface_name));
 
         info.Clear();
-        info.Set("identifier", "fluid_mesh");
+        info.Set("identifier", "interface_flap");
         info.Set("connection_name", connection_name); // connection_name is obtained from calling "Connect"
 
         auto import_info = CoSimIO::ImportMesh(info, *model_part_interfaces_.at(j));
