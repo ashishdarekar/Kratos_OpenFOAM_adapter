@@ -147,8 +147,8 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
     connection_name = connect_info.Get<std::string>("connection_name");
 
     //*********************** Export Fluid-OpenFOAM Mesh to CoSimulation using CoSimIO *********************//
-    //Create one CoSimIO::ModelPart for each coupling interface
-    /*std::cout << "\n" <<"********************** Exporting InterfaceMesh using ModelPart: Start **********************" << "\n" <<std::endl;
+    /* //Create one CoSimIO::ModelPart for each coupling interface
+    std::cout << "\n" <<"********************** Exporting InterfaceMesh using ModelPart: Start **********************" << "\n" <<std::endl;
 
     for(std::size_t j=0; j < num_interfaces_; j++)
     {
@@ -160,7 +160,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         std::cout<< "Name of an Interface/model part: " << model_part_interfaces_.at(j)->Name() << std::endl;
 
         // **************************Create a mesh as a ModelPart********************************/
-    /*    std::cout << "Accessing Mesh from openFOAM" << std::endl;
+/*        std::cout << "Accessing Mesh from openFOAM" << std::endl;
         std::vector<int> patchIDs;
 
         // For every patch that participates in the coupling interface
@@ -229,13 +229,13 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                 }
                 //-Make CoSimIO Element = currently hardcoded to make Quadrilateral3D4
                 ElemIDs.push_back(elemIndex); //Maybe useful
-                CoSimIO::Element& element = model_part_interfaces_.at(j)->CreateNewElement( elemIndex, CoSimIO::ElementType::Quadrilateral3D4, connectivity );
+                CoSimIO::Element& element = model_part_interfaces_.at(j)->CreateNewElement( elemIndex, CoSimIO::ElementType::Quadrilateral2D4, connectivity );
                 elemIndex++;
             }
         }
         std::cout << "Converting InterfaceMesh to a CoSimIO::ModelPart -> End" << std::endl;
         // **************************Done: Create a mesh as a ModelPart********************************/
-    /*
+/*
         //Export InterfaceMesh/ModelPart to CoSimulation using CoSimIO
         std::cout << "Exporting Mesh as a ModelPart: Start for an interface = " << j+1 << std::endl;
         CoSimIO::Info info;
@@ -247,11 +247,10 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
     }
 
     std::cout << "*********************** Exporting InterfaceMesh using ModelPart: End ************************" << "\n" <<std::endl;
-    */
+*/
 
 
-
-    // To test the CoSimulation Import Mesh Fuctationality
+    // To test the CoSimulation Import Mesh Fuctationality with one interface only
     int j = 0; //Considering 1st interface
     std::cout << "\n" <<"********************** Exporting InterfaceMesh using ModelPart: Start **********************" << "\n" <<std::endl;
 
@@ -326,7 +325,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             }
             //-Make CoSimIO Element = currently hardcoded to make Quadrilateral3D4
             ElemIDs.push_back(elemIndex); //Maybe useful
-            CoSimIO::Element& element = model_part_interface_flap.CreateNewElement( elemIndex, CoSimIO::ElementType::Quadrilateral3D4, connectivity );
+            CoSimIO::Element& element = model_part_interface_flap.CreateNewElement( elemIndex, CoSimIO::ElementType::Quadrilateral2D4, connectivity );
             elemIndex++;
         }
     }
@@ -340,6 +339,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
     info.Set("connection_name", connection_name);
     auto export_info = CoSimIO::ExportMesh(info, model_part_interface_flap);
     std::cout << "*********************** Exporting InterfaceMesh using ModelPart: End ************************" << "\n" <<std::endl;
+
 
 
     //Making Data Vectors on the interfaces only
