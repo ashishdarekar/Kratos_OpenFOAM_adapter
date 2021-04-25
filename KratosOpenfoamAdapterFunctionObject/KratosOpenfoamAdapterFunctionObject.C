@@ -249,97 +249,111 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
     std::cout << "*********************** Exporting InterfaceMesh using ModelPart: End ************************" << "\n" <<std::endl;
 */
 
-
     // To test the CoSimulation Import Mesh Fuctationality with one interface only
-    int j = 0; //Considering 1st interface
     std::cout << "\n" <<"********************** Exporting InterfaceMesh using ModelPart: Start **********************" << "\n" <<std::endl;
-
-    std::cout << "Accessing Mesh from openFOAM" << std::endl;
-    std::vector<int> patchIDs;
-
-    // For every patch that participates in the coupling interface
-    for (uint i = 0; i < interfaces_.at(j).patchNames.size(); i++)
+    for(std::size_t j=0; j < num_interfaces_; j++)
     {
-        // Get the patchID
-        int patchID = mesh_.boundaryMesh().findPatchID((interfaces_.at(j).patchNames).at(i));
+        std::string interface_name = "interface" + std::to_string(j+1);
 
-        // Throw an error if the patch was not found
-        if (patchID == -1)
+        //No need to this ...AS we will create only single Model Part later in the code
+        //model_part_interfaces_.push_back(CoSimIO::ModelPart(interface_name));
+        //model_part_interfaces_.push_back(CoSimIO::make_unique<CoSimIO::ModelPart>(interface_name));
+
+        //std::cout<< "Name of an Interface/model part: " << model_part_interfaces_.at(j)->Name() << std::endl;
+
+        // **************************Create a mesh as a ModelPart********************************/
+        std::cout << "Accessing Mesh from openFOAM" << std::endl;
+        std::vector<int> patchIDs;
+
+        // For every patch that participates in the coupling interface
+        for (uint i = 0; i < interfaces_.at(j).patchNames.size(); i++)
         {
-            std::cout<< "ERROR: Patch " << (interfaces_.at(j).patchNames).at(i) << " does not exist." << std::endl;
-        }
+            // Get the patchID
+            int patchID = mesh_.boundaryMesh().findPatchID((interfaces_.at(j).patchNames).at(i));
 
-    // Add the patch in the list
-    patchIDs.push_back(patchID);
-    }
-
-    // Count the Nodes for all the patches in that interface
-    for (uint i = 0; i < patchIDs.size(); i++)
-    {
-        interfaces_.at(j).numNodes += mesh_.boundaryMesh()[patchIDs.at(i)].localPoints().size();
-    }
-    std::cout << "Total Number of Nodes in this interface: " << interfaces_.at(j).numNodes  << std::endl;
-
-    // Count the number of elements/faces for all the patches in that interface
-    for (uint i = 0; i < patchIDs.size(); i++)
-    {
-        interfaces_.at(j).numElements += mesh_.boundary()[patchIDs[i]].size();
-    }
-    std::cout << "Total Number of Elements/faces in this interface: " << interfaces_.at(j).numElements << std::endl;
-
-    // create CoSimIO::ModelPart
-    CoSimIO::ModelPart model_part_interface_flap("interface_flap_model_part");
-
-    //-For Nodes and Element IDs for CoSimIO
-    std::cout << "Creating Model Part (Nodes and Elements) for CoSimIO : start" << std::endl;
-    std::vector<int> NodeIDs;
-    NodeIDs.resize( interfaces_.at(j).numNodes );
-    int nodeIndex = 1; //As Node indexing starts with 1 in CoSimIO
-
-    std::vector<int> ElemIDs;
-    ElemIDs.resize(interfaces_.at(j).numElements);
-    int elemIndex = 1; //As element indexing starts with 1 in CoSimIO
-
-    vector pointX(0,0,0); //For accessing the Co-ordinates of Nodes
-
-    for(uint i = 0; i < patchIDs.size(); i++)
-    {
-        //const word& patchName = mesh_.boundary()[patchIDs[i]].name();
-        //std::cout << "patchID: " << patchIDs[i] << " with name "  << patchName << " With size = "<< mesh_.boundary()[patchIDs[i]].size() << std::endl;
-
-        forAll (mesh_.boundary()[patchIDs[i]],facei)
-        {
-            const label& faceID = mesh_.boundaryMesh()[patchIDs[i]].start() + facei;
-            //std::cout << "ID of this face: " << faceID << " Which face: "<< facei << std::endl;
-            std::vector<CoSimIO::IdType> connectivity;
-            forAll (mesh_.faces()[faceID], nodei)
+            // Throw an error if the patch was not found
+            if (patchID == -1)
             {
-                const label& nodeID = mesh_.faces()[faceID][nodei]; //for OpenFOAM
-                pointX = mesh_.points()[nodeID];
-                //std::cout << "Node "<< nodei << " with Id=" << nodeID << ":" << pointX[0] << "," << pointX[1] << "," << pointX[2] << std::endl;
-                //-Make CoSimIO Nodes
-                NodeIDs.push_back(nodeIndex); //Later used to make CoSimIO::Element
-                CoSimIO::Node& node = model_part_interface_flap.CreateNewNode( nodeIndex, pointX[0], pointX[1], pointX[2]);
-                connectivity.push_back(nodeIndex); //connectivity to make that element /face
-                nodeIndex++;
+                std::cout<< "ERROR: Patch " << (interfaces_.at(j).patchNames).at(i) << " does not exist." << std::endl;
             }
-            //-Make CoSimIO Element = currently hardcoded to make Quadrilateral3D4
-            ElemIDs.push_back(elemIndex); //Maybe useful
-            CoSimIO::Element& element = model_part_interface_flap.CreateNewElement( elemIndex, CoSimIO::ElementType::Quadrilateral2D4, connectivity );
-            elemIndex++;
+
+        // Add the patch in the list
+        patchIDs.push_back(patchID);
         }
+
+        // Count the Nodes for all the patches in that interface
+        for (uint i = 0; i < patchIDs.size(); i++)
+        {
+            interfaces_.at(j).numNodes += mesh_.boundaryMesh()[patchIDs.at(i)].localPoints().size();
+        }
+        std::cout << "Total Number of Nodes in this interface: " << interfaces_.at(j).numNodes  << std::endl;
+
+        // Count the number of elements/faces for all the patches in that interface
+        for (uint i = 0; i < patchIDs.size(); i++)
+        {
+            interfaces_.at(j).numElements += mesh_.boundary()[patchIDs[i]].size();
+        }
+        std::cout << "Total Number of Elements/faces in this interface: " << interfaces_.at(j).numElements << std::endl;
+
+        //Considering 1st interface ONLY
+        if(j==0)
+        {
+            // create CoSimIO::ModelPart
+            CoSimIO::ModelPart model_part_interface_flap("interface_flap_model_part");
+
+            //-For Nodes and Element IDs for CoSimIO
+            std::cout << "Creating Model Part (Nodes and Elements) for CoSimIO : start" << std::endl;
+            std::vector<int> NodeIDs;
+            NodeIDs.resize( interfaces_.at(j).numNodes );
+            int nodeIndex = 1; //As Node indexing starts with 1 in CoSimIO
+
+            std::vector<int> ElemIDs;
+            ElemIDs.resize(interfaces_.at(j).numElements);
+            int elemIndex = 1; //As element indexing starts with 1 in CoSimIO
+
+            vector pointX(0,0,0); //For accessing the Co-ordinates of Nodes
+
+            for(uint i = 0; i < patchIDs.size(); i++)
+            {
+                //const word& patchName = mesh_.boundary()[patchIDs[i]].name();
+                //std::cout << "patchID: " << patchIDs[i] << " with name "  << patchName << " With size = "<< mesh_.boundary()[patchIDs[i]].size() << std::endl;
+
+                forAll (mesh_.boundary()[patchIDs[i]],facei)
+                {
+                    const label& faceID = mesh_.boundaryMesh()[patchIDs[i]].start() + facei;
+                    //std::cout << "ID of this face: " << faceID << " Which face: "<< facei << std::endl;
+                    std::vector<CoSimIO::IdType> connectivity;
+                    forAll (mesh_.faces()[faceID], nodei)
+                    {
+                        const label& nodeID = mesh_.faces()[faceID][nodei]; //for OpenFOAM
+                        pointX = mesh_.points()[nodeID];
+                        //std::cout << "Node "<< nodei << " with Id=" << nodeID << ":" << pointX[0] << "," << pointX[1] << "," << pointX[2] << std::endl;
+                        //-Make CoSimIO Nodes
+                        NodeIDs.push_back(nodeIndex); //Later used to make CoSimIO::Element
+                        CoSimIO::Node& node = model_part_interface_flap.CreateNewNode( nodeIndex, pointX[0], pointX[1], pointX[2]);
+                        connectivity.push_back(nodeIndex); //connectivity to make that element /face
+                        nodeIndex++;
+                    }
+                    //-Make CoSimIO Element = currently hardcoded to make Quadrilateral3D4
+                    ElemIDs.push_back(elemIndex); //Maybe useful
+                    CoSimIO::Element& element = model_part_interface_flap.CreateNewElement( elemIndex, CoSimIO::ElementType::Quadrilateral2D4, connectivity );
+                    elemIndex++;
+                }
+            }
+
+            std::cout << "Converting InterfaceMesh to a CoSimIO::ModelPart -> End" << std::endl;
+
+            //Export InterfaceMesh/ModelPart to CoSimulation using CoSimIO
+            std::cout << "Exporting Mesh as a ModelPart: Start for an interface flap" << std::endl;
+            CoSimIO::Info info;
+            info.Clear();
+            info.Set("identifier", "interface_flap");
+            info.Set("connection_name", connection_name);
+            auto export_info = CoSimIO::ExportMesh(info, model_part_interface_flap);
+            std::cout << "*********************** Exporting InterfaceMesh using ModelPart: End ************************" << "\n" <<std::endl;
+        }
+
     }
-    std::cout << "Converting InterfaceMesh to a CoSimIO::ModelPart -> End" << std::endl;
-
-    //Export InterfaceMesh/ModelPart to CoSimulation using CoSimIO
-    std::cout << "Exporting Mesh as a ModelPart: Start for an interface flap" << std::endl;
-    CoSimIO::Info info;
-    info.Clear();
-    info.Set("identifier", "interface_flap");
-    info.Set("connection_name", connection_name);
-    auto export_info = CoSimIO::ExportMesh(info, model_part_interface_flap);
-    std::cout << "*********************** Exporting InterfaceMesh using ModelPart: End ************************" << "\n" <<std::endl;
-
 
 
     //Making Data Vectors on the interfaces only
@@ -365,6 +379,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         }
 
         //For "Read Data" variables which need to receive from CoSimulation
+        //No need to resize it.
         for(std::size_t j=0; j< interfaces_.at(i).readData.size(); j++)
         {
             std::string dataName = interfaces_.at(i).readData.at(j);
@@ -373,11 +388,11 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             {
                 if(interfaces_.at(i).locationsType == "faceNodes")
                 {
-                    data_to_recv.resize((interfaces_.at(i).numNodes) * dim);
+                    //data_to_recv.resize((interfaces_.at(i).numNodes) * dim);
                 }
                 else if(interfaces_.at(i).locationsType == "faceCenters")
                 {
-                    data_to_recv.resize((interfaces_.at(i).numElements) * dim);
+                    //data_to_recv.resize((interfaces_.at(i).numElements) * dim);
                 }
             }
             //else if() //if some other variables
@@ -398,9 +413,10 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         //Import the displacement array from the CoSimulation
         CoSimIO::Info connect_info;
         connect_info.Clear();
-        connect_info.Set("identifier", "disp_values");
+        connect_info.Set("identifier", "disp");
         connect_info.Set("connection_name", connection_name);
         connect_info = CoSimIO::ImportData(connect_info, data_to_recv);
+        //Check size of Receive data = Expected Receive data. Get it from top.
 
         std::cout<< runTime_.timeName() << " : Data has been imported from CoSimulation to OpenFOAM: Disp values with array size = " << data_to_recv.size() << std::endl;
 
@@ -447,7 +463,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         //Export this force array to CoSimulation
         //CoSimIO::Info connect_info;
         connect_info.Clear();
-        connect_info.Set("identifier", "force_values");
+        connect_info.Set("identifier", "load");
         connect_info.Set("connection_name", connection_name);
         connect_info = CoSimIO::ExportData(connect_info, data_to_send);
 
