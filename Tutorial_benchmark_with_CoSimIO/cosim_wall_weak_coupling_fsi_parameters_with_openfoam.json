@@ -11,13 +11,14 @@
     {
         "type" : "coupled_solvers.gauss_seidel_weak",
         "echo_level" : 0,
-        "predictors" : [
+        //ask Philipp abou the Predictors, How to allocate more space in case of Diplacemnt
+        /* "predictors" : [
             {
                 "type" : "average_value_based",
                 "solver"         : "Openfoam_Kratos_Wrapper",
                 "data_name"      : "load" //Why this??
             }
-        ],
+        ], */
         "data_transfer_operators" : {
             "mapper" : {
                 "type" : "kratos_mapping",
