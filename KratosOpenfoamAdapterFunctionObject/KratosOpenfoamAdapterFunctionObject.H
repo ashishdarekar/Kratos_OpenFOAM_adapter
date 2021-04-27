@@ -125,6 +125,10 @@ private:
         std::vector<double> data_to_send;
         std::vector<double> data_to_recv;
 
+        //For making geometry
+        std::vector<vector> array_of_nodes;
+        //std::vector<std::unique_ptr<vector>> array_of_nodes;
+
 protected:
     //- Protected Data to set the parameters required for coupling
 
@@ -154,6 +158,8 @@ protected:
         //Auxiliar functions
         bool calculateForces(std::size_t interface_index);
         std::string determineSolverType();
+
+        int compare_nodes(Foam::vector& pointX);
 
         //- Stress tensor (see the OpenFOAM "Forces" function object)
         Foam::tmp<Foam::volSymmTensorField> devRhoReff() const;
