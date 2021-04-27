@@ -340,7 +340,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                             NodeIDs.push_back(nodeIndex); //Later used to make CoSimIO::Element
                             CoSimIO::Node& node = model_part_interface_flap.CreateNewNode( nodeIndex, pointX[0], pointX[1], pointX[2]);
                             array_of_nodes.push_back(pointX);//Push new element in the list to compare
-                            std::cout << "Node with index= " << nodeIndex << " is created "<<std::endl;
+                            //std::cout << "Node with index= " << nodeIndex << " is created "<<std::endl;
                             connectivity.push_back(nodeIndex); //connectivity to make that element /face
                             nodeIndex++;
                         }
@@ -352,12 +352,12 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                     //-Make CoSimIO Element = currently hardcoded to make Quadrilateral2D4
                     ElemIDs.push_back(elemIndex); //Maybe useful
                     CoSimIO::Element& element = model_part_interface_flap.CreateNewElement( elemIndex, CoSimIO::ElementType::Quadrilateral2D4, connectivity );
-                    std::cout << "Element with index= " << elemIndex << " is created "<<std::endl;
+                    //std::cout << "Element with index= " << elemIndex << " is created "<<std::endl;
                     elemIndex++;
                 }
             }
             std::cout << "\n" << "Number of nodes: " << nodeIndex -1 << " and Elements: " << elemIndex -1 << std::endl;
-            std::cout << "\n" << "Size of Array of nodes = " << array_of_nodes.size() <<std::endl;
+            //std::cout << "\n" << "Size of Array of nodes = " << array_of_nodes.size() <<std::endl;
 
             std::cout << "Converting InterfaceMesh to a CoSimIO::ModelPart -> End" << std::endl;
 
@@ -494,7 +494,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
     return true;
 }
 
-
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::end()
 {
     //Dicsonect from CoSimIO
@@ -511,7 +510,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::end()
 
     return true;
 }
-
 
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::write()
 {
@@ -552,6 +550,7 @@ std::string Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::determin
     return solverType_;
 }
 
+// To compare the Foam::Vector . Check whether it is really required?
 bool is_same_points(Foam::vector& pointX, Foam::vector& pointY)// Working perfectly . DO NOT CHECK AGAIN
 {
     if(pointX[0] == pointY[0] && pointX[1] == pointY[1] && pointX[2] == pointY[2])
@@ -560,35 +559,22 @@ bool is_same_points(Foam::vector& pointX, Foam::vector& pointY)// Working perfec
         return false;
 }
 
-//To compare nodes before creating the new one
+//To Compare the new node with all previous nodes before creating the new CoSimIO::Node
 int Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::compare_nodes(Foam::vector& pointX)
 {
     int answer = 0;
 
     for(Foam::vector& nodei : array_of_nodes)
     {
-        //std::cout << typeid(nodei).name() << "(" << nodei[0] << "," << nodei[1] << "," << nodei[2] << ")" << std::endl;
         if(is_same_points(pointX , nodei))//current node == previous all nodes
         {
-            //std::cout << " ashish 1.4" << std::endl;
-            //std::cout << "Node:" << pointX[0] << "," << pointX[1] << "," << pointX[2] << std::endl;
             auto itr = std::find( array_of_nodes.begin(), array_of_nodes.end(), nodei ) ;
             answer = std::distance(array_of_nodes.begin(), itr) + 1 ; //nodeindex starts from 1 in CoSimIO
-            //std::cout<< "size of array after this iteration = " << array_of_nodes.size() <<std::endl;
-            //std::cout << "Node repeat with node of position = " << answer << " ; loop number = "<< loop_count++ << std::endl;
-            //return answer;
-            break;
+            break; //Once repeated node is found immediate break it. No need to check it later
         }
         else
         {
-            //std::cout << " ashish 1.5" << std::endl;
-            //array_of_nodes.push_back(pointX);
-            //std::cout << "Node not repeat with loop number = "<< loop_count++ << std::endl;
-            //array_of_nodes.push_back(std::unique_ptr<vector>(pointX));
-            //model_part_interfaces_.push_back(CoSimIO::make_unique<CoSimIO::ModelPart>(interface_name));
-            //std::cout<< "size of array after this iteration = " << array_of_nodes.size() <<std::endl;
-            answer = -1;
-            //return answer;
+            answer = -1; // Compare with all the available nodes and then return (-1) if pointX is not found. Then new node is created in the main()
         }
     }
 
