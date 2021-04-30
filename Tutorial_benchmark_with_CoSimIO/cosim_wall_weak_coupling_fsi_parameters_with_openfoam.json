@@ -3,7 +3,7 @@
     {
         "start_time" : 0.0,
         "end_time" : 3.0,
-        "echo_level" : 4,
+        "echo_level" : 1,
         "print_colors" : true,
         "parallel_type" : "OpenMP"
     },
@@ -11,7 +11,7 @@
     {
         "type" : "coupled_solvers.gauss_seidel_weak",
         "echo_level" : 0,
-        //ask Philipp abou the Predictors, How to allocate more space in case of Diplacemnt
+        //ask Philipp about the Predictors, How to allocate more space in case of Displacement
         /* "predictors" : [
             {
                 "type" : "average_value_based",

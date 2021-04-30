@@ -10,6 +10,7 @@ FoamFile
 
 solvers
 {
+
     p
     {
         solver           GAMG;
@@ -17,6 +18,14 @@ solvers
         relTol           1e-6;
         smoother         DICGaussSeidel;
     }
+    /*
+    p
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-8;
+        relTol          0.01;
+    }*/
 
     pFinal
     {
@@ -61,37 +70,24 @@ PIMPLE
 
     nOuterCorrectors 50;
 
-    // OpenFOAM (.com), OpenFOAM 5 or older (.org)
-    /*
-    residualControl
-    {
-        U
-        {
-            tolerance 5e-5;
-            relTol      0;
-        }
-        p
-        {
-            tolerance 5e-4;
-            relTol      0;
-        }
-    }
-    */
-
-    // OpenFOAM 6 (.org) or newer
-    /*
     residualControl
     {
         U 5e-5;
         p 5e-4;
     }
-    */
+}
+
+relaxationFactors
+{
+    equations
+    {
+        ".*"   1;
+    }
 }
 
 potentialFlow
 {
     nNonOrthogonalCorrectors 5;
 }
-
 
 // ************************************************************************* //

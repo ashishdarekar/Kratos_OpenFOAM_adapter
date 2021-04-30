@@ -24,13 +24,13 @@ startTime           0;
 
 stopAt              endTime;
 
-endTime             0.01; //25
+endTime             2; //25
 
-deltaT              0.001;
+deltaT              0.005;//0.005
 
 writeControl        adjustableRunTime;
 
-writeInterval       0.001;//0.1
+writeInterval       0.01;//0.02
 
 purgeWrite          0;
 
@@ -43,6 +43,13 @@ writeCompression    off;
 timeFormat          general;
 
 timePrecision       12;
+
+adjustTimeStep     yes;
+
+maxCo              0.5;
+
+maxDeltaT          0.01;
+
 
 functions
 {
@@ -80,23 +87,6 @@ functions
             rho rho [1 -3 0 0 0 0 0] 1000;
         }
     }
-
-    //To verify Force readData usinf Froce function object
-    //forces1
-    //{
-    //    type                forces;
-    //    libs                ("libforces.so");
-    //    patches             (flap);
-    //    p                   p;
-    //    U                   U;
-    //    rho  	            rhoInf;
-    //    rhoInf              1000;
-    //   origin              (5.5 5.97 0.005);
-    //    CofR                (0 0 0);
-    //    writeFields         yes;
-    //    outputControl       timeStep;
-    //    outputInterval      1;
-    //}
 
 }
 
