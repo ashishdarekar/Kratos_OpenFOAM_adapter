@@ -34,6 +34,7 @@ fvMeshFunctionObject(name, runTime, dict), runTime_(runTime), dict_(dict)//, CoS
     read(dict);
 }
 
+
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
 Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::~KratosOpenfoamAdapterFunctionObject()
@@ -397,7 +398,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         }
 
         //For "Read Data" variables which need to receive from CoSimulation
-        //No need to resize it.
+        //No need to resize it. Structual Solver will send this data
         for(std::size_t j=0; j< interfaces_.at(i).readData.size(); j++)
         {
             std::string dataName = interfaces_.at(i).readData.at(j);
@@ -434,16 +435,15 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         connect_info.Set("connection_name", connection_name);
         connect_info = CoSimIO::ImportData(connect_info, data_to_recv);
         //Check size of Receive data = Expected Receive data. Get it from top.
-        for(uint i = 0; i < data_to_recv.size() ; i++ )
+        /* for(uint i = 0; i < data_to_recv.size() ; i++ )
         {
-            //std::cout << "i = " << i << " ; data = " << data_to_recv.at(i) << std::endl;
-        }
+            std::cout << "i = " << i << " ; data = " << data_to_recv.at(i) << std::endl;
+        } */
 
         std::cout<< runTime_.timeName() << " : Data has been imported from CoSimulation to OpenFOAM: Disp values with array size = " << data_to_recv.size() << std::endl;
 
         // Get the displacement on the patch and assign it those values received from CoSimulation,
-        // currently values are random hence if it may break the solution.
-        /* Foam::pointVectorField* point_disp;
+        Foam::pointVectorField* point_disp;
         point_disp = const_cast<pointVectorField*>( &mesh_.lookupObject<pointVectorField>("pointDisplacement") );
         //std::cout<< "Size of the pointDisplacement array is " << point_disp->size() << std::endl;
         label patchIndex = mesh_.boundaryMesh().findPatchID("flap");
@@ -458,7 +458,8 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
                 pointDisplacementFluidPatch[i][2] = data_to_recv[iterator++];
 
             //std::cout << i << " : "<< pointDisplacementFluidPatch[i][0] << ", " << pointDisplacementFluidPatch[i][1] << ", " << pointDisplacementFluidPatch[i][2] << std::endl;
-        } */
+        }
+        std::cout << "\n" << "Size of the iterator = " << iterator <<std::endl;
 
         // *************************************** Force/Load Related ****************************************** //
         //At the end of time loop, Calculation of the Forces, which need to send to structural solver in FSI problem
@@ -477,7 +478,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
                     calculateForces(j);
                 }
             }
-            }
+        }
         std::cout<< "Force calculation : Done" << std::endl;
         std::cout<< "Data to be send from OpenFOAM: with array size = " << data_to_send.size() << std::endl;
 
