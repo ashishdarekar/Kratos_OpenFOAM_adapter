@@ -10,5 +10,5 @@ FoamFile
 
     transportModel Newtonian;
 
-    nu nu [0 2 -1 0 0 0 0 ] 0.001;
-    pRef pRef [1 -1 -2 0 0 0 0 ] 0.0;
+    nu nu [0 2 -1 0 0 0 0 ] 0.000182;
+    //pRef pRef [1 -1 -2 0 0 0 0 ] 0.0;

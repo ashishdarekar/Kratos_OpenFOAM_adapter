@@ -8,8 +8,8 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-    numberOfSubdomains 6;
-    
+    numberOfSubdomains 20;
+
     method hierarchical;
     hierarchicalCoeffs
     {
@@ -17,7 +17,7 @@ FoamFile
         delta 0.001;
         order xyz;
     }
-    
+
     distributed false;
     roots
     (

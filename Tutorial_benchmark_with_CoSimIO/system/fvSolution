@@ -68,26 +68,37 @@ PIMPLE
     pisoTol 1e-6;
     consistent  true;
 
-    nOuterCorrectors 50;
+    nOuterCorrectors 20;
 
     residualControl
     {
         U 5e-5;
         p 5e-4;
     }
+    /*
+    nCorrectors 4;
+    nNonOrthogonalCorrectors 1;
+    // tolerance 1.0e-14;
+    // relTol 5e-3;
+    consistent  true;
+    correctPhi  true;
+    momentumPredictor true;
+    nOuterCorrectors	1;
+    */
 }
 
+/*
 relaxationFactors
 {
     equations
     {
         ".*"   1;
     }
-}
+}*/
 
 potentialFlow
 {
-    nNonOrthogonalCorrectors 5;
+    nNonOrthogonalCorrectors 1;
 }
 
 // ************************************************************************* //

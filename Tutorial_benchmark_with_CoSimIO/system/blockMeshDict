@@ -15,14 +15,14 @@ b 0.005;    // z-back
 
 // Grid refinement parameters
 H1 20;      // Nx first block
-H2 25;      // Nx second block
+H2 50;      // Nx second block
 H3 34;      // Nx third block
 H4 85;      // Nx last block
 H5 20;       // amount of cells above/below flap
 H6 140;      // new added according to CoSimulation
 
 V1 20;      // Ny first inlet/outlet block
-V2 25;      // Ny second inlet block
+V2 50;      // Ny second inlet block
 V3 10;      // Amount of cells in radius
 V4 20;       // Ny above/blow flap to back
 V5 14;      // Ny top inlet/outlet block
