@@ -9,7 +9,7 @@ FoamFile
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dynamicFvMesh dynamicMotionSolverFvMesh;
+dynamicFvMesh dynamicMotionSolverFvMesh; //Specially for FSI problems
 
 motionSolverLibs ("libfvMotionSolvers.so");
 
@@ -18,5 +18,6 @@ solver      displacementLaplacian;
 displacementLaplacianCoeffs {
 
     diffusivity quadratic inverseDistance (flap);
-
+    //diffusivity uniform (flap);
+    //diffusivity quadratic inverseVolume (flap);
 }

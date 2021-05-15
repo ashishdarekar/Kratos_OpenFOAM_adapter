@@ -7,14 +7,15 @@ FoamFile
     object decomposeParDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-
-    numberOfSubdomains 20;
+//Used when we want to run the simulation in parallel
+/*
+    numberOfSubdomains 25;
 
     method hierarchical;
     hierarchicalCoeffs
     {
-        n (3 2 1);
-        delta 0.001;
+        n (5 5 1);
+        delta 0.0001;
         order xyz;
     }
 
@@ -22,4 +23,5 @@ FoamFile
     roots
     (
     );
+*/
 
