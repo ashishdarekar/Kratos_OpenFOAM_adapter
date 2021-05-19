@@ -10,7 +10,8 @@ FoamFile
 
 ddtSchemes
     {
-        default backward;
+        //default backward;
+        default Euler;
     }
 
     gradSchemes
@@ -21,7 +22,9 @@ ddtSchemes
     divSchemes
     {
         default         none;
-    	div(phi,U)      Gauss linearUpwind grad(U);
+    	//div(phi,U)      Gauss linearUpwind grad(U);
+        //div((nuEff*dev2(T(grad(U))))) Gauss linear;
+        div(phi,U)      Gauss upwind;
         div((nuEff*dev2(T(grad(U))))) Gauss linear;
     }
 
@@ -30,15 +33,18 @@ ddtSchemes
         default linear;
     }
 
-    laplacianSchemes
-    {
-        default Gauss linear corrected;
-    }
-
     snGradSchemes
     {
-        default corrected;
+        //default corrected;
+        default limited corrected 0.5;
     }
+
+    laplacianSchemes
+    {
+        //default Gauss linear corrected;
+        default Gauss linear limited corrected 0.5;
+    }
+
 /*
     wallDist
     {

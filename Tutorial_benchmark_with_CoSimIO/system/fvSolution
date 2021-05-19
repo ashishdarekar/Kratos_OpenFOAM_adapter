@@ -44,7 +44,6 @@ solvers
         smoother         GaussSeidel;
     }
 
-
     pcorrFinal
     {
         $pcorr;
@@ -74,36 +73,67 @@ solvers
 
 PIMPLE
 {
-    nOuterCorrectors 50;
-    nCorrectors 2;
-    nNonOrthogonalCorrectors 1;
-    tolerance 1.0e-12;
 
+    consistent          true;
+
+    //Outer loops (Pressure-Momentum Corrections)
+    nOuterCorrectors    200;
+
+    //Innner loops (Pressure corrections)
+    nCorrectors         2;
+
+    /*
+    residualControl
+    {
+        p
+        {
+            relTol      0;
+            tolerance   5e-5;
+        }
+
+        U
+        {
+            relTol      0;
+            tolerance   1e-4;
+        }
+    }
+    */
+
+    relTol              0;
+    tolerance           5e-5;
+
+    nNonOrthogonalCorrectors 2;
     correctPhi          yes;
-    relTol 1e-4;
-    pisoTol 1e-6;
-    consistent  true;
+
+    //pisoTol 1e-6;
+
+}
+
+//Keep this to ensure matrix diagonal eqaulity
+relaxationFactors
+{
+    fields
+    {
+        p       0.4;
+        pFinal  0.4;
+    }
+    equations
+    {
+        U       0.6;
+        UFinal  0.6;
+    }
 }
 
 /*
-relaxationFactors
-{
-    equations
-    {
-        ".*"   1;
-    }
-}*/
-
-
 PISO
 {
     nNonOrthogonalCorrectors 1;
 }
 
-
 potentialFlow
 {
     nNonOrthogonalCorrectors 1;
 }
+*/
 
 // ************************************************************************* //

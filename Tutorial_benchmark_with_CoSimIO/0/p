@@ -43,6 +43,8 @@ boundaryField
         //type            zeroGradient;
         type            fixedValue;
         value           uniform 0;
+        //type            pressureInletOutletVelocity;
+        //value           $internalField;
     }
 
     front
