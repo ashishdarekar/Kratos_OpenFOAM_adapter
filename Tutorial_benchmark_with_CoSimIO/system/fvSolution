@@ -10,16 +10,16 @@ FoamFile
 
 solvers
 {
-
     p
     {
         solver           GAMG;
         tolerance        1e-6;
         relTol           1e-5;
+        //nCellsInCoarsestLevel 252; //square root of ur ncells
         //relTol           1e-2;
         smoother         DICGaussSeidel;
     }
-    /*
+/*
     p
     {
         solver          PCG;
@@ -27,8 +27,7 @@ solvers
         tolerance       1e-8;
         relTol          1.0e-3;;
     }
-    */
-
+*/
     pFinal
     {
         $p;
@@ -77,7 +76,7 @@ PIMPLE
     consistent          true;
 
     //Outer loops (Pressure-Momentum Corrections)
-    nOuterCorrectors    200;
+    nOuterCorrectors    100;
 
     //Innner loops (Pressure corrections)
     nCorrectors         2;
@@ -98,14 +97,18 @@ PIMPLE
         }
     }
     */
+    residualControl
+    {
+        U 1e-5;
+        p 1e-5;
+    }
 
-    relTol              0;
-    tolerance           5e-5;
+    //relTol              0;
+    //tolerance           1.0e-12;
+    //pisoTol 1e-6;
 
     nNonOrthogonalCorrectors 2;
     correctPhi          yes;
-
-    //pisoTol 1e-6;
 
 }
 

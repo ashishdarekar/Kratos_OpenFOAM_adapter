@@ -2,7 +2,7 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time" : 3.0,
+        "end_time" : 2.0,
         "echo_level" : 1,
         "print_colors" : true,
         "parallel_type" : "OpenMP"
@@ -82,12 +82,12 @@
                 "data" : {
                     "disp" : {
                         "model_part_name"   : "interface_flap",
-                        "dimension" : 2,
+                        "dimension" : 3,
                         "variable_name" : "DISPLACEMENT"
                     },
                     "load" : {
                         "model_part_name"   : "interface_flap",
-                        "dimension" : 2,
+                        "dimension" : 3,
                         "variable_name" : "FORCE"
                     }
                 }

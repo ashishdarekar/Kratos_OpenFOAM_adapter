@@ -15,9 +15,6 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-//libs ("libBiCGStab.so")
-//libs ("libcompressibleTools.so");
-
 application         pimpleFoam;    // OpenFOAM v1806, OpenFOAM 6, or newer
 // application         pimpleDyMFoam; // OpenFOAM v1712, OpenFOAM 5.x, or older
 
@@ -29,7 +26,7 @@ stopAt              endTime;
 
 endTime             2; //25
 
-deltaT              0.001;//0.0005
+deltaT              0.0005;//0.0005
 
 writeControl        adjustableRunTime;
 
