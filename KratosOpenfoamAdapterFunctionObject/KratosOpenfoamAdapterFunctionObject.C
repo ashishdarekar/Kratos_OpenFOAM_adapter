@@ -75,14 +75,15 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         solverType_ = determineSolverType();
     }
 
-    /* //Check the total number of registered objects in the PolyMesh Object Registry related to Given Solver
-    std::cout<< "Name of all registered objects in Foam::PolyMesh object Registry are:" << std::endl;
+    //Check the total number of registered objects in the PolyMesh Object Registry related to Given Solver
+    /*std::cout<< "Name of all registered objects in Foam::PolyMesh object Registry are:" << std::endl;
     Foam::wordList Objectnames_ = mesh_.names(); //List of all Objects in the polymesh class::mesh_object
     forAll(Objectnames_,i)
     {
         std::cout << Objectnames_[i] << ", ";
     }
-    std::cout<<"\n"; */
+    std::cout<<"\n";
+    */
 
     // Every interface is a subdictionary of "interfaces",
     // each with an arbitrary name. Read all of them and create a list of dictionaries.
@@ -437,7 +438,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         //Check size of Receive data = Expected Receive data. Get it from top.
         /* for(uint i = 0; i < data_to_recv.size() ; i++ )
         {
-            std::cout << "i = " << i << " ; data = " << data_to_recv.at(i) << std::endl;
+            std::cout << "i = " << i << " ; disp data = " << data_to_recv.at(i) << std::endl;
         } */
 
         std::cout<< runTime_.timeName() << " : Data has been imported from CoSimulation to OpenFOAM: Disp values with array size = " << data_to_recv.size() << std::endl;
@@ -459,7 +460,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 
             //std::cout << i << " : "<< pointDisplacementFluidPatch[i][0] << ", " << pointDisplacementFluidPatch[i][1] << ", " << pointDisplacementFluidPatch[i][2] << std::endl;
         }
-        std::cout << "\n" << "Size of the iterator = " << iterator <<std::endl;
+        //std::cout << "\n" << "Size of the iterator = " << iterator <<std::endl;
 
         // *************************************** Force/Load Related ****************************************** //
         //At the end of time loop, Calculation of the Forces, which need to send to structural solver in FSI problem
@@ -479,8 +480,14 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
                 }
             }
         }
+
         std::cout<< "Force calculation : Done" << std::endl;
-        std::cout<< "Data to be send from OpenFOAM: with array size = " << data_to_send.size() << std::endl;
+        //std::cout<< "Data to be send from OpenFOAM: with array size = " << data_to_send.size() << std::endl;
+
+        /* for(uint i = 0; i < data_to_send.size() ; i++ )
+        {
+            std::cout << "i = " << i << " ; load data = " << data_to_send.at(i) << std::endl;
+        } */
 
         //Export this force array to CoSimulation
         //CoSimIO::Info connect_info;
@@ -489,7 +496,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         connect_info.Set("connection_name", connection_name);
         connect_info = CoSimIO::ExportData(connect_info, data_to_send);
 
-        std::cout<< runTime_.timeName() << " : Data has been exported from OpenFOAM to CoSimulation: Force values" <<std::endl;
+        std::cout<< runTime_.timeName() << " : Data has been exported from OpenFOAM to CoSimulation: Force values with array size = " << data_to_send.size() << std::endl;
     }
 
     return true;
@@ -539,7 +546,7 @@ std::string Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::determin
         else if (p_.dimensions() == pressureDimensionsIncompressible)
         {
             solverType_ = "incompressible";
-            std::cout << "Solver Type : Compressible " << std::endl;
+            std::cout << "Solver Type : InCompressible " << std::endl;
         }
     }
 
