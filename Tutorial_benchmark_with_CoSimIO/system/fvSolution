@@ -76,7 +76,7 @@ PIMPLE
     consistent          true;
 
     //Outer loops (Pressure-Momentum Corrections)
-    nOuterCorrectors    100;
+    nOuterCorrectors    200;
 
     //Innner loops (Pressure corrections)
     nCorrectors         2;
@@ -101,18 +101,20 @@ PIMPLE
     {
         U 1e-5;
         p 1e-5;
+        pcorr 1e-5;
     }
 
     //relTol              0;
     //tolerance           1.0e-12;
     //pisoTol 1e-6;
 
-    nNonOrthogonalCorrectors 2;
+    nNonOrthogonalCorrectors 10;
     correctPhi          yes;
 
 }
 
-//Keep this to ensure matrix diagonal eqaulity
+//Under relaxationFactors ensure change of solutions from one step to other dont change much and make simulation stable, low factor means less changes in the solution
+// They modify the solution matrix /modify the field , not more than 0.9 and less than 0.2
 relaxationFactors
 {
     fields
@@ -127,16 +129,17 @@ relaxationFactors
     }
 }
 
-/*
+//PISO solver
 PISO
 {
-    nNonOrthogonalCorrectors 1;
+    nNonOrthogonalCorrectors 10;
 }
 
+//Solver to solve velocity potential (i.e phi)
 potentialFlow
 {
-    nNonOrthogonalCorrectors 1;
+    nNonOrthogonalCorrectors 10;
 }
-*/
+
 
 // ************************************************************************* //
