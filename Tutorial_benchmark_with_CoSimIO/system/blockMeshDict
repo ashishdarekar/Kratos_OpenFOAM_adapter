@@ -270,7 +270,7 @@ boundary
 
     top
     {
-        type wall;
+        type wall;          //symmetryPlane
         faces
         (
             (55 54 56 57)
@@ -282,7 +282,7 @@ boundary
 
     bottom
     {
-        type wall;
+        type wall;     //symmetryPlane
         faces
         (
             (0 1 5 4)

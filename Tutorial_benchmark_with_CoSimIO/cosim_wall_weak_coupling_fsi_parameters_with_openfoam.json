@@ -2,7 +2,7 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time" : 2.0,
+        "end_time" : 5.0,
         "echo_level" : 1,
         "print_colors" : true,
         "parallel_type" : "OpenMP"
@@ -10,7 +10,7 @@
     "solver_settings" :
     {
         "type" : "coupled_solvers.gauss_seidel_weak",
-        "echo_level" : 0,
+        "echo_level" : 2,
         "predictors" : [
             {
                 "type" : "average_value_based",
@@ -36,7 +36,9 @@
                     "from_solver"       : "Openfoam_Kratos_Wrapper",
                     "from_solver_data"  : "load",
                     "data_transfer_operator" : "mapper",
-                    "data_transfer_operator_options" : ["swap_sign"]
+                    "data_transfer_operator_options" : ["swap_sign"],
+                    "after_data_transfer_operations" : ["scaling_loads"]
+                    //"interval" : [0.4, 2.0]
                 }
             ],
             "output_data_list": [
@@ -54,16 +56,16 @@
             "output_data_list": []
         }
         ],
-        /* "coupling_operations" : {
+        "coupling_operations" : {
             "scaling_loads" : {
                 "type"           : "scaling",
                 "solver"         : "structure",
                 "data_name"      : "load",
-                "scaling_factor" : "(sin(((t-1.0)/0.0001)/100*pi/2))**2",
+                "scaling_factor" : "(sin(((t)/0.02)/50*pi/2))**2",
                 "echo_level"     : 1,
-                "interval"       : [0.0, 0.002]
+                "interval"       : [0.0, 1.0]
             }
-        }, */
+        },
         "solvers" :
         {
             "Openfoam_Kratos_Wrapper":
@@ -102,12 +104,12 @@
                     "disp" : {
                         "model_part_name" : "Structure.GENERIC_FSI_Interface",
                         "variable_name" : "DISPLACEMENT",
-                        "dimension" : 3
+                        "dimension" : 2
                     },
                     "load" : {
                         "model_part_name" : "Structure.GENERIC_FSI_Interface",
                         "variable_name" : "POINT_LOAD",
-                        "dimension" : 3
+                        "dimension" : 2
                     }
                 }
             }

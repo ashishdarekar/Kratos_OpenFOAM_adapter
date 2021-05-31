@@ -3,7 +3,7 @@
         "problem_name"    : "Wall_Structure",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
-        "end_time"        : 2,
+        "end_time"        : 5.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
@@ -23,7 +23,7 @@
             "materials_filename" : "StructuralMaterials.json"
         },
         "time_stepping" : {
-            "time_step"       : 0.0001
+            "time_step"       : 0.02
         },
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",

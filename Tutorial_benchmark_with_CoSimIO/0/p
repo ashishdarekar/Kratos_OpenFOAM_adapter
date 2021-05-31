@@ -26,11 +26,13 @@ boundaryField
     top
     {
         type            zeroGradient;
+        //type            symmetryPlane;
     }
 
     bottom
     {
         type            zeroGradient;
+        //type            symmetryPlane;
     }
 
     inlet

@@ -76,7 +76,7 @@ PIMPLE
     consistent          true;
 
     //Outer loops (Pressure-Momentum Corrections)
-    nOuterCorrectors    200;
+    nOuterCorrectors    200;//200
 
     //Innner loops (Pressure corrections)
     nCorrectors         2;
@@ -108,7 +108,7 @@ PIMPLE
     //tolerance           1.0e-12;
     //pisoTol 1e-6;
 
-    nNonOrthogonalCorrectors 10;
+    nNonOrthogonalCorrectors 5;//10
     correctPhi          yes;
 
 }
@@ -119,26 +119,28 @@ relaxationFactors
 {
     fields
     {
-        p       0.4;
-        pFinal  0.4;
+        p       0.4;//0.3
+        pFinal  0.4;//1.0
+        pcorr       0.4;//0.3
+        pcorrFinal  0.4;//1.0
     }
     equations
     {
-        U       0.6;
-        UFinal  0.6;
+        U       0.6;//0.6
+        UFinal  0.6;//1.0
     }
 }
 
 //PISO solver
 PISO
 {
-    nNonOrthogonalCorrectors 10;
+    nNonOrthogonalCorrectors 5;//10
 }
 
 //Solver to solve velocity potential (i.e phi)
 potentialFlow
 {
-    nNonOrthogonalCorrectors 10;
+    nNonOrthogonalCorrectors 5;//10
 }
 
 

@@ -29,6 +29,8 @@ boundaryField
     top
     {
         //type            noSlip;
+        //type            symmetryPlane;
+
         type            slip;
 
     }
@@ -36,14 +38,21 @@ boundaryField
     bottom
     {
         //type            noSlip;
+        //type            symmetryPlane;
+
         type            slip;
     }
 
     inlet
     {
-        type            fixedValue;
+        //type            fixedValue;
+        //value           uniform (51.3 0 0);
+
         //value         $internalField;
-        value           uniform (51.3 0 0);
+
+        type            uniformFixedValue;
+        uniformValue    constant (51.3 0 0);
+
     }
 
     outlet

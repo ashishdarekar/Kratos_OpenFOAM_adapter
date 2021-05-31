@@ -111,7 +111,7 @@ private:
     //- Solver type compressible/incompressible
     std::string solverType_ = "unknown";
 
-    int dim = 3; //Dimension of the problem, need to check how we can get this?
+    int dim = 3; //Dimension of the problem, need to check how we can get this? We will provide this in config file.
 
     // Private Member Functions
 

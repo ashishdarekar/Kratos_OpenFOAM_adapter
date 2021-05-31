@@ -10,8 +10,8 @@ FoamFile
 
 ddtSchemes
     {
-        //default backward;
-        default Euler;
+        default backward;
+        //default Euler;
     }
 
     gradSchemes
@@ -22,10 +22,10 @@ ddtSchemes
     divSchemes
     {
         default         none;
-    	//div(phi,U)      Gauss linearUpwind grad(U);
-        //div((nuEff*dev2(T(grad(U))))) Gauss linear;
-        div(phi,U)      Gauss upwind;
+    	div(phi,U)      Gauss linearUpwind grad(U);
         div((nuEff*dev2(T(grad(U))))) Gauss linear;
+        //div(phi,U)      Gauss upwind;
+        //div((nuEff*dev2(T(grad(U))))) Gauss linear;
     }
 
     interpolationSchemes
@@ -45,7 +45,6 @@ ddtSchemes
         default Gauss linear limited corrected 0.5;
     }
 
-/*
     wallDist
     {
         method meshWave;
@@ -57,4 +56,3 @@ ddtSchemes
         p ;
         Phi ;
     }
-*/

@@ -456,8 +456,8 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
             pointDisplacementFluidPatch[i][0] = data_to_recv[iterator++];
             pointDisplacementFluidPatch[i][1] = data_to_recv[iterator++];
             if (dim ==3)
-                pointDisplacementFluidPatch[i][2] = data_to_recv[iterator++];
-
+                pointDisplacementFluidPatch[i][2] = data_to_recv[iterator++]; //ignoring z direction displacement */
+            //iterator++;
             //std::cout << i << " : "<< pointDisplacementFluidPatch[i][0] << ", " << pointDisplacementFluidPatch[i][1] << ", " << pointDisplacementFluidPatch[i][2] << std::endl;
         }
         //std::cout << "\n" << "Size of the iterator = " << iterator <<std::endl;
@@ -816,18 +816,19 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
             {
                 // z-dimension
                 data_to_send[bufferIndex++] = Force_->boundaryFieldRef()[patchID][i].z();
+                //data_to_send[bufferIndex++] = 0.0; //We will skip 3rd dimension
             }
         }
 
     }
 
-/*     int i=0;
+    /* int i=0;
     for(auto& value : data_to_send)
     {
         std::cout << "id = " << i << ", Value = " << value << std::endl;
         i++;
-    }
- */
+    } */
+
     return true;
 }
 
