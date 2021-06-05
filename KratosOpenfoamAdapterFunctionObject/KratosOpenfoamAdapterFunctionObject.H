@@ -168,6 +168,8 @@ protected:
 
         Foam::tmp<Foam::volScalarField> mu() const;
 
+        Foam::vectorField getFaceVectors(const unsigned int patchID) const;
+
 public:
     //- Runtime type information
     TypeName("KratosOpenfoamAdapterFunctionObject");

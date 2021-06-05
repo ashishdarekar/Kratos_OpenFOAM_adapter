@@ -710,6 +710,13 @@ Foam::tmp<Foam::volScalarField> Foam::functionObjects::KratosOpenfoamAdapterFunc
     }
 }
 
+//Normal vectors multiplied by face area
+Foam::vectorField Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::getFaceVectors(const unsigned int patchID) const
+{
+    // Normal vectors multiplied by face area
+    return mesh_.boundary()[patchID].Sf();
+}
+
 //Calculate Total Force
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces(std::size_t interface_index)
 {
@@ -755,10 +762,10 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
 
     //Get different force fields from OpenFOAM, See Force Function Object
     //1. Normal vectors on the boundary, multiplied with the face areas
-    const surfaceVectorField::Boundary& Sfb
+    /* const surfaceVectorField::Boundary& Sfb
     (
         mesh_.Sf().boundaryField()
-    );
+    ); */
 
     //2. Stress tensor boundary field
     tmp<volSymmTensorField> tdevRhoReff(devRhoReff());
@@ -783,14 +790,18 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
     {
         int patchID = patchIDs.at(j);
 
+        const auto& surface = getFaceVectors(patchID); //newly modified on 2.6.2021
+
         //Pressure forces
         if(solverType_.compare("incompressible") == 0)
         {
-            Force_->boundaryFieldRef()[patchID] = Sfb[patchID] * pb[patchID] * rhob[patchID];
+           // Force_->boundaryFieldRef()[patchID] = Sfb[patchID] * pb[patchID] * rhob[patchID];
+           Force_->boundaryFieldRef()[patchID] = surface * pb[patchID] * rhob[patchID];
         }
         else if(solverType_.compare("compressible") == 0)
         {
-            Force_->boundaryFieldRef()[patchID] = Sfb[patchID] * pb[patchID];
+            //Force_->boundaryFieldRef()[patchID] = Sfb[patchID] * pb[patchID];
+            Force_->boundaryFieldRef()[patchID] = surface * pb[patchID];
         }
         else
         {
@@ -798,7 +809,8 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
         }
 
         //Viscous forces
-        Force_->boundaryFieldRef()[patchID] += Sfb[patchID] & devRhoReffb[patchID];
+        //Force_->boundaryFieldRef()[patchID] += Sfb[patchID] & devRhoReffb[patchID];
+        Force_->boundaryFieldRef()[patchID] += surface & devRhoReffb[patchID];
 
         // Now write this forces into Buffer to send further to the Strctural Solver
         int bufferIndex = 0;
