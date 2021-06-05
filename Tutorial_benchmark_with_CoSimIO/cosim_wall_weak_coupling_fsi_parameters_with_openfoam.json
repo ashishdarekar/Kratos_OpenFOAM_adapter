@@ -2,7 +2,7 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time" : 5.0,
+        "end_time" : 100.0,
         "echo_level" : 1,
         "print_colors" : true,
         "parallel_type" : "OpenMP"
@@ -61,9 +61,9 @@
                 "type"           : "scaling",
                 "solver"         : "structure",
                 "data_name"      : "load",
-                "scaling_factor" : "(sin(((t)/0.02)/50*pi/2))**2",
+                "scaling_factor" : "(sin(((t)/0.001)/10000*pi/2))**2",
                 "echo_level"     : 1,
-                "interval"       : [0.0, 1.0]
+                "interval"       : [0.0, 10.0]
             }
         },
         "solvers" :

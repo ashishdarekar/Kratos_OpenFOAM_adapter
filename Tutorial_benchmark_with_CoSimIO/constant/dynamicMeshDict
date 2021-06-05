@@ -17,8 +17,8 @@ solver      displacementLaplacian;
 
 displacementLaplacianCoeffs {
 
-    //diffusivity quadratic inverseDistance (flap);
-    diffusivity inverseDistance (flap);
+    diffusivity quadratic inverseDistance (flap);
+    //diffusivity inverseDistance (flap);
     //diffusivity uniform (flap);
     //diffusivity quadratic inverseVolume (flap);
 }

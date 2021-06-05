@@ -33,6 +33,17 @@ ddtSchemes
         default linear;
     }
 
+    laplacianSchemes
+    {
+        default Gauss linear corrected;
+    }
+
+    snGradSchemes
+    {
+        default corrected;
+    }
+
+    /*
     snGradSchemes
     {
         //default corrected;
@@ -55,4 +66,4 @@ ddtSchemes
         default no;
         p ;
         Phi ;
-    }
+    }*/

@@ -24,25 +24,25 @@ startTime           0;
 
 stopAt              endTime;
 
-endTime             5.0; //25
+endTime             100.0; //25
 
-deltaT              0.02;//0.0005
+deltaT              0.001;//0.0005
 
 writeControl        adjustableRunTime;
 
-writeInterval       0.02;//0.001
+writeInterval       0.01;//0.001
 
 purgeWrite          0;
 
 writeFormat         ascii;
 
-writePrecision      12;
+writePrecision      12;//10
 
 writeCompression    off;
 
 timeFormat          general;
 
-timePrecision       12;
+timePrecision       12;//8
 
 //adjustTimeStep     yes;
 
@@ -102,7 +102,7 @@ functions
     {
         type                forces;
         libs                ( "libforces.so" );
-        patches             (squareblock flap);
+        patches             (flap);
         rho                 rhoInf;
         log                 true;
         rhoInf              1000;
