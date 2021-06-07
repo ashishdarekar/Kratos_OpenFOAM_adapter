@@ -36,8 +36,8 @@
                     "from_solver"       : "Openfoam_Kratos_Wrapper",
                     "from_solver_data"  : "load",
                     "data_transfer_operator" : "mapper",
-                    "data_transfer_operator_options" : ["swap_sign"],
                     "after_data_transfer_operations" : ["scaling_loads"]
+                    //"data_transfer_operator_options" : ["swap_sign"]
                     //"interval" : [0.4, 2.0]
                 }
             ],
