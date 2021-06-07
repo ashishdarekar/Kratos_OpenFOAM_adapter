@@ -10,7 +10,7 @@
                 "DENSITY"       : 0.1,
                 "YOUNG_MODULUS" : 250000000.0,//2500000.0
                 "POISSON_RATIO" : 0.35,
-                "THICKNESS"     : 1.0
+                "THICKNESS"     : 0.01
             },
             "Tables"           : {}
         }
