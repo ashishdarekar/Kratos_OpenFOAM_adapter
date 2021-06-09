@@ -7,9 +7,10 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-convertToMeters 1;
+//convertToMeters 1;
 
-// Geometry parameters
+// Geometry parameters, If you are changing thicknes, Code need to modify
+// As first point manually entered in the code.
 f -0.005;   // z-front
 b 0.005;    // z-back
 
@@ -137,16 +138,35 @@ vertices
     (19.5 12.0 $b)      // vertex 63
 );
 
-// Grid refinement parameters
-H0 50;      // Nx for 0th, 15th//40
-H1 50;      // Nx for 1st, 6th, 10th, 16th and Ny for 4th//40
-H2 150;      // Nx for 2nd, 8th, 12th, 17th//140
-H3 170;      // Nx for 3rd, 9th, 13th, 14th, 18th//150
 
-V1 50;      // Ny 0th, 1st, 2nd, 3rd, 15th, 16th, 17th, 18th//30
-V2 15;      // Ny for 6th, 10th and Nx for 5th, 7th, 11th //15
-V3 25;      // Ny for 7th, 8th, 9th, 11th, 12th, 14th//20
-V4 3;       // Ny for 13th(in front of flap)
+// Grid refinement parameters - Fine Mesh
+//H0 50;      // Nx for 0th, 15th//40
+//H1 50;      // Nx for 1st, 6th, 10th, 16th and Ny for 4th//40
+//H2 150;      // Nx for 2nd, 8th, 12th, 17th//140
+//H3 170;      // Nx for 3rd, 9th, 13th, 14th, 18th//150
+
+//V1 50;      // Ny 0th, 1st, 2nd, 3rd, 15th, 16th, 17th, 18th//30
+//V2 15;      // Ny for 6th, 10th and Nx for 5th, 7th, 11th //15
+//V3 25;      // Ny for 7th, 8th, 9th, 11th, 12th, 14th//20
+//V4 3;       // Ny for 13th(in front of flap)
+
+//GP1 4;      // Circular mesh gradient
+//GN1 0.25;
+//GP2 2;      // Flap gradient
+//GN2 0.50;
+//GO 8;       // Outlet grading//4
+
+
+// Grid refinement parameters - Coarse Mesh
+H0 25;      // Nx for 0th, 15th//40
+H1 25;      // Nx for 1st, 6th, 10th, 16th and Ny for 4th//40
+H2 75;      // Nx for 2nd, 8th, 12th, 17th//140
+H3 85;      // Nx for 3rd, 9th, 13th, 14th, 18th//150
+
+V1 25;      // Ny 0th, 1st, 2nd, 3rd, 15th, 16th, 17th, 18th//30
+V2 8;      // Ny for 6th, 10th and Nx for 5th, 7th, 11th //15
+V3 13;      // Ny for 7th, 8th, 9th, 11th, 12th, 14th//20
+V4 1;       // Ny for 13th(in front of flap)
 
 GP1 4;      // Circular mesh gradient
 GN1 0.25;

@@ -484,10 +484,10 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         std::cout<< "Force calculation : Done" << std::endl;
         //std::cout<< "Data to be send from OpenFOAM: with array size = " << data_to_send.size() << std::endl;
 
-        /* for(uint i = 0; i < data_to_send.size() ; i++ )
+        for(uint i = 0; i < data_to_send.size() ; i++ )
         {
             std::cout << "i = " << i << " ; load data = " << data_to_send.at(i) << std::endl;
-        } */
+        }
 
         //Export this force array to CoSimulation
         //CoSimIO::Info connect_info;
@@ -815,19 +815,19 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
         // Now write this forces into Buffer to send further to the Strctural Solver
         int bufferIndex = 0;
         // For every cell of the patch
-        forAll(Force_->boundaryFieldRef()[patchID], i)
+        forAll(Force_->boundaryField()[patchID], i)
         {
             // Copy the force into the buffer
             // x-dimension
-            data_to_send[bufferIndex++] = Force_->boundaryFieldRef()[patchID][i].x();
+            data_to_send[bufferIndex++] = Force_->boundaryField()[patchID][i].x();
 
             // y-dimension
-            data_to_send[bufferIndex++] = Force_->boundaryFieldRef()[patchID][i].y();
+            data_to_send[bufferIndex++] = Force_->boundaryField()[patchID][i].y();
 
             if(dim == 3)
             {
                 // z-dimension
-                data_to_send[bufferIndex++] = Force_->boundaryFieldRef()[patchID][i].z();
+                data_to_send[bufferIndex++] = Force_->boundaryField()[patchID][i].z();
                 //data_to_send[bufferIndex++] = 0.0; //We will skip 3rd dimension
             }
         }
