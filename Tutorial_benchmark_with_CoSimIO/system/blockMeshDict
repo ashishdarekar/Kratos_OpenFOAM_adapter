@@ -7,7 +7,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-//convertToMeters 1;
+convertToMeters 0.1;
 
 // Geometry parameters, If you are changing thicknes, Code need to modify
 // As first point manually entered in the code.
