@@ -3,14 +3,14 @@
     {
         "start_time" : 0.0,
         "end_time" : 100.0,
-        "echo_level" : 1,
+        "echo_level" : 4,
         "print_colors" : true,
         "parallel_type" : "OpenMP"
     },
     "solver_settings" :
     {
         "type" : "coupled_solvers.gauss_seidel_weak",
-        "echo_level" : 2,
+        "echo_level" : 4,
         "predictors" : [
             {
                 "type" : "average_value_based",
@@ -36,7 +36,7 @@
                     "from_solver"       : "Openfoam_Kratos_Wrapper",
                     "from_solver_data"  : "load",
                     "data_transfer_operator" : "mapper",
-                    "after_data_transfer_operations" : ["scaling_loads"],
+                    "after_data_transfer_operations" : ["scaling_loads_1","scaling_loads_2"],
                     "data_transfer_operator_options" : ["swap_sign"]
                     //"interval" : [0.4, 2.0]
                 }
@@ -57,13 +57,21 @@
         }
         ],
         "coupling_operations" : {
-            "scaling_loads" : {
+            "scaling_loads_1" : {
                 "type"           : "scaling",
                 "solver"         : "structure",
                 "data_name"      : "load",
-                "scaling_factor" : "(sin(((t)/0.001)/10000*pi/2))**2",
-                "echo_level"     : 1,
-                "interval"       : [0.0, 10.0]
+                "scaling_factor" : "(sin(((t)/0.001)/100*pi/2))**2",
+                "echo_level"     : 4,
+                "interval"       : [0.0, 4.0]
+            },
+            "scaling_loads_2" : {
+                "type"           : "scaling",
+                "solver"         : "structure",
+                "data_name"      : "load",
+                "scaling_factor" : "0.1",
+                "echo_level"     : 4,
+                "interval"       : [4.0, 10.0]
             }
         },
         "solvers" :
@@ -78,7 +86,7 @@
                 },
                 "io_settings" : {
                     "type"       : "kratos_co_sim_io",
-                    "echo_level" : 1,
+                    "echo_level" : 4,
                     "connect_to" : "Openfoam_Adapter"
                 },
                 "data" : {
