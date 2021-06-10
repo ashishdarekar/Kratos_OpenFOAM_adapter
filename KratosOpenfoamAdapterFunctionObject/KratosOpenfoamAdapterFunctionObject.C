@@ -316,33 +316,36 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 
             // For accessing the Co-ordinates of Nodes : Make 1st Node manually and push it
             vector pointX(5.5000000e+00, 5.9700000e+00, -5.0000000e-03);
+            //vector pointX(5.5000000e+00, 5.9700000e+00, -5.0000000e-01);
             NodeIDs.push_back(1);
             CoSimIO::Node& node = model_part_interface_flap.CreateNewNode( 1, pointX[0], pointX[1], pointX[2]);
             array_of_nodes.push_back(pointX); //Initial pushback in array of nodes
 
             for(uint i = 0; i < patchIDs.size(); i++)
             {
-                //const word& patchName = mesh_.boundary()[patchIDs[i]].name();
-                //std::cout << "patchID: " << patchIDs[i] << " with name "  << patchName << " With size = "<< mesh_.boundary()[patchIDs[i]].size() << std::endl;
+                const word& patchName = mesh_.boundary()[patchIDs[i]].name();
+                std::cout << "patchID: " << patchIDs[i] << " with name "  << patchName << " With size = "<< mesh_.boundary()[patchIDs[i]].size() << std::endl;
 
                 forAll(mesh_.boundary()[patchIDs[i]],facei)
                 {
                     const label& faceID = mesh_.boundaryMesh()[patchIDs[i]].start() + facei;
-                    //std::cout << "ID of this face: " << faceID << " Which face: "<< facei << "; with number of nodes = " << mesh_.faces()[faceID].size() << std::endl;
+                    std::cout << "ID of this face: " << faceID << " Which face: "<< facei << "; with number of nodes = " << mesh_.faces()[faceID].size() << std::endl;
 
                     std::vector<CoSimIO::IdType> connectivity;
                     forAll(mesh_.faces()[faceID], nodei)
                     {
                         const label& nodeID = mesh_.faces()[faceID][nodei]; //for OpenFOAM
                         pointX = mesh_.points()[nodeID];
+                        std::cout << "nodei: " << nodei << " With points: "<< pointX[0] << " | " << pointX[1] << " | " << pointX[2] << std::endl;
+
                         int result = compare_nodes(pointX); //nodeIndex if node is already present and (-1) if node is not present
                         if(result == (-1)) //new node
                         {
                             //-Make CoSimIO Nodes
-                            NodeIDs.push_back(nodeIndex); //Later used to make CoSimIO::Element
+                            NodeIDs.push_back(nodeIndex); //Later used to make CoSimIO::Element //NodeINdex = (facei*4)+ (nodei+1)
                             CoSimIO::Node& node = model_part_interface_flap.CreateNewNode( nodeIndex, pointX[0], pointX[1], pointX[2]);
                             array_of_nodes.push_back(pointX);//Push new element in the list to compare
-                            //std::cout << "Node with index= " << nodeIndex << " is created "<<std::endl;
+                            std::cout << "Node with index= " << nodeIndex << " is created "<<std::endl;
                             connectivity.push_back(nodeIndex); //connectivity to make that element /face
                             nodeIndex++;
                         }
@@ -354,7 +357,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                     //-Make CoSimIO Element = currently hardcoded to make Quadrilateral2D4
                     ElemIDs.push_back(elemIndex); //Maybe useful
                     CoSimIO::Element& element = model_part_interface_flap.CreateNewElement( elemIndex, CoSimIO::ElementType::Quadrilateral2D4, connectivity );
-                    //std::cout << "Element with index= " << elemIndex << " is created "<<std::endl;
+                    std::cout << "Element with index= " << elemIndex << " is created "<<std::endl;//elemIndex =facei+1
                     elemIndex++;
                 }
             }
@@ -388,11 +391,11 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             {
                 if(interfaces_.at(i).locationsType == "faceNodes")
                 {
-                    data_to_send.resize((interfaces_.at(i).numNodes) * dim);
+                    data_to_send.resize((interfaces_.at(i).numNodes) * 2);
                 }
                 else if(interfaces_.at(i).locationsType == "faceCenters")
                 {
-                    data_to_send.resize((interfaces_.at(i).numElements) * dim);
+                    data_to_send.resize((interfaces_.at(i).numElements) * 2);
                 }
             }
             //else if() //if some other variables
@@ -484,10 +487,10 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         std::cout<< "Force calculation : Done" << std::endl;
         //std::cout<< "Data to be send from OpenFOAM: with array size = " << data_to_send.size() << std::endl;
 
-        for(uint i = 0; i < data_to_send.size() ; i++ )
+        /* for(uint i = 0; i < data_to_send.size() ; i++ )
         {
             std::cout << "i = " << i << " ; load data = " << data_to_send.at(i) << std::endl;
-        }
+        } */
 
         //Export this force array to CoSimulation
         //CoSimIO::Info connect_info;
@@ -821,13 +824,14 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
             // x-dimension
             data_to_send[bufferIndex++] = Force_->boundaryField()[patchID][i].x();
 
+
             // y-dimension
             data_to_send[bufferIndex++] = Force_->boundaryField()[patchID][i].y();
 
             if(dim == 3)
             {
                 // z-dimension
-                data_to_send[bufferIndex++] = Force_->boundaryField()[patchID][i].z();
+                //data_to_send[bufferIndex++] = Force_->boundaryField()[patchID][i].z();
                 //data_to_send[bufferIndex++] = 0.0; //We will skip 3rd dimension
             }
         }
