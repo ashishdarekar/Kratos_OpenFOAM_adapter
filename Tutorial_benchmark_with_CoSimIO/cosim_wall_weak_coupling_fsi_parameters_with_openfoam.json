@@ -61,9 +61,10 @@
                 "type"           : "scaling",
                 "solver"         : "structure",
                 "data_name"      : "load",
-                "scaling_factor" : "(sin(((t)/0.001)/100*pi/2))**2",
+                //"scaling_factor" : "(sin(((t)/0.001)/150*pi/2))**2",
+                "scaling_factor" : "((sin(((t+7.956)/0.001)/10000*pi/2))**2)-0.9",
                 "echo_level"     : 4,
-                "interval"       : [0.0, 4.0]
+                "interval"       : [0.0, 2.0491]
             },
             "scaling_loads_2" : {
                 "type"           : "scaling",
@@ -71,7 +72,7 @@
                 "data_name"      : "load",
                 "scaling_factor" : "0.1",
                 "echo_level"     : 4,
-                "interval"       : [4.0, 10.0]
+                "interval"       : [2.0491, 100.0]
             }
         },
         "solvers" :
