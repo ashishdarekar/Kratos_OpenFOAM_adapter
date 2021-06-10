@@ -323,20 +323,20 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 
             for(uint i = 0; i < patchIDs.size(); i++)
             {
-                const word& patchName = mesh_.boundary()[patchIDs[i]].name();
-                std::cout << "patchID: " << patchIDs[i] << " with name "  << patchName << " With size = "<< mesh_.boundary()[patchIDs[i]].size() << std::endl;
+                //const word& patchName = mesh_.boundary()[patchIDs[i]].name();
+                //std::cout << "patchID: " << patchIDs[i] << " with name "  << patchName << " With size = "<< mesh_.boundary()[patchIDs[i]].size() << std::endl;
 
                 forAll(mesh_.boundary()[patchIDs[i]],facei)
                 {
                     const label& faceID = mesh_.boundaryMesh()[patchIDs[i]].start() + facei;
-                    std::cout << "ID of this face: " << faceID << " Which face: "<< facei << "; with number of nodes = " << mesh_.faces()[faceID].size() << std::endl;
+                    //std::cout << "ID of this face: " << faceID << " Which face: "<< facei << "; with number of nodes = " << mesh_.faces()[faceID].size() << std::endl;
 
                     std::vector<CoSimIO::IdType> connectivity;
                     forAll(mesh_.faces()[faceID], nodei)
                     {
                         const label& nodeID = mesh_.faces()[faceID][nodei]; //for OpenFOAM
                         pointX = mesh_.points()[nodeID];
-                        std::cout << "nodei: " << nodei << " With points: "<< pointX[0] << " | " << pointX[1] << " | " << pointX[2] << std::endl;
+                        //std::cout << "nodei: " << nodei << " With points: "<< pointX[0] << " | " << pointX[1] << " | " << pointX[2] << std::endl;
 
                         int result = compare_nodes(pointX); //nodeIndex if node is already present and (-1) if node is not present
                         if(result == (-1)) //new node
@@ -345,7 +345,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                             NodeIDs.push_back(nodeIndex); //Later used to make CoSimIO::Element //NodeINdex = (facei*4)+ (nodei+1)
                             CoSimIO::Node& node = model_part_interface_flap.CreateNewNode( nodeIndex, pointX[0], pointX[1], pointX[2]);
                             array_of_nodes.push_back(pointX);//Push new element in the list to compare
-                            std::cout << "Node with index= " << nodeIndex << " is created "<<std::endl;
+                            //std::cout << "Node with index= " << nodeIndex << " is created "<<std::endl;
                             connectivity.push_back(nodeIndex); //connectivity to make that element /face
                             nodeIndex++;
                         }
@@ -357,7 +357,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                     //-Make CoSimIO Element = currently hardcoded to make Quadrilateral2D4
                     ElemIDs.push_back(elemIndex); //Maybe useful
                     CoSimIO::Element& element = model_part_interface_flap.CreateNewElement( elemIndex, CoSimIO::ElementType::Quadrilateral2D4, connectivity );
-                    std::cout << "Element with index= " << elemIndex << " is created "<<std::endl;//elemIndex =facei+1
+                    //std::cout << "Element with index= " << elemIndex << " is created "<<std::endl;//elemIndex =facei+1
                     elemIndex++;
                 }
             }
@@ -365,6 +365,27 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             //std::cout << "\n" << "Size of Array of nodes = " << array_of_nodes.size() <<std::endl;
 
             std::cout << "Converting InterfaceMesh to a CoSimIO::ModelPart -> End" << std::endl;
+
+            //Printing each node and element sequence wise
+            std::cout << "Nodes in Model Part representing Mesh" << std::endl;
+            for (auto node_it=model_part_interface_flap.NodesBegin(); node_it!=model_part_interface_flap.NodesEnd(); ++node_it)
+            {
+                CoSimIO::Node& node = **node_it;
+                std::cout<< "nodeID= " << node.Id() << " = "<< node.X() << " | " << node.Y() << " | " << node.Z() << std::endl;
+            }
+
+            std::cout << "Elements and corresponding Nodes in Model Part representing Mesh" << std::endl;
+            for (auto elem_it=model_part_interface_flap.ElementsBegin(); elem_it!=model_part_interface_flap.ElementsEnd(); ++elem_it)
+            {
+                CoSimIO::Element& element = **elem_it;
+                std::cout << "All nodes in element with ID =" << element.Id() << " , with number of nodes =  " << element.NumberOfNodes() << std::endl;
+
+                for (auto node_it=element.NodesBegin(); node_it!=element.NodesEnd(); ++node_it)
+                {
+                    CoSimIO::Node& node = **node_it;
+                    std::cout<< "nodeID= " << node.Id() << " = "<< node.X() << " | " << node.Y() << " | " << node.Z() << std::endl;
+                }
+            }
 
             //Export InterfaceMesh/ModelPart to CoSimulation using CoSimIO
             std::cout << "Exporting Mesh as a ModelPart: Start for an interface flap" << std::endl;
