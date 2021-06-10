@@ -14,6 +14,8 @@ dynamicFvMesh dynamicMotionSolverFvMesh; //Specially for FSI problems
 motionSolverLibs ("libfvMotionSolvers.so");
 
 solver      displacementLaplacian;
+//solver      displacementInterpolation;
+//solver      laplaceFaceDecomposition;
 
 displacementLaplacianCoeffs {
 

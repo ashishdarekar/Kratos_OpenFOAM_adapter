@@ -21,55 +21,55 @@ FoamFile
     {
         type            empty;
         inGroups        List<word> 1(empty);
-        nFaces          16178;
-        startFace       31936;
+        nFaces          11720;
+        startFace       23071;
     }
     back
     {
         type            empty;
         inGroups        List<word> 1(empty);
-        nFaces          16178;
-        startFace       48114;
+        nFaces          11720;
+        startFace       34791;
     }
     inlet
     {
         type            patch;
-        nFaces          75;
-        startFace       64292;
+        nFaces          60;
+        startFace       46511;
     }
     outlet
     {
         type            patch;
-        nFaces          77;
-        startFace       64367;
+        nFaces          61;
+        startFace       46571;
     }
     top
     {
         type            wall;
         inGroups        List<word> 1(wall);
-        nFaces          210;
-        startFace       64444;
+        nFaces          190;
+        startFace       46632;
     }
     bottom
     {
         type            wall;
         inGroups        List<word> 1(wall);
-        nFaces          210;
-        startFace       64654;
+        nFaces          190;
+        startFace       46822;
     }
     flap
     {
         type            wall;
         inGroups        List<word> 1(wall);
-        nFaces          167;
-        startFace       64864;
+        nFaces          157;
+        startFace       47012;
     }
     squareblock
     {
         type            wall;
         inGroups        List<word> 1(wall);
-        nFaces          101;
-        startFace       65031;
+        nFaces          80;
+        startFace       47169;
     }
 )
 
