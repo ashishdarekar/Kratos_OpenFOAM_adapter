@@ -412,11 +412,11 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             {
                 if(interfaces_.at(i).locationsType == "faceNodes")
                 {
-                    data_to_send.resize((interfaces_.at(i).numNodes) * 2);
+                    data_to_send.resize((interfaces_.at(i).numNodes) * dim);
                 }
                 else if(interfaces_.at(i).locationsType == "faceCenters")
                 {
-                    data_to_send.resize((interfaces_.at(i).numElements) * 2);
+                    data_to_send.resize((interfaces_.at(i).numElements) * dim);
                 }
             }
             //else if() //if some other variables
@@ -477,12 +477,13 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         int iterator = 0 ; //iterator goes from 0 till (size of recv_array)
         forAll(point_disp->boundaryFieldRef()[patchIndex] ,i)
         {
+            //std::cout << i << " Before : "<< pointDisplacementFluidPatch[i][0] << ", " << pointDisplacementFluidPatch[i][1] << ", " << pointDisplacementFluidPatch[i][2] << std::endl;
             pointDisplacementFluidPatch[i][0] = data_to_recv[iterator++];
             pointDisplacementFluidPatch[i][1] = data_to_recv[iterator++];
             if (dim ==3)
-                pointDisplacementFluidPatch[i][2] = data_to_recv[iterator++]; //ignoring z direction displacement */
+                pointDisplacementFluidPatch[i][2] = data_to_recv[iterator++]; //ignoring z direction displacement = Anyways the value is zero for 2D case.
             //iterator++;
-            //std::cout << i << " : "<< pointDisplacementFluidPatch[i][0] << ", " << pointDisplacementFluidPatch[i][1] << ", " << pointDisplacementFluidPatch[i][2] << std::endl;
+            //std::cout << i << " After : "<< pointDisplacementFluidPatch[i][0] << ", " << pointDisplacementFluidPatch[i][1] << ", " << pointDisplacementFluidPatch[i][2] << std::endl;
         }
         //std::cout << "\n" << "Size of the iterator = " << iterator <<std::endl;
 
@@ -809,10 +810,19 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
         tp().boundaryField()
     );
 
+
+
     // For every boundary patch of the interface
     for(uint j=0; j< patchIDs.size(); j++)
     {
         int patchID = patchIDs.at(j);
+
+        //printing pressure values
+        /* std::cout << "Pressure values: "<< std::endl;
+        forAll(pb[patchID],i)
+        {
+            std::cout << "i= " << i << "Pressure = " << pb(i)->evaluate() << std::endl;
+        } */
 
         const auto& surface = getFaceVectors(patchID); //newly modified on 2.6.2021
 
@@ -852,7 +862,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
             if(dim == 3)
             {
                 // z-dimension
-                //data_to_send[bufferIndex++] = Force_->boundaryField()[patchID][i].z();
+                data_to_send[bufferIndex++] = Force_->boundaryField()[patchID][i].z();
                 //data_to_send[bufferIndex++] = 0.0; //We will skip 3rd dimension
             }
         }
