@@ -28,19 +28,17 @@ boundaryField
 
     top
     {
-        //type            noSlip;
+        type            noSlip;
         //type            symmetryPlane;
-
-        type            slip;
+        //type            slip;
 
     }
 
     bottom
     {
-        //type            noSlip;
+        type            noSlip;
         //type            symmetryPlane;
-
-        type            slip;
+        //type            slip;
     }
 
     inlet

@@ -36,13 +36,13 @@ purgeWrite          0;
 
 writeFormat         ascii;
 
-writePrecision      12;//10
+writePrecision      10;//12
 
 writeCompression    off;
 
 timeFormat          general;
 
-timePrecision       12;//8
+timePrecision       8;//12
 
 //adjustTimeStep     yes;
 
@@ -86,6 +86,8 @@ functions
             rho rho [1 -3 0 0 0 0 0] 0.00118;
             nu nu [0 2 -1 0 0 0 0 ] 0.1542;
 
+            //rho rho [1 -3 0 0 0 0 0] 1000; //0.00000118;//1.18
+            //nu nu [0 2 -1 0 0 0 0 ] 0.001; //15.42;//0.001542
         }
     }
 
@@ -105,7 +107,7 @@ functions
         patches             (flap squareblock);
         rho                 rhoInf;
         log                 true;
-        rhoInf              0.00118;//1000
+        rhoInf              0.00118;//0.00118//1000
         CofR                (0 0 0);
     }
 

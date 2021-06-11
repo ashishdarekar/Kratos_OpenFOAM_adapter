@@ -68,7 +68,7 @@ solvers
 
 PIMPLE
 {
-    nOuterCorrectors 50;
+    nOuterCorrectors 100;
     nCorrectors 2;
     nNonOrthogonalCorrectors 1;
     tolerance 1.0e-12;
@@ -78,22 +78,21 @@ PIMPLE
     pisoTol 1e-6;
     consistent  true;
 
-    /*
-    // OpenFOAM (.com), OpenFOAM 5 or older (.org)
-    residualControl
+    relaxationFactors
+{
+    fields
     {
-	U
-	{
-		tolerance 1e-5;
-		relTol	  0;
-	}
-
-	p
-	{
-		tolerance 1e-5;
-		relTol	  0;
-	}
-    }*/
+        p       0.4;//0.3
+        pFinal  0.4;//0.4
+        pcorr       0.4;//0.3
+        pcorrFinal  0.4;//0.4
+    }
+    equations
+    {
+        U       0.6;//0.6
+        UFinal  0.6;//0.6
+    }
+}
 
     // OpenFOAM 6 (.org) or newer
 
@@ -102,7 +101,6 @@ PIMPLE
         U 1e-5;
         p 1e-5;
     }
-
 
 }
 PISO
