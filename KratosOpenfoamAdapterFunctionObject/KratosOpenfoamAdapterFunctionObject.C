@@ -295,6 +295,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         for (uint i = 0; i < patchIDs.size(); i++)
         {
             interfaces_.at(j).numElements += mesh_.boundary()[patchIDs[i]].size();
+            //interfaces_.at(j).numElements += mesh.boundaryMesh()[patchIDs.at(i)].faceCentres().size();
         }
         std::cout << "Total Number of Elements/faces in this interface: " << interfaces_.at(j).numElements << std::endl;
 
@@ -761,29 +762,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
     // Add the patch in the list
     patchIDs.push_back(patchID);
     }
-
-    //- Force field
-    Foam::volVectorField * Force_; //Access this real force values from OpenFOAM
-
-    //Initialize the Force -> Need to check
-    Force_ = new volVectorField
-    (
-        IOobject
-        (
-            "Force",
-            runTime_.timeName(),
-            mesh_,
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-        mesh_,
-        dimensionedVector
-        (
-            "fdim",
-            dimensionSet(1,1,-2,0,0,0,0),
-            Foam::vector::zero
-        )
-    );
 
     //Get different force fields from OpenFOAM, See Force Function Object
     //1. Normal vectors on the boundary, multiplied with the face areas

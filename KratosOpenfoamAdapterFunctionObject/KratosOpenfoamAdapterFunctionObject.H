@@ -135,6 +135,27 @@ protected:
         //Parameters for Adapter's configuration
         Foam::word my_name;
 
+        //For Force Field
+        //Initialize the Force -> Need to check
+        Foam::volVectorField*  Force_ = new volVectorField
+        (
+            IOobject
+            (
+                "Force",
+                mesh_.time().timeName(),
+                mesh_,
+                IOobject::NO_READ,
+                IOobject::AUTO_WRITE
+            ),
+            mesh_,
+            dimensionedVector
+            (
+                "fdim",
+                dimensionSet(1,1,-2,0,0,0,0),
+                Foam::vector::zero
+            )
+        );
+
         //Every interface need to know the coupling Mesh, the OpenFOAM patches that consists the coupling surface, reading data on it and writing data.
         //Hence Strucutre is made to save all this data related to an interface
         struct InterfaceData
