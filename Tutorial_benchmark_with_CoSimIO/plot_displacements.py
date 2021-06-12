@@ -37,4 +37,4 @@ for i in range(len(time_list)):
 	file_write.write(displacement[i])
 	file_write.write("\n")
 
-os.system("./plot_disp_prep.sh")
+#os.system("./plot_disp_prep.sh ")
