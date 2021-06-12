@@ -164,14 +164,14 @@ H2 70;      // Nx for 2nd, 8th, 12th, 17th//140
 H3 80;      // Nx for 3rd, 9th, 13th, 14th, 18th//150
 
 V1 20;      // Ny 0th, 1st, 2nd, 3rd, 15th, 16th, 17th, 18th//30
-V2 8;      // Ny for 6th, 10th and Nx for 5th, 7th, 11th //15
+V2 10;      // Ny for 6th, 10th and Nx for 5th, 7th, 11th //15
 V3 10;      // Ny for 7th, 8th, 9th, 11th, 12th, 14th//20
 V4 1;       // Ny for 13th(in front of flap)
 
-GP1 4;      // Circular mesh gradient
-GN1 0.25;
-GP2 2;      // Flap gradient
-GN2 0.50;
+GP1 1;      // Circular mesh gradient
+GN1 1;
+GP2 1;      // Flap gradient
+GN2 1;
 GO 8;       // Outlet grading//4
 
 
