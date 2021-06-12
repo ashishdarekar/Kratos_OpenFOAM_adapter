@@ -115,6 +115,10 @@ functions
     //foamMonitor -l ./postProcessing/residuals/0/residuals.dat
     #includeFunc residuals
 
+    // TO plot the displacements of the flap
+    // Chosse the flap-tip position manually. - > (9.5 5.97 0.005)
+    #includeFunc probes
+
 }
 
 
