@@ -68,29 +68,32 @@ solvers
 
 PIMPLE
 {
-    nOuterCorrectors 100;
+    nOuterCorrectors 50;
     nCorrectors 2;
     nNonOrthogonalCorrectors 1;
-    tolerance 1.0e-12;
+    //tolerance 1.0e-12;
+    //relTol 1e-4;
+    tolerance 1.0e-5;
+    relTol 0.01;
 
     correctPhi          yes;
-    relTol 1e-4;
-    pisoTol 1e-6;
+
+    //pisoTol 1e-6;
     consistent  true;
 
     relaxationFactors
 {
     fields
     {
-        p       0.4;//0.3
-        pFinal  0.4;//0.4
-        pcorr       0.4;//0.3
-        pcorrFinal  0.4;//0.4
+        p       0.3;//0.4
+        pFinal  0.3;//0.4
+        pcorr       0.3;//0.3
+        pcorrFinal  0.3;//0.4
     }
     equations
     {
-        U       0.6;//0.6
-        UFinal  0.6;//0.6
+        U       0.7;//0.6
+        UFinal  0.7;//0.6
     }
 }
 

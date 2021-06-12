@@ -16,7 +16,7 @@ ddtSchemes
 
     gradSchemes
     {
-        default cellLimited Gauss linear 1;
+        default     cellMDLimited Gauss linear 0.5;
     }
 
     divSchemes
@@ -24,36 +24,22 @@ ddtSchemes
         default         none;
     	div(phi,U)      Gauss linearUpwind grad(U);
         div((nuEff*dev2(T(grad(U))))) Gauss linear;
-        //div(phi,U)      Gauss upwind;
-        //div((nuEff*dev2(T(grad(U))))) Gauss linear;
     }
 
     interpolationSchemes
     {
-        default linear;
+        default     linear;
     }
 
     laplacianSchemes
     {
-        default Gauss linear corrected;
+        default     Gauss linear limited 1.0;
     }
 
     snGradSchemes
     {
-        default corrected;
-    }
+        default     limited 1.0;
 
-    /*
-    snGradSchemes
-    {
-        //default corrected;
-        default limited corrected 0.5;
-    }
-
-    laplacianSchemes
-    {
-        //default Gauss linear corrected;
-        default Gauss linear limited corrected 0.5;
     }
 
     wallDist
@@ -66,4 +52,4 @@ ddtSchemes
         default no;
         p ;
         Phi ;
-    }*/
+    }
