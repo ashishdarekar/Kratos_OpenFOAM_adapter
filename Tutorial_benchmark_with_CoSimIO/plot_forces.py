@@ -49,4 +49,4 @@ for i in range(0,len(time)):
 	outputfile.write(str(time[i])+' '+str(Pressure_force[i])+' '+str(Viscous_force[i])+'\n')
 outputfile.close()
 
-os.system("./plot_forces.sh")
+os.system("./plot_forces_prep.sh")
