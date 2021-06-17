@@ -302,7 +302,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         //Considering 1st interface ONLY
         if(j==0)
         {
-            // create CoSimIO::ModelPart
+            // create CoSimIO::ModelPart- Put in public Member function
             CoSimIO::ModelPart model_part_interface_flap("interface_flap_model_part");
 
             //-For Nodes and Element IDs for CoSimIO
@@ -316,7 +316,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             int elemIndex = 1; //As element indexing starts with 1 in CoSimIO
 
             // For accessing the Co-ordinates of Nodes : Make 1st Node manually and push it
-            vector pointX(5.5000000e+00, 5.9700000e+00, -5.0000000e-03);
+            vector pointX(5.5000000e+00, 5.9700000e+00, -5.0000000e-06);
             //vector pointX(5.5000000e+00, 5.9700000e+00, -5.0000000e-01);
             NodeIDs.push_back(1);
             CoSimIO::Node& node = model_part_interface_flap.CreateNewNode( 1, pointX[0], pointX[1], pointX[2]);
@@ -368,23 +368,47 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             std::cout << "Converting InterfaceMesh to a CoSimIO::ModelPart -> End" << std::endl;
 
             //Printing each node and element sequence wise
-            std::cout << "Nodes in Model Part representing Mesh" << std::endl;
+            /* std::cout << "Nodes in Model Part representing Mesh" << std::endl;
             for (auto node_it=model_part_interface_flap.NodesBegin(); node_it!=model_part_interface_flap.NodesEnd(); ++node_it)
             {
                 CoSimIO::Node& node = **node_it;
                 std::cout<< "nodeID= " << node.Id() << " = "<< node.X() << " | " << node.Y() << " | " << node.Z() << std::endl;
-            }
+            } */
 
-            std::cout << "Elements and corresponding Nodes in Model Part representing Mesh" << std::endl;
+            //std::cout << "Elements and corresponding Nodes in Model Part representing Mesh" << std::endl;
             for (auto elem_it=model_part_interface_flap.ElementsBegin(); elem_it!=model_part_interface_flap.ElementsEnd(); ++elem_it)
             {
                 CoSimIO::Element& element = **elem_it;
-                std::cout << "All nodes in element with ID =" << element.Id() << " , with number of nodes =  " << element.NumberOfNodes() << std::endl;
+                //std::cout << "All nodes in element with ID =" << element.Id() << " , with number of nodes =  " << element.NumberOfNodes() << std::endl;
+                my_element_class new_elem;
+                new_elem.ID = element.Id()-1;
 
                 for (auto node_it=element.NodesBegin(); node_it!=element.NodesEnd(); ++node_it)
                 {
                     CoSimIO::Node& node = **node_it;
-                    std::cout<< "nodeID= " << node.Id() << " = "<< node.X() << " | " << node.Y() << " | " << node.Z() << std::endl;
+                    //std::cout<< "nodeID= " << node.Id() << " = "<< node.X() << " | " << node.Y() << " | " << node.Z() << std::endl;
+
+                    my_node_class new_node;
+                    new_node.ID = node.Id() -1;
+                    new_node.posx = node.X();
+                    new_node.posy = node.Y();
+                    new_node.posz = node.Z();
+                    new_node.fx = 0.0;
+                    new_node.fy = 0.0;
+                    new_node.fz = 0.0;
+                    new_elem.node_list.push_back(new_node);
+                }
+
+                AllElements_.push_back(new_elem);
+            }
+
+            std::cout << "Nodal Force Calculation" << std::endl;
+            for (std::size_t i = 0 ; i < AllElements_.size(); i++)
+            {
+                std::cout << "All nodes in element with ID =" << AllElements_.at(i).ID << " , with number of nodes =  " << AllElements_.at(i).node_list.size() << std::endl;
+                for (std::size_t j = 0 ; j< AllElements_.at(i).node_list.size() ; j++)
+                {
+                    std::cout<< "nodeID= " << AllElements_.at(i).node_list[j].ID << " = "<< AllElements_.at(i).node_list[j].posx << " | " << AllElements_.at(i).node_list[j].posy << " | " << AllElements_.at(i).node_list[j].posz << std::endl;
                 }
             }
 
@@ -418,6 +442,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                 else if(interfaces_.at(i).locationsType == "faceCenters")
                 {
                     data_to_send.resize((interfaces_.at(i).numElements) * dim);
+                    Nodal_Force_data_to_send.resize((interfaces_.at(i).numNodes) * dim); //Changed on 17/06/2021. To check How nodal Forces works on FSI problem
                 }
             }
             //else if() //if some other variables
@@ -473,6 +498,9 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         point_disp = const_cast<pointVectorField*>( &mesh_.lookupObject<pointVectorField>("pointDisplacement") );
         //std::cout<< "Size of the pointDisplacement array is " << point_disp->size() << std::endl;
         label patchIndex = mesh_.boundaryMesh().findPatchID("flap");
+
+        std::cout<< "Patch for displacement " << patchIndex << std::endl;
+
         fixedValuePointPatchVectorField& pointDisplacementFluidPatch = refCast<fixedValuePointPatchVectorField>(point_disp->boundaryFieldRef()[patchIndex]);
 
         int iterator = 0 ; //iterator goes from 0 till (size of recv_array)
@@ -481,9 +509,9 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
             //std::cout << i << " Before : "<< pointDisplacementFluidPatch[i][0] << ", " << pointDisplacementFluidPatch[i][1] << ", " << pointDisplacementFluidPatch[i][2] << std::endl;
             pointDisplacementFluidPatch[i][0] = data_to_recv[iterator++];
             pointDisplacementFluidPatch[i][1] = data_to_recv[iterator++];
-            if (dim ==3)
-                pointDisplacementFluidPatch[i][2] = data_to_recv[iterator++]; //ignoring z direction displacement = Anyways the value is zero for 2D case.
-            //iterator++;
+            //if (dim ==3)
+                //pointDisplacementFluidPatch[i][2] = data_to_recv[iterator++]; //ignoring z direction displacement = Anyways the value is zero for 2D case.
+            iterator++;
             //std::cout << i << " After : "<< pointDisplacementFluidPatch[i][0] << ", " << pointDisplacementFluidPatch[i][1] << ", " << pointDisplacementFluidPatch[i][2] << std::endl;
         }
         //std::cout << "\n" << "Size of the iterator = " << iterator <<std::endl;
@@ -515,14 +543,190 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
             std::cout << "i = " << i << " ; load data = " << data_to_send.at(i) << std::endl;
         } */
 
+        //Force Mapping on Nodes - 17.06.2021
+        //************************************ ONLY WORK FOR THIS MESH ***********************************//
+        std::cout << "DO NOT CHANGE THE MESH : Nodal Force Calculation : Start" << std::endl;
+        for (std::size_t i = 0 ; i < AllElements_.size(); i++)
+        {
+            if(i==0)
+            {
+                for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
+                {
+                    if (j==0 || j==1)
+                    {
+                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 ; //No Cell On Right side
+                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 ; //No Cell On Right side
+                        //Z component No Change
+                    }
+                    else if (j==2 || j==3)
+                    {
+                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i+1) + 0])/4 ;
+                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i+1) + 1])/4 ;
+                        //Z component No Change
+                    }
+                }
+            }
+            //for i=1 till
+            else if(i>=1 || i<=79)
+            {
+                for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
+                {
+                    if (j==0 || j==1)
+                    {
+                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i-1) + 0])/4 ;
+                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i-1) + 1])/4 ;
+                        //Z component No Change
+                    }
+                    else if (j==2 || j==3)
+                    {
+                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i+1) + 0])/4 ;
+                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i+1) + 1])/4 ;
+                        //Z component No Change
+                    }
+                }
+            }
+            else if(i==80)
+            {
+                for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
+                {
+                    if (j==0 || j==1)
+                    {
+                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i-1) + 0])/4 ;
+                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i-1) + 1])/4 ;
+                        //Z component No Change
+                    }
+                    else if (j==2 || j==3)
+                    {
+                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(150) + 0])/4 ; //looking for cell# 150
+                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(150) + 1])/4 ; //looking for cell# 150
+                        //Z component No Change
+                    }
+                }
+            }
+            else if(i==81)
+            {
+                for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
+                {
+                    if (j==0 || j==3)
+                    {
+                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(160) + 0])/4 ; //looking for cell# 160
+                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(160) + 1])/4 ; //looking for cell# 160
+                        //Z component No Change
+                    }
+                    else if (j==1 || j==2)
+                    {
+                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i+1) + 0])/4 ;
+                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i+1) + 1])/4 ;
+                        //Z component No Change
+                    }
+                }
+            }
+            else if((i>=82 && i<=149) || (i>=152 && i<=159))
+            {
+                for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
+                {
+                    if (j==0 || j==3)
+                    {
+                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i-1) + 0])/4 ;
+                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i-1) + 1])/4 ;
+                        //Z component No Change
+                    }
+                    else if (j==1 || j==2)
+                    {
+                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i+1) + 0])/4 ;
+                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i+1) + 1])/4 ;
+                        //Z component No Change
+                    }
+                }
+            }
+            else if(i==150)
+            {
+                for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
+                {
+                    if (j==0 || j==3)
+                    {
+                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i-1) + 0])/4 ;
+                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i-1) + 1])/4 ;
+                        //Z component No Change
+                    }
+                    else if (j==1 || j==2)
+                    {
+                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(80) + 0])/4 ; //looking for cell# 80
+                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(80) + 1])/4 ; //looking for cell# 80
+                        //Z component No Change
+                    }
+                }
+            }
+            else if(i==151)
+            {
+                for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
+                {
+                    if (j==0 || j==3)
+                    {
+                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 ; //No Cell On left side
+                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 ; //No Cell On left side
+                        //Z component No Change
+                    }
+                    else if (j==1 || j==2)
+                    {
+                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i+1) + 0])/4 ;
+                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i+1) + 1])/4 ;
+                        //Z component No Change
+                    }
+                }
+
+            }
+            else if(i==160)
+            {
+                for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
+                {
+                    if (j==0 || j==3)
+                    {
+                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i-1) + 0])/4 ;
+                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i-1) + 1])/4 ;
+                        //Z component No Change
+                    }
+                    else if (j==1 || j==2)
+                    {
+                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(81) + 0])/4 ;
+                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(81) + 1])/4 ;
+                        //Z component No Change
+                    }
+                }
+            }
+        }
+
+        //Write new Modal Data into new Buffer- Nodal_Force_data_to_send
+        for (std::size_t i = 0 ; i < AllElements_.size(); i++)
+        {
+            for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
+            {
+                Nodal_Force_data_to_send[3*(AllElements_[i].node_list[j].ID) + 0] = AllElements_[i].node_list[j].fx ;
+                Nodal_Force_data_to_send[3*(AllElements_[i].node_list[j].ID) + 1] = AllElements_[i].node_list[j].fy ;
+                Nodal_Force_data_to_send[3*(AllElements_[i].node_list[j].ID) + 2] = 0.0;//Z Component for each Node
+            }
+        }
+
+        std::cout << "DO NOT CHANGE THE MESH : Nodal Force Calculation: Done" << std::endl;
+        for(uint i = 0; i < Nodal_Force_data_to_send.size() ; i++ )
+        {
+            std::cout << "i = " << i << " ; load data = " << Nodal_Force_data_to_send.at(i) << std::endl;
+        }
+
+
+
+        //************************************ ONLY WORK FOR THIS MESH ***********************************//
+
         //Export this force array to CoSimulation
         //CoSimIO::Info connect_info;
         connect_info.Clear();
         connect_info.Set("identifier", "load");
         connect_info.Set("connection_name", connection_name);
-        connect_info = CoSimIO::ExportData(connect_info, data_to_send);
+        //connect_info = CoSimIO::ExportData(connect_info, data_to_send);//Elemental Force Data
+        connect_info = CoSimIO::ExportData(connect_info, Nodal_Force_data_to_send); //Nodal Force Data
 
-        std::cout<< runTime_.timeName() << " : Data has been exported from OpenFOAM to CoSimulation: Force values with array size = " << data_to_send.size() << std::endl;
+        //std::cout<< runTime_.timeName() << " : Data has been exported from OpenFOAM to CoSimulation: Force values with array size = " << data_to_send.size() << std::endl;
+        std::cout<< runTime_.timeName() << " : Data has been exported from OpenFOAM to CoSimulation: Force values with array size = " << Nodal_Force_data_to_send.size() << std::endl;
     }
 
     return true;
@@ -753,6 +957,8 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
         // Get the patchID
         int patchID = mesh_.boundaryMesh().findPatchID((interfaces_.at(interface_index).patchNames).at(i));
 
+        std::cout<< "Patch for force " << patchID << std::endl;
+
         // Throw an error if the patch was not found
         if (patchID == -1)
         {
@@ -840,8 +1046,8 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
             if(dim == 3)
             {
                 // z-dimension
-                data_to_send[bufferIndex++] = Force_->boundaryField()[patchID][i].z();
-                //data_to_send[bufferIndex++] = 0.0; //We will skip 3rd dimension
+                //data_to_send[bufferIndex++] = Force_->boundaryField()[patchID][i].z();
+                data_to_send[bufferIndex++] = 0.0; //We will skip 3rd dimension
             }
         }
 

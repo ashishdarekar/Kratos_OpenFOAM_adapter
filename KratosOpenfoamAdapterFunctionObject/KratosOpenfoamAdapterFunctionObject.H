@@ -123,6 +123,7 @@ private:
 
         //- Private function for CoSimIO
         std::vector<double> data_to_send;
+        std::vector<double> Nodal_Force_data_to_send;
         std::vector<double> data_to_recv;
 
         //For making geometry
@@ -176,6 +177,31 @@ protected:
         //std::vector<CoSimIO::ModelPart> model_part_interfaces_;
         std::vector<std::unique_ptr<CoSimIO::ModelPart>> model_part_interfaces_;
 
+        // create CoSimIO::ModelPart -> Not working
+        //CoSimIO::ModelPart model_part_interface_flap("interface_flap_model_part");
+
+        class my_node_class
+        {
+        public:
+            unsigned int ID;
+            double posx;
+            double posy;
+            double posz;
+            double fx;
+            double fy;
+            double fz;
+        };
+
+        class my_element_class
+        {
+        public:
+            unsigned int ID;
+            std::vector<my_node_class> node_list;
+        };
+
+        //Array of all Elements;
+        std::vector<my_element_class> AllElements_;
+
         //Auxiliar functions
         bool calculateForces(std::size_t interface_index);
         std::string determineSolverType();
@@ -192,6 +218,7 @@ protected:
         Foam::vectorField getFaceVectors(const unsigned int patchID) const;
 
 public:
+
     //- Runtime type information
     TypeName("KratosOpenfoamAdapterFunctionObject");
 
