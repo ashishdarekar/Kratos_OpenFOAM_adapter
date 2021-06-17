@@ -7,5 +7,7 @@ gnuplot -persist > /dev/null 2>&1 << EOF
 	set ylabel "Force (N)"
 
 	plot	"forces.txt" using 1:2 title 'Pressure Forces' with linespoints,\
-			"forces.txt" using 1:3 title 'Viscous Forces' with linespoints
+			"forces.txt" using 1:3 title 'Viscous Forces' with linespoints,\
+			"forces.txt" using 1:4 title 'Total Forces' with linespoints
+
 EOF

@@ -18,6 +18,16 @@ solvers
         smoother         DICGaussSeidel;
     }
 
+    /*
+    p
+    {
+        solver           PCG;
+        tolerance        1e-5;
+        relTol           0.01;
+        preconditioner         DIC;
+    }*/
+
+
     pFinal
     {
         $p;
@@ -69,8 +79,8 @@ solvers
 PIMPLE
 {
     nOuterCorrectors 50;
-    nCorrectors 2;
-    nNonOrthogonalCorrectors 1;
+    nCorrectors 4;
+    nNonOrthogonalCorrectors 10;
     //tolerance 1.0e-12;
     //relTol 1e-4;
     tolerance 1.0e-5;
@@ -81,21 +91,21 @@ PIMPLE
     //pisoTol 1e-6;
     consistent  true;
 
-    relaxationFactors
+/*    relaxationFactors
 {
     fields
     {
         p       0.3;//0.4
-        pFinal  0.3;//0.4
-        pcorr       0.3;//0.3
-        pcorrFinal  0.3;//0.4
+        pFinal  1.0;//0.4
+        //pcorr       0.3;//0.3
+        //pcorrFinal  0.3;//0.4
     }
     equations
     {
         U       0.7;//0.6
-        UFinal  0.7;//0.6
+        UFinal  1.0;//0.6
     }
-}
+}*/
 
     // OpenFOAM 6 (.org) or newer
 
@@ -103,16 +113,17 @@ PIMPLE
     {
         U 1e-5;
         p 1e-5;
+        pcorr 1e-5;
     }
 
 }
 PISO
 {
-    nNonOrthogonalCorrectors 1;
+    nNonOrthogonalCorrectors 10;
 }
 potentialFlow
 {
-    nNonOrthogonalCorrectors 1;
+    nNonOrthogonalCorrectors 10;
 }
 
 

@@ -33,6 +33,7 @@ def line2dict(line):
 time = []
 Pressure_force = []
 Viscous_force = []
+Total_force = []
 
 with open(forces_file,"r") as datafile:
 	for line in datafile:
@@ -42,11 +43,13 @@ with open(forces_file,"r") as datafile:
 		time += [data_dict['time']]
 		Pressure_force += [sqrt( pow(data_dict['force']['pressure'][0],2) + pow(data_dict['force']['pressure'][1],2) + pow(data_dict['force']['pressure'][2],2) )]
 		Viscous_force += [sqrt( pow(data_dict['force']['viscous'][0],2) + pow(data_dict['force']['viscous'][1],2) + pow(data_dict['force']['viscous'][2],2) )]
+		Total_force += [sqrt( pow(data_dict['force']['pressure'][0],2) + pow(data_dict['force']['pressure'][1],2) + pow(data_dict['force']['pressure'][2],2) ) +\
+						sqrt( pow(data_dict['force']['viscous'][0],2) + pow(data_dict['force']['viscous'][1],2) + pow(data_dict['force']['viscous'][2],2) )]
 datafile.close()
 
 outputfile = open('forces.txt','w')
-for i in range(0,len(time)):
-	outputfile.write(str(time[i])+' '+str(Pressure_force[i])+' '+str(Viscous_force[i])+'\n')
+for i in range(1,len(time)):
+	outputfile.write(str(time[i])+' '+str(Pressure_force[i])+' '+str(Viscous_force[i])+' '+str(Total_force[i])+'\n')
 outputfile.close()
 
 #os.system("./plot_forces_prep.sh")

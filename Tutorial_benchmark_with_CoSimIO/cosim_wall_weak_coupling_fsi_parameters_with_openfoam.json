@@ -62,7 +62,7 @@
                 "type"           : "scaling",
                 "solver"         : "structure",
                 "data_name"      : "load",
-                "scaling_factor" : "(sin(((t)/0.001)/10000*pi/2))**2",
+                "scaling_factor" : "(sin(((t)/0.02)/500*pi/2))**2",
                 //"scaling_factor" : "((sin(((t+7.383945)/0.001)/10000*pi/2))**2)-0.84",
                 //"scaling_factor" : "((sin(((t+7.956)/0.001)/10000*pi/2))**2)-0.9",
                 "echo_level"     : 4,
@@ -116,12 +116,12 @@
                     "disp" : {
                         "model_part_name" : "Structure.GENERIC_FSI_Interface",
                         "variable_name" : "DISPLACEMENT",
-                        "dimension" : 2
+                        "dimension" : 3
                     },
                     "load" : {
                         "model_part_name" : "Structure.GENERIC_FSI_Interface",
                         "variable_name" : "POINT_LOAD",
-                        "dimension" : 2
+                        "dimension" : 3
                     }
                 }
             }

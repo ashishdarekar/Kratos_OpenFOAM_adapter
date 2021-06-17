@@ -708,10 +708,10 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         }
 
         std::cout << "DO NOT CHANGE THE MESH : Nodal Force Calculation: Done" << std::endl;
-        for(uint i = 0; i < Nodal_Force_data_to_send.size() ; i++ )
+        /* for(uint i = 0; i < Nodal_Force_data_to_send.size() ; i++ )
         {
             std::cout << "i = " << i << " ; load data = " << Nodal_Force_data_to_send.at(i) << std::endl;
-        }
+        } */
 
 
 
