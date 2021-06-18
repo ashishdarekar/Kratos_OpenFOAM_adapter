@@ -31,10 +31,19 @@ while dis:
 		#print(displacement)
 	dis = file.readline()
 
+tmp_old = "0.0"
+
 for i in range(len(time_list)):
 	file_write.write(time_list[i])
 	file_write.write(" ")
-	file_write.write(displacement[i])
-	file_write.write("\n")
+	#Hack to avoid that big number
+	if(displacement[i] == "-1.79769313486e+307"):
+		file_write.write(tmp_old)
+		file_write.write("\n")
+	else:
+		file_write.write(displacement[i])
+		tmp_old = displacement[i]
+		file_write.write("\n")
+
 
 #os.system("./plot_disp_prep.sh ")

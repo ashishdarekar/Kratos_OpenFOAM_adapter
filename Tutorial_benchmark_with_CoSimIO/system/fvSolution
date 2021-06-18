@@ -78,7 +78,7 @@ solvers
 
 PIMPLE
 {
-    nOuterCorrectors 50;
+    nOuterCorrectors 10;//50
     nCorrectors 4;
     nNonOrthogonalCorrectors 10;
     //tolerance 1.0e-12;
