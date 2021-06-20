@@ -545,6 +545,9 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 
         //Force Mapping on Nodes - 17.06.2021
         //************************************ ONLY WORK FOR THIS MESH ***********************************//
+    int mapping_required = 0;
+    while(mapping_required)
+    {
         std::cout << "DO NOT CHANGE THE MESH : Nodal Force Calculation : Start" << std::endl;
         for (std::size_t i = 0 ; i < AllElements_.size(); i++)
         {
@@ -712,8 +715,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         {
             std::cout << "i = " << i << " ; load data = " << Nodal_Force_data_to_send.at(i) << std::endl;
         } */
-
-
+    }
 
         //************************************ ONLY WORK FOR THIS MESH ***********************************//
 
@@ -722,11 +724,11 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         connect_info.Clear();
         connect_info.Set("identifier", "load");
         connect_info.Set("connection_name", connection_name);
-        //connect_info = CoSimIO::ExportData(connect_info, data_to_send);//Elemental Force Data
-        connect_info = CoSimIO::ExportData(connect_info, Nodal_Force_data_to_send); //Nodal Force Data
+        connect_info = CoSimIO::ExportData(connect_info, data_to_send);//Elemental Force Data
+        //connect_info = CoSimIO::ExportData(connect_info, Nodal_Force_data_to_send); //Nodal Force Data
 
-        //std::cout<< runTime_.timeName() << " : Data has been exported from OpenFOAM to CoSimulation: Force values with array size = " << data_to_send.size() << std::endl;
-        std::cout<< runTime_.timeName() << " : Data has been exported from OpenFOAM to CoSimulation: Force values with array size = " << Nodal_Force_data_to_send.size() << std::endl;
+        std::cout<< runTime_.timeName() << " : Data has been exported from OpenFOAM to CoSimulation: Force values with array size = " << data_to_send.size() << std::endl;
+        //std::cout<< runTime_.timeName() << " : Data has been exported from OpenFOAM to CoSimulation: Force values with array size = " << Nodal_Force_data_to_send.size() << std::endl;
     }
 
     return true;
