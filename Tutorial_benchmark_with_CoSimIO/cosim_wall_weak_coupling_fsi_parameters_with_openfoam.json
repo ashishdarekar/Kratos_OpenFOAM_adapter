@@ -36,9 +36,9 @@
                     "from_solver"       : "Openfoam_Kratos_Wrapper",
                     "from_solver_data"  : "load",
                     "data_transfer_operator" : "mapper",
-                    "after_data_transfer_operations" : ["scaling_loads_1"],
+                    "after_data_transfer_operations" : ["scaling_loads_1", "mapping_element_node_1"],
                     ///"after_data_transfer_operations" : ["scaling_loads_1","scaling_loads_2"],
-                    "data_transfer_operator_options" : ["swap_sign"]
+                    "data_transfer_operator_options" : ["swap_sign", "use_transpose"]
                     //"interval" : [0.4, 2.0]
                 }
             ],
@@ -76,6 +76,12 @@
                 "scaling_factor" : "0.1",
                 "echo_level"     : 4,
                 "interval"       : [2.0491, 100.0]
+            },
+            "mapping_element_node_1" : {
+                "type"           : "ConvertElementalDataToNodalData",
+                "solver"         : "structure",
+                "data_name"      : "load",
+                "echo_level"     : 4
             }
         },
         "solvers" :
