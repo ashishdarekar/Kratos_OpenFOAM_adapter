@@ -15,7 +15,7 @@
             {
                 "type" : "average_value_based",
                 "solver"         : "Openfoam_Kratos_Wrapper",
-                "data_name"      : "load"
+                "data_name"      : "load_cells"
             }
         ],
         "data_transfer_operators" : {
@@ -36,7 +36,8 @@
                     "from_solver"       : "Openfoam_Kratos_Wrapper",
                     "from_solver_data"  : "load",
                     "data_transfer_operator" : "mapper",
-                    "after_data_transfer_operations" : ["scaling_loads_1", "mapping_element_node_1"],
+                    "before_data_transfer_operations" : ["mapping_element_node_1"],
+                    "after_data_transfer_operations" : ["scaling_loads_1"],
                     ///"after_data_transfer_operations" : ["scaling_loads_1","scaling_loads_2"],
                     "data_transfer_operator_options" : ["swap_sign", "use_transpose"]
                     //"interval" : [0.4, 2.0]
@@ -78,9 +79,9 @@
                 "interval"       : [2.0491, 100.0]
             },
             "mapping_element_node_1" : {
-                "type"           : "ConvertElementalDataToNodalData",
+                "type"           : "elemental_data_to_nodal_data",
                 "solver"         : "structure",
-                "data_name"      : "load",
+                "data_name"      : "load_cells",
                 "echo_level"     : 4
             }
         },
@@ -92,7 +93,7 @@
                 "solver_wrapper_settings" : {
                     "import_meshes"    : ["interface_flap"],
                     "export_data"      : ["disp"],
-                    "import_data"      : ["load"]
+                    "import_data"      : ["load_cells"]
                 },
                 "io_settings" : {
                     "type"       : "kratos_co_sim_io",
@@ -105,7 +106,13 @@
                         "dimension" : 3,
                         "variable_name" : "DISPLACEMENT"
                     },
-                    "load" : {
+                    "load_cells" : {
+                        "model_part_name"   : "interface_flap",
+                        "location" : "element",
+                        "dimension" : 3,
+                        "variable_name" : "FORCE"
+                    },
+                    "load" : { // same as load_cells but has data on nodes => required for the mapper!
                         "model_part_name"   : "interface_flap",
                         "dimension" : 3,
                         "variable_name" : "FORCE"
