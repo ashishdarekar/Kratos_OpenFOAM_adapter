@@ -80,7 +80,7 @@ PIMPLE
 {
     nOuterCorrectors 10;//50
     nCorrectors 4;
-    nNonOrthogonalCorrectors 10;
+    nNonOrthogonalCorrectors 2;
     //tolerance 1.0e-12;
     //relTol 1e-4;
     tolerance 1.0e-5;
@@ -119,11 +119,11 @@ PIMPLE
 }
 PISO
 {
-    nNonOrthogonalCorrectors 10;
+    nNonOrthogonalCorrectors 2;//10
 }
 potentialFlow
 {
-    nNonOrthogonalCorrectors 10;
+    nNonOrthogonalCorrectors 2;//10
 }
 
 
