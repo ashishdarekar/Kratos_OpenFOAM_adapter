@@ -545,184 +545,184 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 
         //Force Mapping on Nodes - 17.06.2021
         //************************************ ONLY WORK FOR THIS MESH ***********************************//
-    int mapping_required = 0;
-    while(mapping_required)
-    {
-        std::cout << "DO NOT CHANGE THE MESH : Nodal Force Calculation : Start" << std::endl;
-        for (std::size_t i = 0 ; i < AllElements_.size(); i++)
+        int mapping_required = 0;
+        while(mapping_required)
         {
-            if(i==0)
+            std::cout << "DO NOT CHANGE THE MESH : Nodal Force Calculation : Start" << std::endl;
+            for (std::size_t i = 0 ; i < AllElements_.size(); i++)
             {
-                for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
+                if(i==0)
                 {
-                    if (j==0 || j==1)
+                    for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
                     {
-                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 ; //No Cell On Right side
-                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 ; //No Cell On Right side
-                        //Z component No Change
-                    }
-                    else if (j==2 || j==3)
-                    {
-                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i+1) + 0])/4 ;
-                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i+1) + 1])/4 ;
-                        //Z component No Change
+                        if (j==0 || j==1)
+                        {
+                            AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 ; //No Cell On Right side
+                            AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 ; //No Cell On Right side
+                            //Z component No Change
+                        }
+                        else if (j==2 || j==3)
+                        {
+                            AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i+1) + 0])/4 ;
+                            AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i+1) + 1])/4 ;
+                            //Z component No Change
+                        }
                     }
                 }
-            }
-            //for i=1 till
-            else if(i>=1 || i<=79)
-            {
-                for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
+                //for i=1 till
+                else if(i>=1 || i<=79)
                 {
-                    if (j==0 || j==1)
+                    for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
                     {
-                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i-1) + 0])/4 ;
-                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i-1) + 1])/4 ;
-                        //Z component No Change
-                    }
-                    else if (j==2 || j==3)
-                    {
-                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i+1) + 0])/4 ;
-                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i+1) + 1])/4 ;
-                        //Z component No Change
+                        if (j==0 || j==1)
+                        {
+                            AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i-1) + 0])/4 ;
+                            AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i-1) + 1])/4 ;
+                            //Z component No Change
+                        }
+                        else if (j==2 || j==3)
+                        {
+                            AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i+1) + 0])/4 ;
+                            AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i+1) + 1])/4 ;
+                            //Z component No Change
+                        }
                     }
                 }
-            }
-            else if(i==80)
-            {
-                for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
+                else if(i==80)
                 {
-                    if (j==0 || j==1)
+                    for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
                     {
-                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i-1) + 0])/4 ;
-                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i-1) + 1])/4 ;
-                        //Z component No Change
-                    }
-                    else if (j==2 || j==3)
-                    {
-                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(150) + 0])/4 ; //looking for cell# 150
-                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(150) + 1])/4 ; //looking for cell# 150
-                        //Z component No Change
+                        if (j==0 || j==1)
+                        {
+                            AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i-1) + 0])/4 ;
+                            AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i-1) + 1])/4 ;
+                            //Z component No Change
+                        }
+                        else if (j==2 || j==3)
+                        {
+                            AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(150) + 0])/4 ; //looking for cell# 150
+                            AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(150) + 1])/4 ; //looking for cell# 150
+                            //Z component No Change
+                        }
                     }
                 }
-            }
-            else if(i==81)
-            {
-                for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
+                else if(i==81)
                 {
-                    if (j==0 || j==3)
+                    for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
                     {
-                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(160) + 0])/4 ; //looking for cell# 160
-                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(160) + 1])/4 ; //looking for cell# 160
-                        //Z component No Change
-                    }
-                    else if (j==1 || j==2)
-                    {
-                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i+1) + 0])/4 ;
-                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i+1) + 1])/4 ;
-                        //Z component No Change
+                        if (j==0 || j==3)
+                        {
+                            AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(160) + 0])/4 ; //looking for cell# 160
+                            AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(160) + 1])/4 ; //looking for cell# 160
+                            //Z component No Change
+                        }
+                        else if (j==1 || j==2)
+                        {
+                            AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i+1) + 0])/4 ;
+                            AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i+1) + 1])/4 ;
+                            //Z component No Change
+                        }
                     }
                 }
-            }
-            else if((i>=82 && i<=149) || (i>=152 && i<=159))
-            {
-                for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
+                else if((i>=82 && i<=149) || (i>=152 && i<=159))
                 {
-                    if (j==0 || j==3)
+                    for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
                     {
-                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i-1) + 0])/4 ;
-                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i-1) + 1])/4 ;
-                        //Z component No Change
-                    }
-                    else if (j==1 || j==2)
-                    {
-                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i+1) + 0])/4 ;
-                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i+1) + 1])/4 ;
-                        //Z component No Change
+                        if (j==0 || j==3)
+                        {
+                            AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i-1) + 0])/4 ;
+                            AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i-1) + 1])/4 ;
+                            //Z component No Change
+                        }
+                        else if (j==1 || j==2)
+                        {
+                            AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i+1) + 0])/4 ;
+                            AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i+1) + 1])/4 ;
+                            //Z component No Change
+                        }
                     }
                 }
-            }
-            else if(i==150)
-            {
-                for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
+                else if(i==150)
                 {
-                    if (j==0 || j==3)
+                    for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
                     {
-                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i-1) + 0])/4 ;
-                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i-1) + 1])/4 ;
-                        //Z component No Change
-                    }
-                    else if (j==1 || j==2)
-                    {
-                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(80) + 0])/4 ; //looking for cell# 80
-                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(80) + 1])/4 ; //looking for cell# 80
-                        //Z component No Change
+                        if (j==0 || j==3)
+                        {
+                            AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i-1) + 0])/4 ;
+                            AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i-1) + 1])/4 ;
+                            //Z component No Change
+                        }
+                        else if (j==1 || j==2)
+                        {
+                            AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(80) + 0])/4 ; //looking for cell# 80
+                            AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(80) + 1])/4 ; //looking for cell# 80
+                            //Z component No Change
+                        }
                     }
                 }
-            }
-            else if(i==151)
-            {
-                for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
+                else if(i==151)
                 {
-                    if (j==0 || j==3)
+                    for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
                     {
-                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 ; //No Cell On left side
-                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 ; //No Cell On left side
-                        //Z component No Change
+                        if (j==0 || j==3)
+                        {
+                            AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 ; //No Cell On left side
+                            AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 ; //No Cell On left side
+                            //Z component No Change
+                        }
+                        else if (j==1 || j==2)
+                        {
+                            AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i+1) + 0])/4 ;
+                            AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i+1) + 1])/4 ;
+                            //Z component No Change
+                        }
                     }
-                    else if (j==1 || j==2)
-                    {
-                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i+1) + 0])/4 ;
-                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i+1) + 1])/4 ;
-                        //Z component No Change
-                    }
-                }
 
-            }
-            else if(i==160)
-            {
-                for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
+                }
+                else if(i==160)
                 {
-                    if (j==0 || j==3)
+                    for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
                     {
-                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i-1) + 0])/4 ;
-                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i-1) + 1])/4 ;
-                        //Z component No Change
-                    }
-                    else if (j==1 || j==2)
-                    {
-                        AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(81) + 0])/4 ;
-                        AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(81) + 1])/4 ;
-                        //Z component No Change
+                        if (j==0 || j==3)
+                        {
+                            AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(i-1) + 0])/4 ;
+                            AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(i-1) + 1])/4 ;
+                            //Z component No Change
+                        }
+                        else if (j==1 || j==2)
+                        {
+                            AllElements_[i].node_list[j].fx = (data_to_send[3*i + 0])/4 + (data_to_send[3*(81) + 0])/4 ;
+                            AllElements_[i].node_list[j].fy = (data_to_send[3*i + 1])/4 + (data_to_send[3*(81) + 1])/4 ;
+                            //Z component No Change
+                        }
                     }
                 }
             }
+
+            //Write new Modal Data into new Buffer- Nodal_Force_data_to_send
+            for (std::size_t i = 0 ; i < AllElements_.size(); i++)
+            {
+                for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
+                {
+                    Nodal_Force_data_to_send[3*(AllElements_[i].node_list[j].ID) + 0] = AllElements_[i].node_list[j].fx ;
+                    Nodal_Force_data_to_send[3*(AllElements_[i].node_list[j].ID) + 1] = AllElements_[i].node_list[j].fy ;
+                    Nodal_Force_data_to_send[3*(AllElements_[i].node_list[j].ID) + 2] = 0.0;//Z Component for each Node
+                }
+            }
+
+            std::cout << "DO NOT CHANGE THE MESH : Nodal Force Calculation: Done" << std::endl;
+            /* for(uint i = 0; i < Nodal_Force_data_to_send.size() ; i++ )
+            {
+                std::cout << "i = " << i << " ; load data = " << Nodal_Force_data_to_send.at(i) << std::endl;
+            } */
         }
-
-        //Write new Modal Data into new Buffer- Nodal_Force_data_to_send
-        for (std::size_t i = 0 ; i < AllElements_.size(); i++)
-        {
-            for(std::size_t j = 0; j < AllElements_[i].node_list.size(); j++)
-            {
-                Nodal_Force_data_to_send[3*(AllElements_[i].node_list[j].ID) + 0] = AllElements_[i].node_list[j].fx ;
-                Nodal_Force_data_to_send[3*(AllElements_[i].node_list[j].ID) + 1] = AllElements_[i].node_list[j].fy ;
-                Nodal_Force_data_to_send[3*(AllElements_[i].node_list[j].ID) + 2] = 0.0;//Z Component for each Node
-            }
-        }
-
-        std::cout << "DO NOT CHANGE THE MESH : Nodal Force Calculation: Done" << std::endl;
-        /* for(uint i = 0; i < Nodal_Force_data_to_send.size() ; i++ )
-        {
-            std::cout << "i = " << i << " ; load data = " << Nodal_Force_data_to_send.at(i) << std::endl;
-        } */
-    }
 
         //************************************ ONLY WORK FOR THIS MESH ***********************************//
 
         //Export this force array to CoSimulation
         //CoSimIO::Info connect_info;
         connect_info.Clear();
-        connect_info.Set("identifier", "load");
+        connect_info.Set("identifier", "load_cells");
         connect_info.Set("connection_name", connection_name);
         connect_info = CoSimIO::ExportData(connect_info, data_to_send);//Elemental Force Data
         //connect_info = CoSimIO::ExportData(connect_info, Nodal_Force_data_to_send); //Nodal Force Data
