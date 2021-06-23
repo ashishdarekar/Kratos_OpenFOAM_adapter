@@ -11,13 +11,13 @@
     {
         "type" : "coupled_solvers.gauss_seidel_weak",
         "echo_level" : 4,
-        "predictors" : [
+        /* "predictors" : [
             {
                 "type" : "average_value_based",
                 "solver"         : "Openfoam_Kratos_Wrapper",
                 "data_name"      : "load_cells"
             }
-        ],
+        ], */
         "data_transfer_operators" : {
             "mapper" : {
                 "type" : "kratos_mapping",
@@ -38,8 +38,8 @@
                     "data_transfer_operator" : "mapper",
                     "before_data_transfer_operations" : ["mapping_element_node_1"],
                     "after_data_transfer_operations" : ["scaling_loads_1"],
-                    ///"after_data_transfer_operations" : ["scaling_loads_1","scaling_loads_2"],
                     "data_transfer_operator_options" : ["swap_sign", "use_transpose"]
+                    ///"after_data_transfer_operations" : ["scaling_loads_1","scaling_loads_2"],
                     //"interval" : [0.4, 2.0]
                 }
             ],
@@ -83,6 +83,7 @@
                 "solver"         : "Openfoam_Kratos_Wrapper",
                 "data_name"      : "load_cells",
                 "echo_level"     : 4
+                //"interval"       : [0.04, 100.0]
             }
         },
         "solvers" :
