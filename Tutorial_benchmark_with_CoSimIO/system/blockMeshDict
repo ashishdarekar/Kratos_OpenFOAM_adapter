@@ -11,8 +11,8 @@ FoamFile
 
 // Geometry parameters, If you are changing thicknes, Code need to modify
 // As first point manually entered in the code.
-f -0.005;   // z-front
-b 0.005;    // z-back
+f -0.05;   // z-front
+b 0.05;    // z-back
 
 //f -5e-06;   // z-front -0.5
 //b 5e-06;    // z-backs 0.5

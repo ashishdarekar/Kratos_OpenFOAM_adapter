@@ -78,8 +78,8 @@ solvers
 
 PIMPLE
 {
-    nOuterCorrectors 10;//50
-    nCorrectors 4;
+    nOuterCorrectors 50;//50
+    nCorrectors 2;
     nNonOrthogonalCorrectors 2;
     //tolerance 1.0e-12;
     //relTol 1e-4;
@@ -91,7 +91,7 @@ PIMPLE
     //pisoTol 1e-6;
     consistent  true;
 
-/*    relaxationFactors
+   relaxationFactors
 {
     fields
     {
@@ -105,7 +105,7 @@ PIMPLE
         U       0.7;//0.6
         UFinal  1.0;//0.6
     }
-}*/
+}
 
     // OpenFOAM 6 (.org) or newer
 
