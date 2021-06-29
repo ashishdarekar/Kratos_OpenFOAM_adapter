@@ -58,6 +58,9 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
     my_name = dict.lookupOrDefault<word>("participant", "fluid");
     std::cout<< "Name of the participant is: " << my_name <<std::endl;
 
+    thick = dict.lookupOrDefault<double>("thick", 1);
+    std::cout<< "Thickness of a domain is: " << thick <<std::endl;
+
     //Check the solver type and determine it if needed
     solverType_ = dict.lookupOrDefault<word>("solvertype", "none");
     if (solverType_.compare("compressible") == 0 || solverType_.compare("incompressible") == 0)
@@ -317,7 +320,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 
             // For accessing the Co-ordinates of Nodes : Make 1st Node manually and push it
             //vector pointX(5.5000000e+00, 5.9700000e+00, -5.0000000e-06);
-            vector pointX(5.5000000e+00, 5.9700000e+00, -1.0000000e-01);
+            vector pointX(5.5000000e+00, 5.9700000e+00, -5.0000000e-05);
             NodeIDs.push_back(1);
             CoSimIO::Node& node = model_part_interface_flap.CreateNewNode( 1, pointX[0], pointX[1], pointX[2]);
             array_of_nodes.push_back(pointX); //Initial pushback in array of nodes
@@ -442,7 +445,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                 else if(interfaces_.at(i).locationsType == "faceCenters")
                 {
                     data_to_send.resize((interfaces_.at(i).numElements) * dim);
-                    Nodal_Force_data_to_send.resize((interfaces_.at(i).numNodes) * dim); //Changed on 17/06/2021. To check How nodal Forces works on FSI problem
+                    //Nodal_Force_data_to_send.resize((interfaces_.at(i).numNodes) * dim); //Changed on 17/06/2021. To check How nodal Forces works on FSI problem
                 }
             }
             //else if() //if some other variables
@@ -509,9 +512,9 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
             //std::cout << i << " Before : "<< pointDisplacementFluidPatch[i][0] << ", " << pointDisplacementFluidPatch[i][1] << ", " << pointDisplacementFluidPatch[i][2] << std::endl;
             pointDisplacementFluidPatch[i][0] = data_to_recv[iterator++];
             pointDisplacementFluidPatch[i][1] = data_to_recv[iterator++];
-            //if (dim ==3)
-                //pointDisplacementFluidPatch[i][2] = data_to_recv[iterator++]; //ignoring z direction displacement = Anyways the value is zero for 2D case.
-            iterator++;
+            if (dim ==3)
+                pointDisplacementFluidPatch[i][2] = data_to_recv[iterator++]; //ignoring z direction displacement = Anyways the value is zero for 2D case.
+            //iterator++;
             //std::cout << i << " After : "<< pointDisplacementFluidPatch[i][0] << ", " << pointDisplacementFluidPatch[i][1] << ", " << pointDisplacementFluidPatch[i][2] << std::endl;
         }
         //std::cout << "\n" << "Size of the iterator = " << iterator <<std::endl;
@@ -1016,12 +1019,12 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
         if(solverType_.compare("incompressible") == 0)
         {
            // Force_->boundaryFieldRef()[patchID] = Sfb[patchID] * pb[patchID] * rhob[patchID];
-           Force_->boundaryFieldRef()[patchID] = surface * pb[patchID] * rhob[patchID];
+           Force_->boundaryFieldRef()[patchID] = (surface/thick) * pb[patchID] * rhob[patchID];
         }
         else if(solverType_.compare("compressible") == 0)
         {
             //Force_->boundaryFieldRef()[patchID] = Sfb[patchID] * pb[patchID];
-            Force_->boundaryFieldRef()[patchID] = surface * pb[patchID];
+            Force_->boundaryFieldRef()[patchID] = (surface/thick) * pb[patchID];
         }
         else
         {
@@ -1030,7 +1033,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
 
         //Viscous forces
         //Force_->boundaryFieldRef()[patchID] += Sfb[patchID] & devRhoReffb[patchID];
-        Force_->boundaryFieldRef()[patchID] += surface & devRhoReffb[patchID];
+        Force_->boundaryFieldRef()[patchID] += (surface/thick) & devRhoReffb[patchID];
 
         // Now write this forces into Buffer to send further to the Strctural Solver
         int bufferIndex = 0;
@@ -1048,8 +1051,8 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
             if(dim == 3)
             {
                 // z-dimension
-                //data_to_send[bufferIndex++] = Force_->boundaryField()[patchID][i].z();
-                data_to_send[bufferIndex++] = 0.0; //We will skip 3rd dimension
+                data_to_send[bufferIndex++] = Force_->boundaryField()[patchID][i].z();
+                //data_to_send[bufferIndex++] = 0.0; //We will skip 3rd dimension
             }
         }
 

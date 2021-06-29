@@ -112,6 +112,7 @@ private:
     std::string solverType_ = "unknown";
 
     int dim = 3; //Dimension of the problem, need to check how we can get this? We will provide this in config file.
+    double thick; //Thickness of the problem , Added to make the force value independent of the Thickess for 2D
 
     // Private Member Functions
 

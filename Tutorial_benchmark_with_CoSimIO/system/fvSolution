@@ -79,8 +79,8 @@ solvers
 PIMPLE
 {
     nOuterCorrectors 50;//50
-    nCorrectors 2;
-    nNonOrthogonalCorrectors 2;
+    nCorrectors 4;
+    nNonOrthogonalCorrectors 10;
     //tolerance 1.0e-12;
     //relTol 1e-4;
     tolerance 1.0e-5;
@@ -119,11 +119,11 @@ PIMPLE
 }
 PISO
 {
-    nNonOrthogonalCorrectors 2;//10
+    nNonOrthogonalCorrectors 10;//10
 }
 potentialFlow
 {
-    nNonOrthogonalCorrectors 2;//10
+    nNonOrthogonalCorrectors 10;//10
 }
 
 
