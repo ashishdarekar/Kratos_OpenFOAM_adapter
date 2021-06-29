@@ -165,8 +165,8 @@ H3 80;      // Nx for 3rd, 9th, 13th, 14th, 18th//150
 
 V1 20;      // Ny 0th, 1st, 2nd, 3rd, 15th, 16th, 17th, 18th//30
 V2 19;      // Ny for 6th, 10th and Nx for 5th, 7th, 11th //15
-V3 20;      // Ny for 7th, 8th, 9th, 11th, 12th, 14th//20
-V4 1;       // Ny for 13th(in front of flap)
+V3 37;      // Ny for 7th, 8th, 9th, 11th, 12th, 14th//20
+V4 3;       // Ny for 13th(in front of flap)
 
 GP1 1;      // Circular mesh gradient
 GN1 1;
