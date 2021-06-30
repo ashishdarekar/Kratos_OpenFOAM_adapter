@@ -23,7 +23,7 @@
             "materials_filename" : "StructuralMaterials.json"
         },
         "time_stepping" : {
-            "time_step"       : 0.01
+            "time_step"       : 0.001
         },
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",
@@ -61,7 +61,7 @@
             "Parameters"    : {
                 "model_part_name"                             : "Structure",
                 "output_control_type"                         : "step",
-                "output_frequency"                            : 2,
+                "output_frequency"                            : 100,
                 "file_format"                                 : "ascii",
                 "output_precision"                            : 7,
                 "output_sub_model_parts"                      : false,

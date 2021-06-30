@@ -78,7 +78,7 @@ solvers
 
 PIMPLE
 {
-    nOuterCorrectors 50;//50
+    nOuterCorrectors 100;//50
     nCorrectors 4;
     nNonOrthogonalCorrectors 10;
     //tolerance 1.0e-12;
@@ -91,7 +91,7 @@ PIMPLE
     //pisoTol 1e-6;
     consistent  true;
 
-   relaxationFactors
+  relaxationFactors
 {
     fields
     {
