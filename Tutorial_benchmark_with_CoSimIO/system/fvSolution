@@ -78,9 +78,9 @@ solvers
 
 PIMPLE
 {
-    nOuterCorrectors 100;//50
-    nCorrectors 4;
-    nNonOrthogonalCorrectors 10;
+    nOuterCorrectors 10;//50
+    nCorrectors 2;
+    nNonOrthogonalCorrectors 5;
     //tolerance 1.0e-12;
     //relTol 1e-4;
     tolerance 1.0e-5;
@@ -91,7 +91,7 @@ PIMPLE
     //pisoTol 1e-6;
     consistent  true;
 
-  relaxationFactors
+/*   relaxationFactors
 {
     fields
     {
@@ -105,7 +105,7 @@ PIMPLE
         U       0.7;//0.6
         UFinal  1.0;//0.6
     }
-}
+}*/
 
     // OpenFOAM 6 (.org) or newer
 
@@ -117,14 +117,14 @@ PIMPLE
     }
 
 }
-PISO
+/*PISO
 {
     nNonOrthogonalCorrectors 10;//10
 }
 potentialFlow
 {
     nNonOrthogonalCorrectors 10;//10
-}
+}*/
 
 
 // ************************************************************************* //
