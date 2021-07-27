@@ -320,7 +320,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 
             // For accessing the Co-ordinates of Nodes : Make 1st Node manually and push it
             //vector pointX(5.5000000e+00, 5.9700000e+00, -5.0000000e-06);
-            vector pointX(5.5000000e+00, 5.9700000e+00, -5.0000000e-05);
+            vector pointX(5.5000000e+00, 5.9700000e+00, -5.0000000e-04);
             NodeIDs.push_back(1);
             CoSimIO::Node& node = model_part_interface_flap.CreateNewNode( 1, pointX[0], pointX[1], pointX[2]);
             array_of_nodes.push_back(pointX); //Initial pushback in array of nodes
