@@ -11,14 +11,14 @@
     {
         "type" : "coupled_solvers.gauss_seidel_weak",
         "echo_level" : 4,
-        /* "predictors" : [
+        "predictors" : [
             {
                 "type" : "average_value_based",
                 "solver"         : "Openfoam_Kratos_Wrapper",
                 "data_name"      : "load_cells",
                 "echo_level" : 4
             }
-        ],*/
+        ],
         "data_transfer_operators" : {
             "mapper" : {
                 "type" : "kratos_mapping",
