@@ -15,9 +15,10 @@
             {
                 "type" : "average_value_based",
                 "solver"         : "Openfoam_Kratos_Wrapper",
-                "data_name"      : "load_cells"
+                "data_name"      : "load_cells",
+                "echo_level" : 4
             }
-        ], */
+        ],*/
         "data_transfer_operators" : {
             "mapper" : {
                 "type" : "kratos_mapping",
@@ -64,11 +65,11 @@
                 "type"           : "scaling",
                 "solver"         : "structure",
                 "data_name"      : "load",
-                "scaling_factor" : "(sin(((t)/0.02)/1000*pi/2))**2",
+                "scaling_factor" : "(sin(((t)/0.02)/2500*pi/2))**2",
                 //"scaling_factor" : "((sin(((t+7.383945)/0.001)/10000*pi/2))**2)-0.84",
                 //"scaling_factor" : "((sin(((t+7.956)/0.001)/10000*pi/2))**2)-0.9",
                 "echo_level"     : 4,
-                "interval"       : [0.0, 20.0]
+                "interval"       : [0.0, 50.0]
                 //"interval"       : [0.0, 2.0491]
             },
             "scaling_loads_2" : {

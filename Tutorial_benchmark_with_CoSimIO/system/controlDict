@@ -59,7 +59,7 @@ functions
         libs ("libKratosOpenfoamAdapterFunctionObjectFunctionObjects.so");
 
         participant Fluid;
-        thick 5e-04;
+        thick 1e-03;
 
         interfaces
         {
@@ -105,10 +105,10 @@ functions
     {
         type                forces;
         libs                ( "libforces.so" );
-        patches             (flap squareblock);
+        patches             (flap);
         rho                 rhoInf;
         log                 true;
-        rhoInf              0.00118;//0.00118//1000
+        rhoInf              1.18;//0.00118//1000
         CofR                (0 0 0);
     }
 
