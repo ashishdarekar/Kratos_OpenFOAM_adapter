@@ -8,7 +8,7 @@
             },
             "Variables"        : {
                 "DENSITY"       : 0.1,
-                "YOUNG_MODULUS" : 2500000.0,//2500000.0
+                "YOUNG_MODULUS" : 13500000.0,//2500000.0
                 "POISSON_RATIO" : 0.35,
                 "THICKNESS"     : 1//0.01
             },
