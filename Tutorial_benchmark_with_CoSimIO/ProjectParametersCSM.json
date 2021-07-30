@@ -3,7 +3,7 @@
         "problem_name"    : "Wall_Structure",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
-        "end_time"        : 100.0,
+        "end_time"        : 50.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
