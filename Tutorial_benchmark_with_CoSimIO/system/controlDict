@@ -24,7 +24,7 @@ startTime           0;
 
 stopAt              endTime;
 
-endTime             100.0; //25
+endTime             50.0; //25
 
 deltaT              0.02;//0.001
 
@@ -59,7 +59,7 @@ functions
         libs ("libKratosOpenfoamAdapterFunctionObjectFunctionObjects.so");
 
         participant Fluid;
-        thick 1e-03;
+        thick 1e-3;
 
         interfaces
         {
