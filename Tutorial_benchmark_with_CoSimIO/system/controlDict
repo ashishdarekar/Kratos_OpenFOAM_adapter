@@ -59,7 +59,7 @@ functions
         libs ("libKratosOpenfoamAdapterFunctionObjectFunctionObjects.so");
 
         participant Fluid;
-        thick 1e-3;
+        thick 1;
 
         interfaces
         {
