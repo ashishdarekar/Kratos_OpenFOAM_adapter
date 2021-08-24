@@ -49,7 +49,7 @@ boundaryField
         //value         $internalField;
 
         type            uniformFixedValue;
-        uniformValue    constant (20 0 0);// try with (51.3 0 0)
+        uniformValue    constant (51.3 0 0);// try with (20 0 0)
 
     }
 

@@ -10,3 +10,6 @@ gnuplot -persist > /dev/null 2>&1 << EOF
 	plot	"disp.txt" using 1:2 title 'Y Cell Displacement' with linespoints
 EOF
 
+#set yrange [-2 : 2]
+#set xrange [0 : 50]
+

@@ -4,7 +4,7 @@
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0,
         "start_time"      : 0.0,
-        "end_time"        : 10
+        "end_time"        : 50
     },
     "solver_settings"                  : {
         "solver_type" : "ale_fluid",
