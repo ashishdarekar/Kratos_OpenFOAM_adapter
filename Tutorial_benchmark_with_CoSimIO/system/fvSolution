@@ -13,33 +13,59 @@ solvers
     p
     {
         solver           GAMG;
-        tolerance        1e-10;
-        relTol           1e-6;
+        tolerance        1e-6;
+        relTol           1e-5;
         smoother         DICGaussSeidel;
     }
+
+    /*
+    p
+    {
+        solver           PCG;
+        tolerance        1e-5;
+        relTol           0.01;
+        preconditioner         DIC;
+    }*/
+
 
     pFinal
     {
         $p;
+        tolerance       1e-07;
         relTol          0;
+    }
+
+    pcorr
+    {
+        solver           GAMG;
+        tolerance        1e-5;
+        relTol           1e-4;
+        smoother         GaussSeidel;
     }
 
     pcorrFinal
     {
-        $p;
+        $pcorr;
         relTol          0;
     }
 
-    Phi
+    phi
     {
         $p;
     }
 
     "(U|cellDisplacement)"
     {
+        /*
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-08;
+        relTol          0;
+        */
+
         solver          smoothSolver;
         smoother        symGaussSeidel;
-        tolerance       1e-10;
+        tolerance       1e-8;
         relTol          1e-6;
     }
 
@@ -52,46 +78,53 @@ solvers
 
 PIMPLE
 {
-    nCorrectors 2;
-    nNonOrthogonalCorrectors 0;
-    tolerance 1.0e-14;
-    relTol 5e-3;
-    pisoTol 1e-6;
+    nOuterCorrectors 2;//25
+    nCorrectors 1;//2
+    nNonOrthogonalCorrectors 1;//5
+    //tolerance 1.0e-12;
+    //relTol 1e-4;
+    tolerance 1.0e-5;
+    relTol 0.01;
+
+    correctPhi          yes;
+
+    //pisoTol 1e-6;
     consistent  true;
-
-    nOuterCorrectors 50;
-
-    // OpenFOAM (.com), OpenFOAM 5 or older (.org)
-    /*
-    residualControl
+/*
+relaxationFactors
+{
+    fields
     {
-        U
-        {
-            tolerance 5e-5;
-            relTol      0;
-        }
-        p
-        {
-            tolerance 5e-4;
-            relTol      0;
-        }
+        p       0.3;//0.4
+        pFinal  1.0;//0.4
+        //pcorr       0.3;//0.3
+        //pcorrFinal  0.3;//0.4
     }
-    */
+    equations
+    {
+        U       0.7;//0.6
+        UFinal  1.0;//0.6
+    }
+}*/
 
     // OpenFOAM 6 (.org) or newer
-    /*
+
     residualControl
     {
-        U 5e-5;
-        p 5e-4;
+        U 1e-5;
+        p 1e-5;
+        pcorr 1e-5;
     }
-    */
-}
 
+}
+/*PISO
+{
+    nNonOrthogonalCorrectors 10;//10
+}
 potentialFlow
 {
-    nNonOrthogonalCorrectors 5;
-}
+    nNonOrthogonalCorrectors 10;//10
+}*/
 
 
 // ************************************************************************* //

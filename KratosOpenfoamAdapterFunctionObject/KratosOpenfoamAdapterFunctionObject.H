@@ -111,7 +111,8 @@ private:
     //- Solver type compressible/incompressible
     std::string solverType_ = "unknown";
 
-    int dim = 3; //Dimension of the problem, need to check how we can get this?
+    int dim = 3; //Dimension of the problem, need to check how we can get this? We will provide this in config file.
+    double thick; //Thickness of the problem , Added to make the force value independent of the Thickess for 2D
 
     // Private Member Functions
 
@@ -123,13 +124,39 @@ private:
 
         //- Private function for CoSimIO
         std::vector<double> data_to_send;
+        std::vector<double> Nodal_Force_data_to_send;
         std::vector<double> data_to_recv;
+
+        //For making geometry
+        std::vector<vector> array_of_nodes;
+        //std::vector<std::unique_ptr<vector>> array_of_nodes;
 
 protected:
     //- Protected Data to set the parameters required for coupling
 
         //Parameters for Adapter's configuration
         Foam::word my_name;
+
+        //For Force Field
+        //Initialize the Force -> Need to check
+        Foam::volVectorField*  Force_ = new volVectorField
+        (
+            IOobject
+            (
+                "Force",
+                mesh_.time().timeName(),
+                mesh_,
+                IOobject::NO_READ,
+                IOobject::AUTO_WRITE
+            ),
+            mesh_,
+            dimensionedVector
+            (
+                "fdim",
+                dimensionSet(1,1,-2,0,0,0,0),
+                Foam::vector::zero
+            )
+        );
 
         //Every interface need to know the coupling Mesh, the OpenFOAM patches that consists the coupling surface, reading data on it and writing data.
         //Hence Strucutre is made to save all this data related to an interface
@@ -151,9 +178,36 @@ protected:
         //std::vector<CoSimIO::ModelPart> model_part_interfaces_;
         std::vector<std::unique_ptr<CoSimIO::ModelPart>> model_part_interfaces_;
 
+        // create CoSimIO::ModelPart -> Not working
+        //CoSimIO::ModelPart model_part_interface_flap("interface_flap_model_part");
+
+        class my_node_class
+        {
+        public:
+            unsigned int ID;
+            double posx;
+            double posy;
+            double posz;
+            double fx;
+            double fy;
+            double fz;
+        };
+
+        class my_element_class
+        {
+        public:
+            unsigned int ID;
+            std::vector<my_node_class> node_list;
+        };
+
+        //Array of all Elements;
+        std::vector<my_element_class> AllElements_;
+
         //Auxiliar functions
         bool calculateForces(std::size_t interface_index);
         std::string determineSolverType();
+
+        int compare_nodes(Foam::vector& pointX);
 
         //- Stress tensor (see the OpenFOAM "Forces" function object)
         Foam::tmp<Foam::volSymmTensorField> devRhoReff() const;
@@ -162,7 +216,10 @@ protected:
 
         Foam::tmp<Foam::volScalarField> mu() const;
 
+        Foam::vectorField getFaceVectors(const unsigned int patchID) const;
+
 public:
+
     //- Runtime type information
     TypeName("KratosOpenfoamAdapterFunctionObject");
 
