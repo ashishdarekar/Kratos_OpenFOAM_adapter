@@ -14,8 +14,8 @@ FoamFile
 //f -0.5;   // z-front
 //b 0.5;    // z-back
 
-f -25e-02;   // z-front -0.5
-b 25e-02;    // z-backs 0.5
+f -0.25;   // z-front -0.25
+b 0.25;    // z-backs 0.25
 
 vertices
 (

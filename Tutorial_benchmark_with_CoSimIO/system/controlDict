@@ -59,26 +59,16 @@ functions
         libs ("libKratosOpenfoamAdapterFunctionObjectFunctionObjects.so");
 
         participant Fluid;
+        dim 3;
         thick 1;
 
         interfaces
         {
             Interface1
             {
-                mesh        Fluid-Mesh-Nodes;
-                patches     (flap);
-                locations   faceNodes;
-                readData    (Displacement0);
-                writeData   ();
-            }
-
-            Interface2
-            {
-                mesh        Fluid-Mesh-Faces;
-                patches     (flap);
-                locations   faceCenters;
-                readData    ();
-                writeData   (Force0);
+                patches      (flap);
+                importData   (Displacement0);
+                exportData   (Force0);
             }
         }
 
