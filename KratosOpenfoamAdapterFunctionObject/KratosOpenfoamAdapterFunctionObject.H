@@ -31,8 +31,8 @@ Usage
             mesh            | Name of the coupling mesh                                                         | yes      |
             patches         | WordList of the openFOAM patches which contain the coupling faces                 | yes      |
             locations       | Name of the location in mesh to get the required data (faceCenter/facenode)       | yes      | faceCenter
-            readData        | WordList of the variables to Read by OpenFOAM                                     | yes      |
-            writeData       | WordList of the variables to write by OpenFOAM                                    | yes      |
+            importData        | WordList of the variables to Read by OpenFOAM                                     | yes      |
+            exportData       | WordList of the variables to write by OpenFOAM                                    | yes      |
         parameters          | List of Parameters required for FSI: rho, mu                                      | no       |
     \endtable
 
@@ -96,8 +96,6 @@ class KratosOpenfoamAdapterFunctionObject
 
 private:
 
-    //- Adapter's main class instance
-    //- CoSimulationAdapter CoSimulationAdapter_;
     const Foam::Time& runTime_; //Copy of RunTime Time object
     const dictionary& dict_; //Copy of Control Dict
 
@@ -112,7 +110,7 @@ private:
     std::string solverType_ = "unknown";
 
     int dim = 3; //Dimension of the problem, need to check how we can get this? We will provide this in config file.
-    double thick; //Thickness of the problem , Added to make the force value independent of the Thickess for 2D
+    double thick = 1.0; //Thickness of the problem , Added to make the force value independent of the Thickess for 2D
 
     // Private Member Functions
 
@@ -124,21 +122,20 @@ private:
 
         //- Private function for CoSimIO
         std::vector<double> data_to_send;
-        std::vector<double> Nodal_Force_data_to_send;
         std::vector<double> data_to_recv;
 
-        //For making geometry
+        //- For making geometry of a interface Mesh(Model Part)
         std::vector<vector> array_of_nodes;
         //std::vector<std::unique_ptr<vector>> array_of_nodes;
 
 protected:
     //- Protected Data to set the parameters required for coupling
 
-        //Parameters for Adapter's configuration
+        //- Parameters for Adapter's configuration
         Foam::word my_name;
 
-        //For Force Field
-        //Initialize the Force -> Need to check
+        //- For Force Field
+        //- Initialize the Force -> Need to check
         Foam::volVectorField*  Force_ = new volVectorField
         (
             IOobject
@@ -158,52 +155,28 @@ protected:
             )
         );
 
-        //Every interface need to know the coupling Mesh, the OpenFOAM patches that consists the coupling surface, reading data on it and writing data.
-        //Hence Strucutre is made to save all this data related to an interface
+        //- Create different interface for different FSI coupling interface (or OpenFOAM patches)
+        //- This strucutre is made to save all the data related to an interface
         struct InterfaceData
         {
-            std::string meshName;
-            std::string locationsType;
             std::vector<std::string> patchNames;
-            std::vector<std::string> readData;
-            std::vector<std::string> writeData;
+            std::vector<std::string> importData;
+            std::vector<std::string> exportData;
             uint numNodes = 0;
             uint numElements = 0;
         };
 
-        //Array of strctures to save all interfaces
+        //- Array of strctures to save all interfaces
         std::vector<struct InterfaceData> interfaces_;
 
-        //Array of CoSimIO::Model parts for all coupling interfaces
+        //- Array of CoSimIO::Model parts for all coupling interfaces
         //std::vector<CoSimIO::ModelPart> model_part_interfaces_;
         std::vector<std::unique_ptr<CoSimIO::ModelPart>> model_part_interfaces_;
 
-        // create CoSimIO::ModelPart -> Not working
+        //- create CoSimIO::ModelPart -> Not working
         //CoSimIO::ModelPart model_part_interface_flap("interface_flap_model_part");
 
-        class my_node_class
-        {
-        public:
-            unsigned int ID;
-            double posx;
-            double posy;
-            double posz;
-            double fx;
-            double fy;
-            double fz;
-        };
-
-        class my_element_class
-        {
-        public:
-            unsigned int ID;
-            std::vector<my_node_class> node_list;
-        };
-
-        //Array of all Elements;
-        std::vector<my_element_class> AllElements_;
-
-        //Auxiliar functions
+        //- Auxiliar functions
         bool calculateForces(std::size_t interface_index);
         std::string determineSolverType();
 
@@ -223,7 +196,7 @@ public:
     //- Runtime type information
     TypeName("KratosOpenfoamAdapterFunctionObject");
 
-    //Constructors
+    //- Constructors
 
         //- Construct from Time and dictionary
         KratosOpenfoamAdapterFunctionObject
