@@ -47,7 +47,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 {
     std::cout << "CoSimulation Adapter's function object : read()" << std::endl;
 
-    //Reading configuration parameters from ControlDict related to function object
+    // Reading configuration parameters from ControlDict related to function object
     fvMeshFunctionObject::read(dict);
 
     my_name = dict.lookupOrDefault<word>("participant", "fluid");
@@ -123,7 +123,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
     std::cout << "Interfaces Reading: Done" << std::endl;
     std::cout << "Number of interfaces found: " << num_interfaces_<< std::endl;
 
-    //Connection between openFOAM and Kratos-CoSimulation using CoSimIO
+    // Connection between openFOAM and Kratos-CoSimulation using CoSimIO
     CoSimIO::Info settings;
     settings.Set("my_name", "Openfoam_Adapter");
     settings.Set("connect_to", "Openfoam_Kratos_Wrapper");
@@ -134,120 +134,11 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
     COSIMIO_CHECK_EQUAL(connect_info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Connected);
     connection_name = connect_info.Get<std::string>("connection_name");
 
-    //*********************** Export Fluid-OpenFOAM Mesh to CoSimulation using CoSimIO *********************//
-    /* //Create one CoSimIO::ModelPart for each coupling interface
-    std::cout << "\n" <<"********************** Exporting InterfaceMesh using ModelPart: Start **********************" << "\n" <<std::endl;
-
-    for(std::size_t j=0; j < num_interfaces_; j++)
-    {
-        std::string interface_name = "interface" + std::to_string(j+1);
-
-        //model_part_interfaces_.push_back(CoSimIO::ModelPart(interface_name));
-        model_part_interfaces_.push_back(CoSimIO::make_unique<CoSimIO::ModelPart>(interface_name));
-
-        std::cout<< "Name of an Interface/model part: " << model_part_interfaces_.at(j)->Name() << std::endl;
-
-        // **************************Create a mesh as a ModelPart********************************/
-/*        std::cout << "Accessing Mesh from openFOAM" << std::endl;
-        std::vector<int> patchIDs;
-
-        // For every patch that participates in the coupling interface
-        for (uint i = 0; i < interfaces_.at(j).patchNames.size(); i++)
-        {
-            // Get the patchID
-            int patchID = mesh_.boundaryMesh().findPatchID((interfaces_.at(j).patchNames).at(i));
-
-            // Throw an error if the patch was not found
-            if (patchID == -1)
-            {
-                std::cout<< "ERROR: Patch " << (interfaces_.at(j).patchNames).at(i) << " does not exist." << std::endl;
-            }
-
-        // Add the patch in the list
-        patchIDs.push_back(patchID);
-        }
-
-        // Count the Nodes for all the patches in that interface
-        for (uint i = 0; i < patchIDs.size(); i++)
-        {
-            interfaces_.at(j).numNodes += mesh_.boundaryMesh()[patchIDs.at(i)].localPoints().size();
-        }
-        std::cout << "Total Number of Nodes in this interface: " << interfaces_.at(j).numNodes  << std::endl;
-
-        // Count the number of elements/faces for all the patches in that interface
-        for (uint i = 0; i < patchIDs.size(); i++)
-        {
-            interfaces_.at(j).numElements += mesh_.boundary()[patchIDs[i]].size();
-        }
-        std::cout << "Total Number of Elements/faces in this interface: " << interfaces_.at(j).numElements << std::endl;
-
-        std::cout << "Creating Model Part (Nodes and Elements) for CoSimIO" << std::endl;
-
-        //-For Nodes and Element IDs for CoSimIO
-        std::vector<int> NodeIDs;
-        NodeIDs.resize( interfaces_.at(j).numNodes );
-        int nodeIndex = 1; //As Node indexing starts with 1 in CoSimIO
-
-        std::vector<int> ElemIDs;
-        ElemIDs.resize(interfaces_.at(j).numElements);
-        int elemIndex = 1; //As element indexing starts with 1 in CoSimIO
-
-        vector pointX(0,0,0); //For accessing the Co-ordinates of Nodes
-
-        for(uint i = 0; i < patchIDs.size(); i++)
-        {
-            //const word& patchName = mesh_.boundary()[patchIDs[i]].name();
-            //std::cout << "patchID: " << patchIDs[i] << " with name "  << patchName << " With size = "<< mesh_.boundary()[patchIDs[i]].size() << std::endl;
-
-            forAll (mesh_.boundary()[patchIDs[i]],facei)
-            {
-                const label& faceID = mesh_.boundaryMesh()[patchIDs[i]].start() + facei;
-                //std::cout << "ID of this face: " << faceID << " Which face: "<< facei << std::endl;
-                std::vector<CoSimIO::IdType> connectivity;
-                forAll (mesh_.faces()[faceID], nodei)
-                {
-                    const label& nodeID = mesh_.faces()[faceID][nodei]; //for OpenFOAM
-                    pointX = mesh_.points()[nodeID];
-                    //std::cout << "Node "<< nodei << " with Id=" << nodeID << ":" << pointX[0] << "," << pointX[1] << "," << pointX[2] << std::endl;
-                    //-Make CoSimIO Nodes
-                    NodeIDs.push_back(nodeIndex); //Later used to make CoSimIO::Element
-                    CoSimIO::Node& node = model_part_interfaces_.at(j)->CreateNewNode( nodeIndex, pointX[0], pointX[1], pointX[2]);
-                    connectivity.push_back(nodeIndex); //connectivity to make that element /face
-                    nodeIndex++;
-                }
-                //-Make CoSimIO Element = currently hardcoded to make Quadrilateral3D4
-                ElemIDs.push_back(elemIndex); //Maybe useful
-                CoSimIO::Element& element = model_part_interfaces_.at(j)->CreateNewElement( elemIndex, CoSimIO::ElementType::Quadrilateral2D4, connectivity );
-                elemIndex++;
-            }
-        }
-        std::cout << "Converting InterfaceMesh to a CoSimIO::ModelPart -> End" << std::endl;
-        // **************************Done: Create a mesh as a ModelPart********************************/
-/*
-        //Export InterfaceMesh/ModelPart to CoSimulation using CoSimIO
-        std::cout << "Exporting Mesh as a ModelPart: Start for an interface = " << j+1 << std::endl;
-        CoSimIO::Info info;
-        info.Clear();
-        info.Set("identifier", "interface_flap");
-        info.Set("connection_name", connection_name);
-        auto export_info = CoSimIO::ExportMesh(info, *model_part_interfaces_.at(j));
-        std::cout << "Exporting Mesh as a ModelPart: End for an interface = " << j+1 << "\n " <<std::endl;
-    }
-
-    std::cout << "*********************** Exporting InterfaceMesh using ModelPart: End ************************" << "\n" <<std::endl;
-*/
-
     // To test the CoSimulation Import Mesh Fuctationality with one interface only
     std::cout << "\n" <<"********************** Exporting InterfaceMesh using ModelPart: Start **********************" << "\n" <<std::endl;
     for(std::size_t j = 0; j < num_interfaces_; j++)
     {
         std::string interface_name = "interface" + std::to_string(j+1);
-
-        //No need to this ...AS we will create only single Model Part later in the code
-        //model_part_interfaces_.push_back(CoSimIO::ModelPart(interface_name));
-        //model_part_interfaces_.push_back(CoSimIO::make_unique<CoSimIO::ModelPart>(interface_name));
-
-        //std::cout<< "Name of an Interface/model part: " << model_part_interfaces_.at(j)->Name() << std::endl;
 
         // **************************Create a mesh as a ModelPart********************************/
         std::cout << "Accessing Mesh from openFOAM" << std::endl;
@@ -280,31 +171,24 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         for (uint i = 0; i < patchIDs.size(); i++)
         {
             interfaces_.at(j).numElements += mesh_.boundary()[patchIDs[i]].size();
-            //interfaces_.at(j).numElements += mesh.boundaryMesh()[patchIDs.at(i)].faceCentres().size();
         }
         std::cout << "Total Number of Elements/faces in this interface: " << interfaces_.at(j).numElements << std::endl;
 
-        //Considering 1st interface ONLY
-        //create CoSimIO::ModelPart- Put in public Member function
+        // Considering 1st interface ONLY
+        // Create CoSimIO::ModelPart- Put in public Member function
         CoSimIO::ModelPart model_part_interface_flap("interface_flap_model_part");
 
-        //-For Nodes and Element IDs for CoSimIO
+        // For Nodes and Element IDs for CoSimIO
         std::cout << "Creating Model Part (Nodes and Elements) for CoSimIO : start" << std::endl;
         std::vector<int> NodeIDs;
         NodeIDs.resize( interfaces_.at(j).numNodes );
-        int nodeIndex = 2; //As Node indexing starts with 1 in CoSimIO, 1st push is made
+        int nodeIndex = 1; //As Node indexing starts with 1 in CoSimIO
 
         std::vector<int> ElemIDs;
         ElemIDs.resize(interfaces_.at(j).numElements);
         int elemIndex = 1; //As element indexing starts with 1 in CoSimIO
 
-        // For accessing the Co-ordinates of Nodes : Make 1st Node manually and push it
-        //vector pointX(5.5000000e+00, 5.9700000e+00, -5.0000000e-06);
-        vector pointX(5.5000000e+00, 5.9700000e+00, -0.25);
-        NodeIDs.push_back(1);
-        CoSimIO::Node& node = model_part_interface_flap.CreateNewNode( 1, pointX[0], pointX[1], pointX[2]);
-        array_of_nodes.push_back(pointX); //Initial pushback in array of nodes
-
+        // Accessing the Co-ordinates of nodes in the Inteface and making CoSimIO nodes and elements
         for(uint i = 0; i < patchIDs.size(); i++)
         {
             forAll(mesh_.boundary()[patchIDs[i]],facei)
@@ -315,25 +199,26 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                 forAll(mesh_.faces()[faceID], nodei)
                 {
                     const label& nodeID = mesh_.faces()[faceID][nodei]; //for OpenFOAM
-                    pointX = mesh_.points()[nodeID];
+                    auto pointX = mesh_.points()[nodeID];
 
-                    int result = compare_nodes(pointX); //nodeIndex if node is already present and (-1) if node is not present
-                    if(result == (-1)) //new node
+                    int result = compare_nodes(pointX); // return nodeIndex if node is already present and (-1) if node is not present
+                    if(result == (-1)) // For new node
                     {
-                        //-Make CoSimIO Nodes
-                        NodeIDs.push_back(nodeIndex); //Later used to make CoSimIO::Element //NodeINdex = (facei*4)+ (nodei+1)
+                        // Make CoSimIO Nodes
+                        NodeIDs.push_back(nodeIndex); // Later used to make CoSimIO::Element
                         CoSimIO::Node& node = model_part_interface_flap.CreateNewNode( nodeIndex, pointX[0], pointX[1], pointX[2]);
-                        array_of_nodes.push_back(pointX);//Push new element in the list to compare
-                        connectivity.push_back(nodeIndex); //connectivity to make that element /face
+
+                        array_of_nodes.push_back(pointX);// Push new element in the list to compare
+                        connectivity.push_back(nodeIndex); // connectivity to make that element
                         nodeIndex++;
                     }
-                    else //old node index just push in connectivity to ake new element
+                    else // Old node index just push in connectivity to make new element
                     {
-                        connectivity.push_back(result); //connectivity to make that element /face
+                        connectivity.push_back(result); // connectivity to make that element
                     }
                 }
-                //-Make CoSimIO Element = currently hardcoded to make Quadrilateral2D4
-                ElemIDs.push_back(elemIndex); //Maybe useful
+
+                ElemIDs.push_back(elemIndex); // For future use
                 CoSimIO::Element& element = model_part_interface_flap.CreateNewElement( elemIndex, CoSimIO::ElementType::Quadrilateral2D4, connectivity );
                 elemIndex++;
             }
@@ -403,19 +288,20 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         std::cout<< runTime_.timeName() << " : Data has been imported from CoSimulation to OpenFOAM: Disp values with array size = " << data_to_recv.size() << std::endl;
 
         // Get the displacement on the patch and assign it those values received from CoSimulation,
-        Foam::pointVectorField* point_disp;
-        point_disp = const_cast<pointVectorField*>( &mesh_.lookupObject<pointVectorField>("pointDisplacement") );
-        label patchIndex = mesh_.boundaryMesh().findPatchID("flap");//Remove hardcoded part for finding patchIndex
-        fixedValuePointPatchVectorField& pointDisplacementFluidPatch = refCast<fixedValuePointPatchVectorField>(point_disp->boundaryFieldRef()[patchIndex]);
 
-        int iterator = 0;
-        forAll(point_disp->boundaryFieldRef()[patchIndex] ,i)
-        {
-            pointDisplacementFluidPatch[i][0] = data_to_recv[iterator++];
-            pointDisplacementFluidPatch[i][1] = data_to_recv[iterator++];
-            if (dim ==3)
-                pointDisplacementFluidPatch[i][2] = data_to_recv[iterator++];
-        }
+            Foam::pointVectorField* point_disp;
+            point_disp = const_cast<pointVectorField*>( &mesh_.lookupObject<pointVectorField>("pointDisplacement") );
+            label patchIndex = mesh_.boundaryMesh().findPatchID("flap");//Remove hardcoded part for finding patchIndex
+            fixedValuePointPatchVectorField& pointDisplacementFluidPatch = refCast<fixedValuePointPatchVectorField>(point_disp->boundaryFieldRef()[patchIndex]);
+
+            int iterator = 0;
+            forAll(point_disp->boundaryFieldRef()[patchIndex] ,i)
+            {
+                pointDisplacementFluidPatch[i][0] = data_to_recv[iterator++];
+                pointDisplacementFluidPatch[i][1] = data_to_recv[iterator++];
+                if (dim ==3)
+                    pointDisplacementFluidPatch[i][2] = data_to_recv[iterator++];
+            }
 
         // *************************************** Force/Load Related ****************************************** //
         std::cout<< "Force calculation : start" << std::endl;
@@ -514,17 +400,24 @@ int Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::compare_nodes(Fo
 {
     int answer = 0;
 
-    for(Foam::vector& nodei : array_of_nodes)
+    if(array_of_nodes.size()==0)
     {
-        if(is_same_points(pointX , nodei))//current node == previous all nodes
+        answer = -1;
+    }
+    else
+    {
+        for(Foam::vector& nodei : array_of_nodes)
         {
-            auto itr = std::find( array_of_nodes.begin(), array_of_nodes.end(), nodei ) ;
-            answer = std::distance(array_of_nodes.begin(), itr) + 1 ; //nodeindex starts from 1 in CoSimIO
-            break; //Once repeated node is found immediate break it. No need to check it later
-        }
-        else
-        {
-            answer = -1; // Compare with all the available nodes and then return (-1) if pointX is not found. Then new node is created in the main()
+            if(is_same_points(pointX , nodei))//current node == previous all nodes
+            {
+                auto itr = std::find( array_of_nodes.begin(), array_of_nodes.end(), nodei ) ;
+                answer = std::distance(array_of_nodes.begin(), itr) + 1 ; //nodeindex starts from 1 in CoSimIO
+                break; //Once repeated node is found immediate break it. No need to check it later
+            }
+            else
+            {
+                answer = -1; // Compare with all the available nodes and then return (-1) if pointX is not found. Then new node is created in the main()
+            }
         }
     }
 
@@ -672,8 +565,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
         std::cout<< "Patch for force " << patchID << std::endl;
 
         // Throw an error if the patch was not found
-        if (patchID == -1)
-        {
+        if (patchID == -1){
             std::cout<< "ERROR: Patch " << (interfaces_.at(interface_index).patchNames).at(i) << " does not exist." << std::endl;
         }
 
@@ -681,25 +573,25 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
     patchIDs.push_back(patchID);
     }
 
-    //Get different force fields from OpenFOAM, See Force Function Object
-    //1. Normal vectors on the boundary, multiplied with the face areas
+    // Get different force fields from OpenFOAM, See Force Function Object
+    // 1. Normal vectors on the boundary, multiplied with the face areas
     /* const surfaceVectorField::Boundary& Sfb
     (
         mesh_.Sf().boundaryField()
     ); */
 
-    //2. Stress tensor boundary field
+    // 2. Stress tensor boundary field
     tmp<volSymmTensorField> tdevRhoReff(devRhoReff());
     const volSymmTensorField::Boundary& devRhoReffb
     (
         tdevRhoReff().boundaryField()
     );
 
-    //3. Density boundary field
+    // 3. Density boundary field
     tmp<volScalarField> trho(rho());
     const volScalarField::Boundary& rhob = trho().boundaryField();
 
-    //4. Pressure boundary field
+    // 4. Pressure boundary field
     tmp<volScalarField> tp = mesh_.lookupObject<volScalarField>("p");
     const volScalarField::Boundary& pb
     (
@@ -712,16 +604,9 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
     {
         int patchID = patchIDs.at(j);
 
-        //printing pressure values
-        /* std::cout << "Pressure values: "<< std::endl;
-        forAll(pb[patchID],i)
-        {
-            std::cout << "i= " << i << "Pressure = " << pb(i)->evaluate() << std::endl;
-        } */
-
         const auto& surface = getFaceVectors(patchID); //newly modified on 2.6.2021
 
-        //Pressure forces
+        // Pressure forces
         if(solverType_.compare("incompressible") == 0)
         {
            // Force_->boundaryFieldRef()[patchID] = Sfb[patchID] * pb[patchID] * rhob[patchID];
@@ -737,7 +622,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
             FatalErrorInFunction << "Forces calculation does only support compressible or incompressible solver type." << exit(FatalError);
         }
 
-        //Viscous forces
+        // Viscous forces
         //Force_->boundaryFieldRef()[patchID] += Sfb[patchID] & devRhoReffb[patchID];
         Force_->boundaryFieldRef()[patchID] += (surface/thick) & devRhoReffb[patchID];
 
