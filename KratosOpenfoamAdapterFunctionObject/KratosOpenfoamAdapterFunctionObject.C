@@ -59,7 +59,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
     thick = dict.lookupOrDefault<double>("thick", 1.0);
     std::cout<< "Thickness of a domain is: " << thick <<std::endl;
 
-    //Check the solver type and determine it if needed
+    // Check the solver type and determine it if needed
     solverType_ = dict.lookupOrDefault<word>("solvertype", "none");
     if (solverType_.compare("compressible") == 0 || solverType_.compare("incompressible") == 0)
     {
@@ -140,12 +140,12 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
     {
         std::string interface_name = "interface" + std::to_string(j+1);
 
-        // **************************Create a mesh as a ModelPart********************************/
+        // *******************************Create a mesh as a ModelPart************************************ //
         std::cout << "Accessing Mesh from openFOAM" << std::endl;
         std::vector<int> patchIDs;
 
         // For every patch that participates in the coupling interface. We are keeping one patch for one interface
-        for (uint i = 0; i < interfaces_.at(j).patchNames.size(); i++)
+        for (std::size_t i = 0; i < interfaces_.at(j).patchNames.size(); i++)
         {
             // Get the patchID
             int patchID = mesh_.boundaryMesh().findPatchID((interfaces_.at(j).patchNames).at(i));
@@ -161,14 +161,14 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         }
 
         // Count the Nodes for all the patches in that interface
-        for (uint i = 0; i < patchIDs.size(); i++)
+        for (std::size_t i = 0; i < patchIDs.size(); i++)
         {
             interfaces_.at(j).numNodes += mesh_.boundaryMesh()[patchIDs.at(i)].localPoints().size();
         }
         std::cout << "Total Number of Nodes in this interface: " << interfaces_.at(j).numNodes  << std::endl;
 
         // Count the number of elements/faces for all the patches in that interface
-        for (uint i = 0; i < patchIDs.size(); i++)
+        for (std::size_t i = 0; i < patchIDs.size(); i++)
         {
             interfaces_.at(j).numElements += mesh_.boundary()[patchIDs[i]].size();
         }
@@ -189,7 +189,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         int elemIndex = 1; //As element indexing starts with 1 in CoSimIO
 
         // Accessing the Co-ordinates of nodes in the Inteface and making CoSimIO nodes and elements
-        for(uint i = 0; i < patchIDs.size(); i++)
+        for(std::size_t i = 0; i < patchIDs.size(); i++)
         {
             forAll(mesh_.boundary()[patchIDs[i]],facei)
             {
@@ -288,20 +288,29 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         std::cout<< runTime_.timeName() << " : Data has been imported from CoSimulation to OpenFOAM: Disp values with array size = " << data_to_recv.size() << std::endl;
 
         // Get the displacement on the patch and assign it those values received from CoSimulation,
-
-            Foam::pointVectorField* point_disp;
-            point_disp = const_cast<pointVectorField*>( &mesh_.lookupObject<pointVectorField>("pointDisplacement") );
-            label patchIndex = mesh_.boundaryMesh().findPatchID("flap");//Remove hardcoded part for finding patchIndex
-            fixedValuePointPatchVectorField& pointDisplacementFluidPatch = refCast<fixedValuePointPatchVectorField>(point_disp->boundaryFieldRef()[patchIndex]);
-
-            int iterator = 0;
-            forAll(point_disp->boundaryFieldRef()[patchIndex] ,i)
+        // For every patch that participates in the coupling interface
+        std::cout<< "Displacement replacement : start" << std::endl;
+        for (std::size_t i = 0; i < interfaces_.size(); i++)
+        {
+            for (std::size_t j = 0; j < interfaces_.at(i).patchNames.size(); j++)
             {
-                pointDisplacementFluidPatch[i][0] = data_to_recv[iterator++];
-                pointDisplacementFluidPatch[i][1] = data_to_recv[iterator++];
-                if (dim ==3)
-                    pointDisplacementFluidPatch[i][2] = data_to_recv[iterator++];
+                Foam::pointVectorField* point_disp;
+                point_disp = const_cast<pointVectorField*>( &mesh_.lookupObject<pointVectorField>("pointDisplacement") );
+                label patchIndex = mesh_.boundaryMesh().findPatchID(interfaces_.at(i).patchNames[j]);//Remove hardcoded part for finding patchIndex
+                std::cout << "Interface number = " << i << " and patch number = " << patchIndex << " and patch name = " << interfaces_.at(i).patchNames[j] << std::endl;
+                fixedValuePointPatchVectorField& pointDisplacementFluidPatch = refCast<fixedValuePointPatchVectorField>(point_disp->boundaryFieldRef()[patchIndex]);
+
+                int iterator = 0;
+                forAll(point_disp->boundaryFieldRef()[patchIndex] ,i)
+                {
+                    pointDisplacementFluidPatch[i][0] = data_to_recv[iterator++];
+                    pointDisplacementFluidPatch[i][1] = data_to_recv[iterator++];
+                    if (dim ==3)
+                        pointDisplacementFluidPatch[i][2] = data_to_recv[iterator++];
+                }
             }
+        }
+        std::cout<< "Displacement replacement : End" << std::endl;
 
         // *************************************** Force/Load Related ****************************************** //
         std::cout<< "Force calculation : start" << std::endl;
@@ -311,7 +320,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
             for(std::size_t j=0; j< interfaces_.at(i).exportData.size(); j++)
             {
                 std::string dataName = interfaces_.at(i).exportData.at(j);
-                std::cout<< "interface = "<< i+1 << " with DataName = " << dataName << std::endl;
+                std::cout<< "interface number = "<< i << " with Export DataName = " << dataName << std::endl;
 
                 if(dataName.find("Force") == 0 )
                 {
@@ -319,7 +328,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
                 }
             }
         }
-        std::cout<< "Force calculation : Done" << std::endl;
+        std::cout<< "Force calculation : End" << std::endl;
 
         // Export this force array to CoSimulation //Elemental Force Data
         connect_info.Clear();
@@ -356,7 +365,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::write()
 }
 
 // *********************************************** Some Auxillary Functions **************************************************//
-//Calculate the Solver Type - according to the pressure dimension
+// Calculate the Solver Type - according to the pressure dimension
 std::string Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::determineSolverType()
 {
     dimensionSet pressureDimensionsCompressible(1, -1, -2, 0, 0, 0, 0);
@@ -386,8 +395,8 @@ std::string Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::determin
     return solverType_;
 }
 
-// To compare the Foam::Vector . Check whether it is really required?
-bool is_same_points(Foam::vector& pointX, Foam::vector& pointY)// Working perfectly . DO NOT CHECK AGAIN
+// To compare the Foam::Vector. Check whether it is really required?
+bool is_same_points(Foam::vector& pointX, Foam::vector& pointY)
 {
     if(pointX[0] == pointY[0] && pointX[1] == pointY[1] && pointX[2] == pointY[2])
         return true;
@@ -395,7 +404,7 @@ bool is_same_points(Foam::vector& pointX, Foam::vector& pointY)// Working perfec
         return false;
 }
 
-//To Compare the new node with all previous nodes before creating the new CoSimIO::Node
+// To Compare the new node with all previous nodes before creating the new CoSimIO::Node
 int Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::compare_nodes(Foam::vector& pointX)
 {
     int answer = 0;
@@ -408,11 +417,11 @@ int Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::compare_nodes(Fo
     {
         for(Foam::vector& nodei : array_of_nodes)
         {
-            if(is_same_points(pointX , nodei))//current node == previous all nodes
+            if(is_same_points(pointX , nodei)) //current node == previous all nodes
             {
                 auto itr = std::find( array_of_nodes.begin(), array_of_nodes.end(), nodei ) ;
-                answer = std::distance(array_of_nodes.begin(), itr) + 1 ; //nodeindex starts from 1 in CoSimIO
-                break; //Once repeated node is found immediate break it. No need to check it later
+                answer = std::distance(array_of_nodes.begin(), itr) + 1 ; // nodeindex starts from 1 in CoSimIO
+                break; // Once repeated node is found immediate break it. No need to check it later
             }
             else
             {
@@ -425,7 +434,7 @@ int Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::compare_nodes(Fo
 }
 
 // ************************** Force / load calculation ************************************//
-//Calculate viscous Force
+// For viscous Force
 Foam::tmp<Foam::volSymmTensorField> Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::devRhoReff() const
 {
     //For turbulent flows
@@ -468,7 +477,6 @@ Foam::tmp<Foam::volScalarField> Foam::functionObjects::KratosOpenfoamAdapterFunc
 {
     // If volScalarField exists, read it from registry (for compressible cases)
     // interFoam is incompressible but has volScalarField rho
-
     if (mesh_.foundObject<volScalarField>("rho"))
     {
         return mesh_.lookupObject<volScalarField>("rho");
@@ -502,7 +510,7 @@ Foam::tmp<Foam::volScalarField> Foam::functionObjects::KratosOpenfoamAdapterFunc
     }
 }
 
-//Finding correct mu
+// Finding correct mu
 Foam::tmp<Foam::volScalarField> Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::mu() const
 {
     if (solverType_.compare("incompressible") == 0)
@@ -545,24 +553,24 @@ Foam::tmp<Foam::volScalarField> Foam::functionObjects::KratosOpenfoamAdapterFunc
     }
 }
 
-//Normal vectors multiplied by face area
+// Normal vectors multiplied by face area
 Foam::vectorField Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::getFaceVectors(const unsigned int patchID) const
 {
     // Normal vectors multiplied by face area
     return mesh_.boundary()[patchID].Sf();
 }
 
-//Calculate Total Force
+// Calculate Total Force
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces(std::size_t interface_index)
 {
     std::vector<int> patchIDs;
     // For every patch that participates in the coupling interface
-    for (uint i = 0; i < interfaces_.at(interface_index).patchNames.size(); i++)
+    for (std::size_t i = 0; i < interfaces_.at(interface_index).patchNames.size(); i++)
     {
         // Get the patchID
         int patchID = mesh_.boundaryMesh().findPatchID((interfaces_.at(interface_index).patchNames).at(i));
 
-        std::cout<< "Patch for force " << patchID << std::endl;
+        std::cout<< "PatchNumber for force calculation " << patchID << std::endl;
 
         // Throw an error if the patch was not found
         if (patchID == -1){
@@ -573,48 +581,39 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
     patchIDs.push_back(patchID);
     }
 
-    // Get different force fields from OpenFOAM, See Force Function Object
-    // 1. Normal vectors on the boundary, multiplied with the face areas
-    /* const surfaceVectorField::Boundary& Sfb
-    (
-        mesh_.Sf().boundaryField()
-    ); */
-
-    // 2. Stress tensor boundary field
+    // Get different force fields from OpenFOAM, Refering Force Function Object (OpenFOAM User guide)
+    // 1.Stress tensor boundary field
     tmp<volSymmTensorField> tdevRhoReff(devRhoReff());
     const volSymmTensorField::Boundary& devRhoReffb
     (
         tdevRhoReff().boundaryField()
     );
 
-    // 3. Density boundary field
+    // 2.Density boundary field
     tmp<volScalarField> trho(rho());
     const volScalarField::Boundary& rhob = trho().boundaryField();
 
-    // 4. Pressure boundary field
+    // 3.Pressure boundary field
     tmp<volScalarField> tp = mesh_.lookupObject<volScalarField>("p");
     const volScalarField::Boundary& pb
     (
         tp().boundaryField()
     );
 
-
     // For every boundary patch of the interface
-    for(uint j=0; j< patchIDs.size(); j++)
+    for(std::size_t j=0; j< patchIDs.size(); j++)
     {
         int patchID = patchIDs.at(j);
 
-        const auto& surface = getFaceVectors(patchID); //newly modified on 2.6.2021
+        const auto& surface = getFaceVectors(patchID);
 
         // Pressure forces
         if(solverType_.compare("incompressible") == 0)
         {
-           // Force_->boundaryFieldRef()[patchID] = Sfb[patchID] * pb[patchID] * rhob[patchID];
-           Force_->boundaryFieldRef()[patchID] = (surface/thick) * pb[patchID] * rhob[patchID];
+            Force_->boundaryFieldRef()[patchID] = (surface/thick) * pb[patchID] * rhob[patchID];
         }
         else if(solverType_.compare("compressible") == 0)
         {
-            //Force_->boundaryFieldRef()[patchID] = Sfb[patchID] * pb[patchID];
             Force_->boundaryFieldRef()[patchID] = (surface/thick) * pb[patchID];
         }
         else
@@ -623,12 +622,11 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
         }
 
         // Viscous forces
-        //Force_->boundaryFieldRef()[patchID] += Sfb[patchID] & devRhoReffb[patchID];
         Force_->boundaryFieldRef()[patchID] += (surface/thick) & devRhoReffb[patchID];
 
-        // Now write this forces into Buffer to send further to the Strctural Solver
+        // Writing this forces into Buffer to export to CoSimulation
         int bufferIndex = 0;
-        // For every cell of the patch
+        // For every cell in the patch
         forAll(Force_->boundaryField()[patchID], i)
         {
             // Copy the force into the buffer
@@ -642,7 +640,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
             {
                 // z-dimension
                 data_to_send[bufferIndex++] = Force_->boundaryField()[patchID][i].z();
-                //data_to_send[bufferIndex++] = 0.0; //We will skip 3rd dimension
             }
         }
 
