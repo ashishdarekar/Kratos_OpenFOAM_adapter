@@ -78,37 +78,33 @@ solvers
 
 PIMPLE
 {
-    nOuterCorrectors 2;//25
-    nCorrectors 1;//2
-    nNonOrthogonalCorrectors 1;//5
-    //tolerance 1.0e-12;
-    //relTol 1e-4;
+    nOuterCorrectors 5;//2,5
+    nCorrectors 2;//2,2
+    nNonOrthogonalCorrectors 5;//5,5
     tolerance 1.0e-5;
     relTol 0.01;
 
     correctPhi          yes;
 
-    //pisoTol 1e-6;
     consistent  true;
-/*
-relaxationFactors
-{
-    fields
+
+    relaxationFactors
     {
-        p       0.3;//0.4
-        pFinal  1.0;//0.4
-        //pcorr       0.3;//0.3
-        //pcorrFinal  0.3;//0.4
+        fields
+        {
+            p       0.3;//0.4
+            pFinal  1.0;//0.4
+            pcorr       0.3;//0.3
+            pcorrFinal  1.0;//0.4
+        }
+        equations
+        {
+            U       0.7;//0.6
+            UFinal  1.0;//0.6
+        }
     }
-    equations
-    {
-        U       0.7;//0.6
-        UFinal  1.0;//0.6
-    }
-}*/
 
     // OpenFOAM 6 (.org) or newer
-
     residualControl
     {
         U 1e-5;
@@ -117,14 +113,15 @@ relaxationFactors
     }
 
 }
-/*PISO
+
+PISO
 {
-    nNonOrthogonalCorrectors 10;//10
+    nNonOrthogonalCorrectors 5;//10
 }
 potentialFlow
 {
-    nNonOrthogonalCorrectors 10;//10
-}*/
+    nNonOrthogonalCorrectors 5;//10
+}
 
 
 // ************************************************************************* //

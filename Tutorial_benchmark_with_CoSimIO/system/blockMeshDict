@@ -7,15 +7,8 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-//convertToMeters 0.1;
-
-// Geometry parameters, If you are changing thicknes, Code need to modify
-// As first point manually entered in the code.
-//f -0.5;   // z-front
-//b 0.5;    // z-back
-
-f -0.25;   // z-front -0.25
-b 0.25;    // z-backs 0.25
+f -0.5;   // z-front -0.25
+b 0.5;    // z-backs 0.25
 
 vertices
 (

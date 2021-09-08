@@ -39,7 +39,7 @@
                     "data_transfer_operator" : "mapper",
                     "before_data_transfer_operations" : ["mapping_element_node_1"],
                     "after_data_transfer_operations" : ["scaling_loads_1"],
-                    "data_transfer_operator_options" : ["swap_sign", "use_transpose"]
+                    "data_transfer_operator_options" : [ "use_transpose"]
                 }
             ],
             "output_data_list": [
@@ -62,13 +62,16 @@
                 "type"           : "scaling",
                 "solver"         : "structure",
                 "data_name"      : "load",
-                "scaling_factor" : " (sin(((t)/0.02)/1000*pi/2))**2 ",
+                "scaling_factor" : " (sin(((t)/0.01)/1000*pi/2))**2 ",
+                //"scaling_factor" : " (sin(((t)/0.02)/750*pi/2))**2 ",
                 "echo_level"     : 4,
-                "interval"       : [0.0, 20.0]
+                "interval"       : [0.0, 10.0]
+                //"interval"       : [0.0, 15.0]
             },
             "mapping_element_node_1" : {
                 "type"           : "elemental_data_to_nodal_data",
-                "solver"         : "Openfoam_Kratos_Wrapper",
+                "solver"         :
+                 "Openfoam_Kratos_Wrapper",
                 "data_name"      : "load_cells",
                 "echo_level"     : 4
             },

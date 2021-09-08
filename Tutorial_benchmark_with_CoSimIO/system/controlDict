@@ -26,11 +26,11 @@ stopAt              endTime;
 
 endTime             50.0; //25
 
-deltaT              0.02;//0.001
+deltaT              0.01;//0.001
 
 writeControl        adjustableRunTime;
 
-writeInterval       0.02;//0.01
+writeInterval       0.01;//0.01
 
 purgeWrite          0;
 
@@ -60,7 +60,7 @@ functions
 
         participant Fluid;
         dim 3;
-        thick 1;
+        //thick 1;
 
         interfaces
         {
