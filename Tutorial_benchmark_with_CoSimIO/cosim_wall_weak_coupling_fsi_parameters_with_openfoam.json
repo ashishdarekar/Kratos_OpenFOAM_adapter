@@ -62,10 +62,10 @@
                 "type"           : "scaling",
                 "solver"         : "structure",
                 "data_name"      : "load",
-                "scaling_factor" : " (sin(((t)/0.01)/1000*pi/2))**2 ",
+                "scaling_factor" : " (sin(((t)/0.01)/1500*pi/2))**2 ",
                 //"scaling_factor" : " (sin(((t)/0.02)/750*pi/2))**2 ",
                 "echo_level"     : 4,
-                "interval"       : [0.0, 10.0]
+                "interval"       : [0.0, 15.0]
                 //"interval"       : [0.0, 15.0]
             },
             "mapping_element_node_1" : {
