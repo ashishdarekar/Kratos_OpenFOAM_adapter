@@ -44,7 +44,7 @@
             "no_skin_parts"               : [],
             "time_stepping"               : {
                 "automatic_time_step" : false,
-                "time_step"           : 0.02
+                "time_step"           : 0.01
             }
         }
     },

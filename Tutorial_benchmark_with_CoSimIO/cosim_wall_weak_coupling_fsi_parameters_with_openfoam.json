@@ -38,11 +38,8 @@
                     "from_solver_data"  : "load",
                     "data_transfer_operator" : "mapper",
                     "before_data_transfer_operations" : ["mapping_element_node_1"],
-                    //"after_data_transfer_operations" : ["scaling_loads_2","scaling_loads_3","scaling_loads_4","scaling_loads_5","scaling_loads_6","scaling_loads_7"],
                     "after_data_transfer_operations" : ["scaling_loads_1"],
-                    "data_transfer_operator_options" : ["swap_sign", "use_transpose"]
-                    ///"after_data_transfer_operations" : ["scaling_loads_1","scaling_loads_2"],
-                    //"interval" : [0.4, 2.0]
+                    "data_transfer_operator_options" : [ "use_transpose"]
                 }
             ],
             "output_data_list": [
@@ -65,67 +62,18 @@
                 "type"           : "scaling",
                 "solver"         : "structure",
                 "data_name"      : "load",
-                "scaling_factor" : " (sin(((t)/0.02)/750*pi/2))**2 ",
-                //"scaling_factor" : "((sin(((t+7.383945)/0.001)/10000*pi/2))**2)-0.84",
-                //"scaling_factor" : "((sin(((t+7.956)/0.001)/10000*pi/2))**2)-0.9",
+                "scaling_factor" : " (sin(((t)/0.01)/1500*pi/2))**2 ",
+                //"scaling_factor" : " (sin(((t)/0.02)/750*pi/2))**2 ",
                 "echo_level"     : 4,
                 "interval"       : [0.0, 15.0]
-                //"interval"       : [0.0, 2.0491]
-            },
-            "scaling_loads_2" : {
-                "type"           : "scaling",
-                "solver"         : "structure",
-                "data_name"      : "load",
-                "scaling_factor" : "0.9",
-                "echo_level"     : 4,
-                "interval"       : [15.0, 100.0]
-            },
-            "scaling_loads_3" : {
-                "type"           : "scaling",
-                "solver"         : "structure",
-                "data_name"      : "load",
-                "scaling_factor" : "0.2",
-                "echo_level"     : 4,
-                "interval"       : [1.0, 2.0]
-            },
-            "scaling_loads_4" : {
-                "type"           : "scaling",
-                "solver"         : "structure",
-                "data_name"      : "load",
-                "scaling_factor" : "0.3",
-                "echo_level"     : 4,
-                "interval"       : [2.0, 3.0]
-            },
-            "scaling_loads_5" : {
-                "type"           : "scaling",
-                "solver"         : "structure",
-                "data_name"      : "load",
-                "scaling_factor" : "0.4",
-                "echo_level"     : 4,
-                "interval"       : [3.0, 20.0]
-            },
-            "scaling_loads_6" : {
-                "type"           : "scaling",
-                "solver"         : "structure",
-                "data_name"      : "load",
-                "scaling_factor" : "0.5",
-                "echo_level"     : 4,
-                "interval"       : [20.0, 50.0]
-            },
-            "scaling_loads_7" : {
-                "type"           : "scaling",
-                "solver"         : "structure",
-                "data_name"      : "load",
-                "scaling_factor" : "0.6",
-                "echo_level"     : 4,
-                "interval"       : [50.0, 100.0]
+                //"interval"       : [0.0, 15.0]
             },
             "mapping_element_node_1" : {
                 "type"           : "elemental_data_to_nodal_data",
-                "solver"         : "Openfoam_Kratos_Wrapper",
+                "solver"         :
+                 "Openfoam_Kratos_Wrapper",
                 "data_name"      : "load_cells",
                 "echo_level"     : 4
-                //"interval"       : [0.04, 100.0]
             },
             "coupling_output_1" : {
                 "type"          : "coupling_output",
