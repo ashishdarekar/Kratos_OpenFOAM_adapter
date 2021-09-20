@@ -57,7 +57,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         // Reading configuration parameters from ControlDict related to function object
         fvMeshFunctionObject::read(dict);
 
-        my_name = dict.lookupOrDefault<word>("participant", "fluid");
+        my_name = dict.lookupOrDefault<word>("participant", "Fluid");
         std::cout<< "Name of the participant is: " << my_name <<std::endl;
 
         dim = dict.lookupOrDefault<int>("dim", 3);
@@ -65,6 +65,12 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 
         thick = dict.lookupOrDefault<double>("thick", 1.0);
         std::cout<< "Thickness of a domain is: " << thick <<std::endl;
+
+        coupling_scheme = dict.lookupOrDefault<word>("coupling", "Explicit");
+        std::cout<< "Name of the coupling scheme is: " << coupling_scheme <<std::endl;
+
+        nMaxImplicit = dict.lookupOrDefault<int>("nMaxImplicit", 10);
+        std::cout<< "Maximum number of Iterations per time step in Implicit coupling: " << nMaxImplicit <<std::endl;
 
         if(dict.lookupOrDefault("adjustTimeStep", false))
         {
@@ -276,6 +282,20 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                 }
                 //else if() //if some other variables
             }
+        }
+
+        if(coupling_scheme == "Implicit")
+        {
+            //Find all fields and make copies of them
+            setupImplicitCoupling();
+
+            std::cout << "Implicit Coupling setup Done" << std::endl;
+
+            writeDataFieldsForImplicitCoupling();
+
+            std::cout << "Implicit Coupling: Writing Data Done" << std::endl;
+
+            const_cast<Time&>(runTime_).setEndTime(GREAT); //Set the solver's end time  = infinity
 
         }
     }
@@ -321,6 +341,14 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 
         std::cout<< runTime_.timeName() << " : Data has been exported from OpenFOAM to CoSimulation: Force values with array size = " << data_to_send.size() << std::endl;
 
+
+        // *************************************** Implicit coupling related ************************************ //
+        // Reading Field data
+        if(coupling_scheme == "Implicit" && (!isSimulationConverged) && nIterationImplicit < nMaxImplicit)
+        {
+            readDataFieldsForImplicitCoupling();
+        }
+
         // *************************************** Displcement Related ****************************************** //
         // Import the displacement array from the CoSimulation
         connect_info.Clear();
@@ -355,8 +383,20 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
                 }
             }
         }
-
         std::cout<< "Displacement replacement : End" << std::endl;
+
+        // Writing Field data
+        if(coupling_scheme == "Implicit" && (!isSimulationConverged) && nIterationImplicit < nMaxImplicit)
+        {
+            writeDataFieldsForImplicitCoupling();
+            nIterationImplicit ++;
+        }
+        else
+        {
+            std::cout<< "Number of Implicit Iterations = " << nIterationImplicit <<  std::endl;
+            nIterationImplicit = 0;
+        }
+
     }
 
     return true;
@@ -666,6 +706,578 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
     }
 
     return true;
+}
+
+// ************************** Implicit Coupling Related *****************************//
+// Find all fields and make copies of them
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::setupImplicitCoupling()
+{
+    // Finding all the regIOobjects from mesh Object Registry with volScalarField
+    std::cout << "Making copies of Registered objects of type : volScalarField " << std::endl;
+    wordList regIOobjectNames_ = mesh_.lookupClass<volScalarField>().toc();
+
+    forAll(regIOobjectNames_, i)
+    {
+        if(mesh_.foundObject<volScalarField>(regIOobjectNames_[i]))
+        {
+            makeCopyOfObject( const_cast<volScalarField&> (mesh_.lookupObject<volScalarField>(regIOobjectNames_[i])) );
+            std::cout << "Successfully made a copy of " << regIOobjectNames_[i] << std::endl;
+        }
+        else
+        {
+            std::cout << "Could not able to make a copy of " << regIOobjectNames_[i] << std::endl;
+        }
+    }
+
+    // Finding all the regIOobjects from mesh Object Registry with volVectorField
+    std::cout << "Making copies of Registered objects of type : volVectorField " << std::endl;
+    regIOobjectNames_ = mesh_.lookupClass<volVectorField>().toc();
+
+    forAll(regIOobjectNames_, i)
+    {
+        if(mesh_.foundObject<volVectorField>(regIOobjectNames_[i]))
+        {
+            makeCopyOfObject( const_cast<volVectorField&> (mesh_.lookupObject<volVectorField>(regIOobjectNames_[i])) );
+            std::cout << "Successfully made a copy of " << regIOobjectNames_[i] << std::endl;
+        }
+        else
+        {
+            std::cout << "Could not able to make a copy of " << regIOobjectNames_[i] << std::endl;
+        }
+    }
+
+    // Finding all the regIOobjects from mesh Object Registry with surfaceScalarField
+    std::cout << "Making copies of Registered objects of type : surfaceScalarField " << std::endl;
+    regIOobjectNames_ = mesh_.lookupClass<surfaceScalarField>().toc();
+
+    forAll(regIOobjectNames_, i)
+    {
+        if(mesh_.foundObject<surfaceScalarField>(regIOobjectNames_[i]))
+        {
+            makeCopyOfObject( const_cast<surfaceScalarField&> (mesh_.lookupObject<surfaceScalarField>(regIOobjectNames_[i])) );
+            std::cout << "Successfully made a copy of " << regIOobjectNames_[i] << std::endl;
+        }
+        else
+        {
+            std::cout << "Could not able to make a copy of " << regIOobjectNames_[i] << std::endl;
+        }
+    }
+
+    // Finding all the regIOobjects from mesh Object Registry with surfaceVectorField
+    std::cout << "Making copies of Registered objects of type : surfaceVectorField " << std::endl;
+    regIOobjectNames_ = mesh_.lookupClass<surfaceVectorField>().toc();
+
+    forAll(regIOobjectNames_, i)
+    {
+        if(mesh_.foundObject<surfaceVectorField>(regIOobjectNames_[i]))
+        {
+            makeCopyOfObject( const_cast<surfaceVectorField&> (mesh_.lookupObject<surfaceVectorField>(regIOobjectNames_[i])) );
+            std::cout << "Successfully made a copy of " << regIOobjectNames_[i] << std::endl;
+        }
+        else
+        {
+            std::cout << "Could not able to make a copy of " << regIOobjectNames_[i] << std::endl;
+        }
+    }
+
+    // Finding all the regIOobjects from mesh Object Registry with pointScalarField
+    std::cout << "Making copies of Registered objects of type : pointScalarField " << std::endl;
+    regIOobjectNames_ = mesh_.lookupClass<pointScalarField>().toc();
+
+    forAll(regIOobjectNames_, i)
+    {
+        if(mesh_.foundObject<pointScalarField>(regIOobjectNames_[i]))
+        {
+            makeCopyOfObject( const_cast<pointScalarField&> (mesh_.lookupObject<pointScalarField>(regIOobjectNames_[i])) );
+            std::cout << "Successfully made a copy of " << regIOobjectNames_[i] << std::endl;
+        }
+        else
+        {
+            std::cout << "Could not able to make a copy of " << regIOobjectNames_[i] << std::endl;
+        }
+    }
+
+    // Finding all the regIOobjects from mesh Object Registry with pointVectorField
+    std::cout << "Making copies of Registered objects of type : pointVectorField " << std::endl;
+    regIOobjectNames_ = mesh_.lookupClass<pointVectorField>().toc();
+
+    forAll(regIOobjectNames_, i)
+    {
+        if(mesh_.foundObject<pointVectorField>(regIOobjectNames_[i]))
+        {
+            makeCopyOfObject( const_cast<pointVectorField&> (mesh_.lookupObject<pointVectorField>(regIOobjectNames_[i])) );
+            std::cout << "Successfully made a copy of " << regIOobjectNames_[i] << std::endl;
+        }
+        else
+        {
+            std::cout << "Could not able to make a copy of " << regIOobjectNames_[i] << std::endl;
+        }
+    }
+
+    // Finding all the regIOobjects from mesh Object Registry with volTensorField
+    std::cout << "Making copies of Registered objects of type : volTensorField " << std::endl;
+    regIOobjectNames_ = mesh_.lookupClass<volTensorField>().toc();
+
+    forAll(regIOobjectNames_, i)
+    {
+        if(mesh_.foundObject<volTensorField>(regIOobjectNames_[i]))
+        {
+            makeCopyOfObject( const_cast<volTensorField&> (mesh_.lookupObject<volTensorField>(regIOobjectNames_[i])) );
+            std::cout << "Successfully made a copy of " << regIOobjectNames_[i] << std::endl;
+        }
+        else
+        {
+            std::cout << "Could not able to make a copy of " << regIOobjectNames_[i] << std::endl;
+        }
+    }
+
+    // Finding all the regIOobjects from mesh Object Registry with surfaceTensorField
+    std::cout << "Making copies of Registered objects of type : surfaceTensorField " << std::endl;
+    regIOobjectNames_ = mesh_.lookupClass<surfaceTensorField>().toc();
+
+    forAll(regIOobjectNames_, i)
+    {
+        if(mesh_.foundObject<surfaceTensorField>(regIOobjectNames_[i]))
+        {
+            makeCopyOfObject( const_cast<surfaceTensorField&> (mesh_.lookupObject<surfaceTensorField>(regIOobjectNames_[i])) );
+            std::cout << "Successfully made a copy of " << regIOobjectNames_[i] << std::endl;
+        }
+        else
+        {
+            std::cout << "Could not able to make a copy of " << regIOobjectNames_[i] << std::endl;
+        }
+    }
+
+    // Finding all the regIOobjects from mesh Object Registry with pointTensorField
+    std::cout << "Making copies of Registered objects of type : pointTensorField " << std::endl;
+    regIOobjectNames_ = mesh_.lookupClass<pointTensorField>().toc();
+
+    forAll(regIOobjectNames_, i)
+    {
+        if(mesh_.foundObject<pointTensorField>(regIOobjectNames_[i]))
+        {
+            makeCopyOfObject( const_cast<pointTensorField&> (mesh_.lookupObject<pointTensorField>(regIOobjectNames_[i])) );
+            std::cout << "Successfully made a copy of " << regIOobjectNames_[i] << std::endl;
+        }
+        else
+        {
+            std::cout << "Could not able to make a copy of " << regIOobjectNames_[i] << std::endl;
+        }
+    }
+
+    // Finding all the regIOobjects from mesh Object Registry with volSymmTensorField
+    std::cout << "Making copies of Registered objects of type : volSymmTensorField " << std::endl;
+    regIOobjectNames_ = mesh_.lookupClass<volSymmTensorField>().toc();
+
+    forAll(regIOobjectNames_, i)
+    {
+        if(mesh_.foundObject<volSymmTensorField>(regIOobjectNames_[i]))
+        {
+            makeCopyOfObject( const_cast<volSymmTensorField&> (mesh_.lookupObject<volSymmTensorField>(regIOobjectNames_[i])) );
+            std::cout << "Successfully made a copy of " << regIOobjectNames_[i] << std::endl;
+        }
+        else
+        {
+            std::cout << "Could not able to make a copy of " << regIOobjectNames_[i] << std::endl;
+        }
+    }
+
+}
+
+// Functions to make copies of Registered objects for Implicit coupling
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::makeCopyOfObject(volScalarField& field)
+{
+    volScalarField* copy = new volScalarField(field);
+    volScalarFields_.push_back(&field);
+    volScalarFieldCopies_.push_back(copy);
+    return;
+}
+
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::makeCopyOfObject(volVectorField& field)
+{
+    volVectorField* copy = new volVectorField(field);
+    volVectorFields_.push_back(&field);
+    volVectorFieldCopies_.push_back(copy);
+    return;
+}
+
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::makeCopyOfObject(surfaceScalarField& field)
+{
+    surfaceScalarField* copy = new surfaceScalarField(field);
+    surfaceScalarFields_.push_back(&field);
+    surfaceScalarFieldCopies_.push_back(copy);
+    return;
+}
+
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::makeCopyOfObject(surfaceVectorField& field)
+{
+    surfaceVectorField* copy = new surfaceVectorField(field);
+    surfaceVectorFields_.push_back(&field);
+    surfaceVectorFieldCopies_.push_back(copy);
+    return;
+}
+
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::makeCopyOfObject(pointScalarField& field)
+{
+    pointScalarField* copy = new pointScalarField(field);
+    pointScalarFields_.push_back(&field);
+    pointScalarFieldCopies_.push_back(copy);
+    return;
+}
+
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::makeCopyOfObject(pointVectorField& field)
+{
+    pointVectorField* copy = new pointVectorField(field);
+    pointVectorFields_.push_back(&field);
+    pointVectorFieldCopies_.push_back(copy);
+    // TODO: Old time
+    // pointVectorField * copyOld = new pointVectorField(field.oldTime());
+    // pointVectorFieldsOld_.push_back(&(field.oldTime()));
+    // pointVectorFieldCopiesOld_.push_back(copyOld);
+    return;
+}
+
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::makeCopyOfObject(volTensorField& field)
+{
+    volTensorField* copy = new volTensorField(field);
+    volTensorFields_.push_back(&field);
+    volTensorFieldCopies_.push_back(copy);
+    return;
+}
+
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::makeCopyOfObject(surfaceTensorField& field)
+{
+    surfaceTensorField* copy = new surfaceTensorField(field);
+    surfaceTensorFields_.push_back(&field);
+    surfaceTensorFieldCopies_.push_back(copy);
+    return;
+}
+
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::makeCopyOfObject(pointTensorField& field)
+{
+    pointTensorField* copy = new pointTensorField(field);
+    pointTensorFields_.push_back(&field);
+    pointTensorFieldCopies_.push_back(copy);
+    return;
+}
+
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::makeCopyOfObject(volSymmTensorField& field)
+{
+    volSymmTensorField* copy = new volSymmTensorField(field);
+    volSymmTensorFields_.push_back(&field);
+    volSymmTensorFieldCopies_.push_back(copy);
+    return;
+}
+
+// Writing all the fields for that time step required in an Implicit coupling
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::writeDataFieldsForImplicitCoupling()
+{
+    std::cout << "Writing all the data fields and time data" << std::endl;
+
+    // Storing Time related data
+    storeCheckpointTime();
+
+    // Storing Mesh related data //Need to check again and implement
+    storeMeshPoints();
+
+    // Store all the fields of type volScalarField
+    for (uint i = 0; i < volScalarFields_.size(); i++)
+    {
+        *(volScalarFieldCopies_.at(i)) == *(volScalarFields_.at(i));
+    }
+
+    // Store all the fields of type volVectorField
+    for (uint i = 0; i < volVectorFields_.size(); i++)
+    {
+        *(volVectorFieldCopies_.at(i)) == *(volVectorFields_.at(i));
+    }
+
+    // Store all the fields of type volTensorField
+    for (uint i = 0; i < volTensorFields_.size(); i++)
+    {
+        *(volTensorFieldCopies_.at(i)) == *(volTensorFields_.at(i));
+    }
+
+    // Store all the fields of type volSymmTensorField
+    for (uint i = 0; i < volSymmTensorFields_.size(); i++)
+    {
+        *(volSymmTensorFieldCopies_.at(i)) == *(volSymmTensorFields_.at(i));
+    }
+
+    // Store all the fields of type surfaceScalarField
+    for (uint i = 0; i < surfaceScalarFields_.size(); i++)
+    {
+        *(surfaceScalarFieldCopies_.at(i)) == *(surfaceScalarFields_.at(i));
+    }
+
+    // Store all the fields of type surfaceVectorField
+    for (uint i = 0; i < surfaceVectorFields_.size(); i++)
+    {
+        *(surfaceVectorFieldCopies_.at(i)) == *(surfaceVectorFields_.at(i));
+    }
+
+    // Store all the fields of type surfaceTensorField
+    for (uint i = 0; i < surfaceTensorFields_.size(); i++)
+    {
+        *(surfaceTensorFieldCopies_.at(i)) == *(surfaceTensorFields_.at(i));
+    }
+
+    // Store all the fields of type pointScalarField
+    for (uint i = 0; i < pointScalarFields_.size(); i++)
+    {
+        *(pointScalarFieldCopies_.at(i)) == *(pointScalarFields_.at(i));
+    }
+
+    // Store all the fields of type pointVectorField
+    for (uint i = 0; i < pointVectorFields_.size(); i++)
+    {
+        *(pointVectorFieldCopies_.at(i)) == *(pointVectorFields_.at(i));
+    }
+
+    // Store all the fields of type pointTensorField
+    for (uint i = 0; i < pointTensorFields_.size(); i++)
+    {
+        *(pointTensorFieldCopies_.at(i)) == *(pointTensorFields_.at(i));
+    }
+
+    return;
+
+}
+
+// Reading all the fields for that time step required in an Implicit coupling
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::readDataFieldsForImplicitCoupling()
+{
+    std::cout << "Reading all the data fields and time data" << std::endl;
+
+    // Reload Time related data
+    reloadCheckpointTime();
+
+    // Reload Mesh related data //Need to check again and implement
+    reloadMeshPoints();
+
+    //- Return the number of old time fields stored
+    // nOldTimes()
+
+    // Reload all the fields of type volScalarField
+    for (uint i = 0; i < volScalarFields_.size(); i++)
+    {
+        // Load the volume field
+        *(volScalarFields_.at(i)) == *(volScalarFieldCopies_.at(i));
+        // TODO: Do we need this?
+        // *(volScalarFields_.at(i))->boundaryField() = *(volScalarFieldCopies_.at(i))->boundaryField();
+
+        int nOldTimes(volScalarFields_.at(i)->nOldTimes());
+        if (nOldTimes >= 1)
+        {
+            volScalarFields_.at(i)->oldTime() == volScalarFieldCopies_.at(i)->oldTime();
+        }
+        if (nOldTimes == 2)
+        {
+            volScalarFields_.at(i)->oldTime().oldTime() == volScalarFieldCopies_.at(i)->oldTime().oldTime();
+        }
+    }
+
+    // Reload all the fields of type volVectorField
+    for (uint i = 0; i < volVectorFields_.size(); i++)
+    {
+        // Load the volume field
+        *(volVectorFields_.at(i)) == *(volVectorFieldCopies_.at(i));
+
+        int nOldTimes(volVectorFields_.at(i)->nOldTimes());
+        if (nOldTimes >= 1)
+        {
+            volVectorFields_.at(i)->oldTime() == volVectorFieldCopies_.at(i)->oldTime();
+        }
+        if (nOldTimes == 2)
+        {
+            volVectorFields_.at(i)->oldTime().oldTime() == volVectorFieldCopies_.at(i)->oldTime().oldTime();
+        }
+    }
+
+    // Reload all the fields of type surfaceScalarField
+    for (uint i = 0; i < surfaceScalarFields_.size(); i++)
+    {
+        *(surfaceScalarFields_.at(i)) == *(surfaceScalarFieldCopies_.at(i));
+
+        int nOldTimes(surfaceScalarFields_.at(i)->nOldTimes());
+        if (nOldTimes >= 1)
+        {
+            surfaceScalarFields_.at(i)->oldTime() == surfaceScalarFieldCopies_.at(i)->oldTime();
+        }
+        if (nOldTimes == 2)
+        {
+            surfaceScalarFields_.at(i)->oldTime().oldTime() == surfaceScalarFieldCopies_.at(i)->oldTime().oldTime();
+        }
+    }
+
+    // Reload all the fields of type surfaceVectorField
+    for (uint i = 0; i < surfaceVectorFields_.size(); i++)
+    {
+        *(surfaceVectorFields_.at(i)) == *(surfaceVectorFieldCopies_.at(i));
+
+        int nOldTimes(surfaceVectorFields_.at(i)->nOldTimes());
+        if (nOldTimes >= 1)
+        {
+            surfaceVectorFields_.at(i)->oldTime() == surfaceVectorFieldCopies_.at(i)->oldTime();
+        }
+        if (nOldTimes == 2)
+        {
+            surfaceVectorFields_.at(i)->oldTime().oldTime() == surfaceVectorFieldCopies_.at(i)->oldTime().oldTime();
+        }
+    }
+
+    // Reload all the fields of type pointScalarField
+    for (uint i = 0; i < pointScalarFields_.size(); i++)
+    {
+        *(pointScalarFields_.at(i)) == *(pointScalarFieldCopies_.at(i));
+
+        int nOldTimes(pointScalarFields_.at(i)->nOldTimes());
+        if (nOldTimes >= 1)
+        {
+            pointScalarFields_.at(i)->oldTime() == pointScalarFieldCopies_.at(i)->oldTime();
+        }
+        if (nOldTimes == 2)
+        {
+            pointScalarFields_.at(i)->oldTime().oldTime() == pointScalarFieldCopies_.at(i)->oldTime().oldTime();
+        }
+    }
+
+    // Reload all the fields of type pointVectorField
+    for (uint i = 0; i < pointVectorFields_.size(); i++)
+    {
+        // Load the volume field
+        *(pointVectorFields_.at(i)) == *(pointVectorFieldCopies_.at(i));
+
+        int nOldTimes(pointVectorFields_.at(i)->nOldTimes());
+        if (nOldTimes >= 1)
+        {
+            pointVectorFields_.at(i)->oldTime() == pointVectorFieldCopies_.at(i)->oldTime();
+        }
+        if (nOldTimes == 2)
+        {
+            pointVectorFields_.at(i)->oldTime().oldTime() == pointVectorFieldCopies_.at(i)->oldTime().oldTime();
+        }
+    }
+
+    // TODO Evaluate if all the tensor fields need to be in here.
+    // Reload all the fields of type volTensorField
+    for (uint i = 0; i < volTensorFields_.size(); i++)
+    {
+        *(volTensorFields_.at(i)) == *(volTensorFieldCopies_.at(i));
+
+        int nOldTimes(volTensorFields_.at(i)->nOldTimes());
+        if (nOldTimes >= 1)
+        {
+            volTensorFields_.at(i)->oldTime() == volTensorFieldCopies_.at(i)->oldTime();
+        }
+        if (nOldTimes == 2)
+        {
+            volTensorFields_.at(i)->oldTime().oldTime() == volTensorFieldCopies_.at(i)->oldTime().oldTime();
+        }
+    }
+
+    // Reload all the fields of type surfaceTensorField
+    for (uint i = 0; i < surfaceTensorFields_.size(); i++)
+    {
+        *(surfaceTensorFields_.at(i)) == *(surfaceTensorFieldCopies_.at(i));
+
+        int nOldTimes(surfaceTensorFields_.at(i)->nOldTimes());
+        if (nOldTimes >= 1)
+        {
+            surfaceTensorFields_.at(i)->oldTime() == surfaceTensorFieldCopies_.at(i)->oldTime();
+        }
+        if (nOldTimes == 2)
+        {
+            surfaceTensorFields_.at(i)->oldTime().oldTime() == surfaceTensorFieldCopies_.at(i)->oldTime().oldTime();
+        }
+    }
+
+    // Reload all the fields of type pointTensorField
+    for (uint i = 0; i < pointTensorFields_.size(); i++)
+    {
+        *(pointTensorFields_.at(i)) == *(pointTensorFieldCopies_.at(i));
+
+        int nOldTimes(pointTensorFields_.at(i)->nOldTimes());
+        if (nOldTimes >= 1)
+        {
+            pointTensorFields_.at(i)->oldTime() == pointTensorFieldCopies_.at(i)->oldTime();
+        }
+        if (nOldTimes == 2)
+        {
+            pointTensorFields_.at(i)->oldTime().oldTime() == pointTensorFieldCopies_.at(i)->oldTime().oldTime();
+        }
+    }
+
+    // TODO volSymmTensorField is new.
+    // Reload all the fields of type volSymmTensorField
+    for (uint i = 0; i < volSymmTensorFields_.size(); i++)
+    {
+        *(volSymmTensorFields_.at(i)) == *(volSymmTensorFieldCopies_.at(i));
+
+        int nOldTimes(volSymmTensorFields_.at(i)->nOldTimes());
+        if (nOldTimes >= 1)
+        {
+            volSymmTensorFields_.at(i)->oldTime() == volSymmTensorFieldCopies_.at(i)->oldTime();
+        }
+        if (nOldTimes == 2)
+        {
+            volSymmTensorFields_.at(i)->oldTime().oldTime() == volSymmTensorFieldCopies_.at(i)->oldTime().oldTime();
+        }
+    }
+
+    return;
+
+}
+
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::storeCheckpointTime()
+{
+    std::cout << "Storing time data" << std::endl;
+
+    couplingIterationTimeIndex_ = runTime_.timeIndex();
+    couplingIterationTimeValue_ = runTime_.value();
+
+    return;
+}
+
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::reloadCheckpointTime()
+{
+    std::cout << "Reload time data" << std::endl;
+    const_cast<Time&>(runTime_).setTime(couplingIterationTimeValue_, couplingIterationTimeIndex_);
+    return;
+}
+
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::storeMeshPoints()
+{
+    std::cout << "Storing Mesh data" << std::endl;
+
+    meshPoints_ = mesh_.points();
+    oldMeshPoints_ = mesh_.oldPoints();
+
+    /* if (mesh_.moving())
+    {
+        if (!meshCheckPointed)
+        {
+            // Set up the checkpoint for the mesh flux: meshPhi
+            setupMeshCheckpointing();
+            meshCheckPointed = true;
+        }
+        writeMeshCheckpoint();
+        writeVolCheckpoint(); // Does not write anything unless subcycling.
+    } */
+
+
+}
+
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::reloadMeshPoints()
+{
+    std::cout << "Reload Mesh data" << std::endl;
+
+    const_cast<fvMesh&>(mesh_).movePoints(meshPoints_);
+
+    /* if (meshCheckPointed)
+    {
+        readMeshCheckpoint();
+    } */
 }
 
 }//namespace Foam

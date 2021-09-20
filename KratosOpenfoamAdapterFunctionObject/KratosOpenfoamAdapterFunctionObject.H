@@ -128,11 +128,89 @@ private:
         std::vector<vector> array_of_nodes;
         //std::vector<std::unique_ptr<vector>> array_of_nodes;
 
+
+        //- Implicit Coupling related vector fields and thier copies
+        //- Implicit related volScalarField fields
+        std::vector<Foam::volScalarField*> volScalarFields_;
+
+        //- Implicit related volScalarField fields (copies)
+        std::vector<Foam::volScalarField*> volScalarFieldCopies_;
+
+        //- Implicit related volVectorField fields
+        std::vector<Foam::volVectorField*> volVectorFields_;
+
+        //- Implicit related volVectorField fields (copies)
+        std::vector<Foam::volVectorField*> volVectorFieldCopies_;
+
+        //- Implicit related surfaceScalarField fields
+        std::vector<Foam::surfaceScalarField*> surfaceScalarFields_;
+
+        //- Implicit related surfaceScalarField fields (copies)
+        std::vector<Foam::surfaceScalarField*> surfaceScalarFieldCopies_;
+
+        //- Implicit related surfaceVectorField fields
+        std::vector<Foam::surfaceVectorField*> surfaceVectorFields_;
+
+        //- Implicit related surfaceVectorField fields (copies)
+        std::vector<Foam::surfaceVectorField*> surfaceVectorFieldCopies_;
+
+        //- Implicit related pointScalarField fields
+        std::vector<Foam::pointScalarField*> pointScalarFields_;
+
+        //- Implicit related pointScalarField fields (copies)
+        std::vector<Foam::pointScalarField*> pointScalarFieldCopies_;
+
+        //- Implicit related pointVectorField fields
+        std::vector<Foam::pointVectorField*> pointVectorFields_;
+
+        //- Implicit related pointVectorField fields (copies)
+        std::vector<Foam::pointVectorField*> pointVectorFieldCopies_;
+
+        //- Implicit related volTensorField fields
+        std::vector<Foam::volTensorField*> volTensorFields_;
+
+        //- Implicit related volTensorField fields (copies)
+        std::vector<Foam::volTensorField*> volTensorFieldCopies_;
+
+        //- Implicit related surfaceTensorField fields
+        std::vector<Foam::surfaceTensorField*> surfaceTensorFields_;
+
+        //- Implicit related surfaceTensorField fields (copies)
+        std::vector<Foam::surfaceTensorField*> surfaceTensorFieldCopies_;
+
+        //- Implicit related pointTensorField fields
+        std::vector<Foam::pointTensorField*> pointTensorFields_;
+
+        //- Implicit related pointTensorField fields (copies)
+        std::vector<Foam::pointTensorField*> pointTensorFieldCopies_;
+
+        //- Implicit related volSymmTensorField fields
+        std::vector<Foam::volSymmTensorField*> volSymmTensorFields_;
+
+        //- Implicit related volSymmTensorField fields (copies)
+        std::vector<Foam::volSymmTensorField*> volSymmTensorFieldCopies_;
+
+        //- Checkpointed time (value)
+        Foam::scalar couplingIterationTimeValue_;
+
+        //- Checkpointed time (index)
+        Foam::label couplingIterationTimeIndex_;
+
+        //- Checkpointed mesh points
+        Foam::pointField meshPoints_;
+        Foam::pointField oldMeshPoints_;
+
+        bool isSimulationConverged = 0;
+        int nMaxImplicit;
+        int nIterationImplicit = 0;
+
+
 protected:
     //- Protected Data to set the parameters required for coupling
 
         //- Parameters for Adapter's configuration
         Foam::word my_name;
+        Foam::word coupling_scheme;
 
         //- For Force Field
         //- Initialize the Force -> Need to check
@@ -190,6 +268,55 @@ protected:
         Foam::tmp<Foam::volScalarField> mu() const;
 
         Foam::vectorField getFaceVectors(const unsigned int patchID) const;
+
+        //- For Implicit Coupling
+        void setupImplicitCoupling();
+
+        // Make a copies of Registered Object fields, depending on the type
+
+        //- Copy of volScalarField
+        void makeCopyOfObject(volScalarField& field);
+
+        //- Copy of volVectorField
+        void makeCopyOfObject(volVectorField& field);
+
+        //- Copy of surfaceScalarField
+        void makeCopyOfObject(surfaceScalarField& field);
+
+        //- Copy of surfaceVectorField
+        void makeCopyOfObject(surfaceVectorField& field);
+
+        //- Copy of pointScalarField
+        void makeCopyOfObject(pointScalarField& field);
+
+        //- Copy of pointVectorField
+        void makeCopyOfObject(pointVectorField& field);
+
+        //- Copy of volTensorField
+        void makeCopyOfObject(volTensorField& field);
+
+        //- Copy of surfaceTensorField
+        void makeCopyOfObject(surfaceTensorField& field);
+
+        //- Copy of pointTensorField
+        void makeCopyOfObject(pointTensorField& field);
+
+        //- Copy of volSymmTensorField
+        void makeCopyOfObject(volSymmTensorField& field);
+
+        //- Writing all the fields for that time step required in an Implicit coupling
+        void writeDataFieldsForImplicitCoupling();
+
+        //- Reading all the fields for that time step required in an Implicit coupling
+        void readDataFieldsForImplicitCoupling();
+
+        void storeCheckpointTime();
+
+        void reloadCheckpointTime();
+
+        void storeMeshPoints();
+
+        void reloadMeshPoints();
 
 public:
 

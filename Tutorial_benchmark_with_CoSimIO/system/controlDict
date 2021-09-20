@@ -61,6 +61,8 @@ functions
         participant Fluid;
         dim 3;
         //thick 1;
+        coupling  Implicit;
+        nMaxImplicit 10;
 
         interfaces
         {
@@ -91,7 +93,7 @@ functions
         writeControl        writeTime;
     }
 
-    forces
+    /*forces
     {
         type                forces;
         libs                ( "libforces.so" );
@@ -100,7 +102,7 @@ functions
         log                 true;
         rhoInf              1.18;//0.00118//1000
         CofR                (0 0 0);
-    }
+    }*/
 
     //- To see the residual plots
     //foamMonitor -l ./postProcessing/residuals/0/residuals.dat
