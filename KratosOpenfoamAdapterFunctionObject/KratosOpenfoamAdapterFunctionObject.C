@@ -263,20 +263,9 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             auto export_info = CoSimIO::ExportMesh(info, *model_part_interfaces_.at(j));
 
             // Resizing the Data Vectors for Import Export operations with CoSimIO
+            // Import Data from CoSimulation (Displacement/Delta) present only on faceNodes/Nodes. No need to resize it
             for(std::size_t i=0; i < num_interfaces_; i++)
             {
-                // Import Data from CoSimulation (Displacement/Delta) present only on faceNodes/Nodes. No need to resize it
-                for(std::size_t j=0; j< interfaces_.at(i).importData.size(); j++)
-                {
-                    std::string dataName = interfaces_.at(i).importData.at(j);
-
-                    if(dataName.find("Displacement") == 0 || dataName.find("DisplacementDelta") == 0) //If "Displacement" or "DisplacementDelta" string is found it will return 0
-                    {
-                        //interface_.at(i).data_to_recv.resize((interfaces_.at(i).numNodes) * dim);
-                    }
-                    //else if() //if some other variables
-                }
-
                 // Export Data to CoSimulation (force/Stress) present only on faceCenters/Elements
                 for(std::size_t j=0; j< interfaces_.at(i).exportData.size(); j++)
                 {
@@ -286,7 +275,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                     {
                         interfaces_.at(i).data_to_send.resize((interfaces_.at(i).numElements) * dim);
                     }
-                    //else if() //if some other variables
                 }
 
             }
@@ -310,73 +298,67 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 {
     std::cout << "CoSimulation Adapter's function object : execution()" << std::endl;
 
-    if(mesh_.foundObject<pointVectorField>("pointDisplacement"))
+    // *************************************** Force/Load Related ****************************************** //
+    for(std::size_t i=0; i < num_interfaces_; i++)
     {
-        // *************************************** Force/Load Related ****************************************** //
-        for(std::size_t i=0; i < num_interfaces_; i++)
+        std::cout<< "Force calculation started for the interface : " << interfaces_.at(i).nameOfInterface << std::endl;
+
+        // For "Write Data" variables which need to send to CoSimulation
+        for(std::size_t j=0; j< interfaces_.at(i).exportData.size(); j++)
         {
-            std::cout<< "Force calculation started for the interface : " << interfaces_.at(i).nameOfInterface << std::endl;
+            std::string dataName = interfaces_.at(i).exportData.at(j);
 
-            // For "Write Data" variables which need to send to CoSimulation
-            for(std::size_t j=0; j< interfaces_.at(i).exportData.size(); j++)
+            if(dataName.find("Force") == 0 )
             {
-                std::string dataName = interfaces_.at(i).exportData.at(j);
-
-                if(dataName.find("Force") == 0 )
-                {
-                    calculateForces(i);
-                }
+                calculateForces(i);
             }
-            std::cout << "Force calculation ended for the interface : " << interfaces_.at(i).nameOfInterface << std::endl;
+        }
+        std::cout << "Force calculation ended for the interface : " << interfaces_.at(i).nameOfInterface << std::endl;
 
-            // Export this force array to CoSimulation //Elemental Force Data
-            CoSimIO::Info connect_info;
-            connect_info.Clear();
-            connect_info.Set("identifier", interfaces_.at(i).exportDataIdentifier[0]);
-            connect_info.Set("connection_name", connection_name);
-            connect_info = CoSimIO::ExportData(connect_info, interfaces_.at(i).data_to_send);
+        // Export this force array to CoSimulation //Elemental Force Data
+        CoSimIO::Info connect_info;
+        connect_info.Clear();
+        connect_info.Set("identifier", interfaces_.at(i).exportDataIdentifier[0]);
+        connect_info.Set("connection_name", connection_name);
+        connect_info = CoSimIO::ExportData(connect_info, interfaces_.at(i).data_to_send);
 
-            std::cout<< runTime_.timeName() << " : Data has been exported from OpenFOAM to CoSimulation (interface name = " << interfaces_.at(i).nameOfInterface << ") , Force values with array size = " << interfaces_.at(i).data_to_send.size() << std::endl;
+        std::cout<< runTime_.timeName() << " : Data has been exported from OpenFOAM to CoSimulation (interface name = " << interfaces_.at(i).nameOfInterface << ") , Force values with array size = " << interfaces_.at(i).data_to_send.size() << std::endl;
+    }
+
+    // *************************************** Displcement Related ****************************************** //
+    for (std::size_t i = 0; i < interfaces_.size(); i++)
+    {
+        // Import the displacement array from the CoSimulation
+        CoSimIO::Info connect_info;
+        connect_info.Clear();
+        connect_info.Set("identifier", interfaces_.at(i).importDataIdentifier[0]);
+        connect_info.Set("connection_name", connection_name);
+        connect_info = CoSimIO::ImportData(connect_info, interfaces_.at(i).data_to_recv);
+        COSIMIO_CHECK_EQUAL(interfaces_.at(i).data_to_recv.size() , (interfaces_.at(i).numNodes) * dim ); //Check size of Receive data = Number of nodes*dim Is it require??
+
+        std::cout<< runTime_.timeName() << " : Data has been imported from CoSimulation to OpenFOAM: (interface name = " << interfaces_.at(i).nameOfInterface << ") , Disp values with array size = " << interfaces_.at(i).data_to_recv.size() << std::endl;
+
+        std::cout<< "Displacement replacement started for the interface : " << interfaces_.at(i).nameOfInterface << std::endl;
+
+        // Get the displacement on the patch(for every patch in the interface) and assign it those values received from CoSimulation
+        for (std::size_t j = 0; j < interfaces_.at(i).patchNames.size(); j++)
+        {
+            Foam::pointVectorField* point_disp;
+            point_disp = const_cast<pointVectorField*>( &mesh_.lookupObject<pointVectorField>("pointDisplacement") );
+            label patchIndex = mesh_.boundaryMesh().findPatchID(interfaces_.at(i).patchNames[j]);//Remove hardcoded part for finding patchIndex
+            fixedValuePointPatchVectorField& pointDisplacementFluidPatch = refCast<fixedValuePointPatchVectorField>(point_disp->boundaryFieldRef()[patchIndex]);
+
+            int iterator = 0;
+            forAll(point_disp->boundaryFieldRef()[patchIndex] ,k)
+            {
+                pointDisplacementFluidPatch[k][0] = interfaces_.at(i).data_to_recv[iterator++];
+                pointDisplacementFluidPatch[k][1] = interfaces_.at(i).data_to_recv[iterator++];
+                if (dim ==3)
+                    pointDisplacementFluidPatch[k][2] = interfaces_.at(i).data_to_recv[iterator++];
+            }
         }
 
-        // *************************************** Displcement Related ****************************************** //
-        for (std::size_t i = 0; i < interfaces_.size(); i++)
-        {
-            // Import the displacement array from the CoSimulation
-            CoSimIO::Info connect_info;
-            connect_info.Clear();
-            connect_info.Set("identifier", interfaces_.at(i).importDataIdentifier[0]);
-            connect_info.Set("connection_name", connection_name);
-            connect_info = CoSimIO::ImportData(connect_info, interfaces_.at(i).data_to_recv);
-            //Check size of Receive data = Expected Receive data. Get it from top.
-            //COSIMIO_CHECK_EQUAL(data_to_recv.size(), );
-
-            std::cout<< runTime_.timeName() << " : Data has been imported from CoSimulation to OpenFOAM: (interface name = " << interfaces_.at(i).nameOfInterface << ") , Disp values with array size = " << interfaces_.at(i).data_to_recv.size() << std::endl;
-
-            // Get the displacement on the patch and assign it those values received from CoSimulation,
-            // For every patch that participates in the coupling interface
-            std::cout<< "Displacement replacement started for the interface : " << interfaces_.at(i).nameOfInterface << std::endl;
-
-            for (std::size_t j = 0; j < interfaces_.at(i).patchNames.size(); j++)
-            {
-                Foam::pointVectorField* point_disp;
-                point_disp = const_cast<pointVectorField*>( &mesh_.lookupObject<pointVectorField>("pointDisplacement") );
-                label patchIndex = mesh_.boundaryMesh().findPatchID(interfaces_.at(i).patchNames[j]);//Remove hardcoded part for finding patchIndex
-                fixedValuePointPatchVectorField& pointDisplacementFluidPatch = refCast<fixedValuePointPatchVectorField>(point_disp->boundaryFieldRef()[patchIndex]);
-
-                int iterator = 0;
-                forAll(point_disp->boundaryFieldRef()[patchIndex] ,k)
-                {
-                    pointDisplacementFluidPatch[k][0] = interfaces_.at(i).data_to_recv[iterator++];
-                    pointDisplacementFluidPatch[k][1] = interfaces_.at(i).data_to_recv[iterator++];
-                    if (dim ==3)
-                        pointDisplacementFluidPatch[k][2] = interfaces_.at(i).data_to_recv[iterator++];
-                }
-            }
-
-            std::cout<< "Displacement replacement ended for the interface : " << interfaces_.at(i).nameOfInterface << std::endl;
-        }
-
+        std::cout<< "Displacement replacement ended for the interface : " << interfaces_.at(i).nameOfInterface << std::endl;
     }
 
     return true;
