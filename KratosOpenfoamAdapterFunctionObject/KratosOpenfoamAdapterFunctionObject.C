@@ -66,6 +66,8 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         thick = dict.lookupOrDefault<double>("thick", 1.0);
         std::cout<< "Thickness of a domain is: " << thick <<std::endl;
 
+        word name_of_interface;
+
         if(dict.lookupOrDefault("adjustTimeStep", false))
         {
             std::cout << "Cannot support adjustable time step" << std::endl;
@@ -106,7 +108,11 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                 if(interfaceSubdictEntry.isDict())
                 {
                     dictionary interfaceSubdict = interfaceSubdictEntry.dict();
+
                     struct InterfaceData interfacedata;
+
+                    interfacedata.nameOfInterface = interfaceSubdict.lookupType<word>("name");
+                    std::cout << "Name of the interface is = " << interfacedata.nameOfInterface << std::endl;
 
                     wordList patches = interfaceSubdict.lookupType<wordList>("patches");
                     for(auto patch : patches)
@@ -120,10 +126,22 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                         interfacedata.importData.push_back(rData);
                     }
 
+                    wordList importDataIdentifier = interfaceSubdict.lookupType<wordList>("importDataIdentifier");
+                    for(auto rData : importDataIdentifier)
+                    {
+                        interfacedata.importDataIdentifier.push_back(rData);
+                    }
+
                     wordList exportData = interfaceSubdict.lookupType<wordList>("exportData");
                     for(auto wData : exportData)
                     {
                         interfacedata.exportData.push_back(wData);
+                    }
+
+                    wordList exportDataIdentifier = interfaceSubdict.lookupType<wordList>("exportDataIdentifier");
+                    for(auto rData : exportDataIdentifier)
+                    {
+                        interfacedata.exportDataIdentifier.push_back(rData);
                     }
 
                     //Add this interface in the Array of all interfaces
@@ -148,14 +166,12 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         COSIMIO_CHECK_EQUAL(connect_info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Connected);
         connection_name = connect_info.Get<std::string>("connection_name");
 
-        // To test the CoSimulation Import Mesh Fuctationality with one interface only
-        std::cout << "\n" <<"********************** Exporting InterfaceMesh using ModelPart: Start **********************" << "\n" <<std::endl;
+        std::cout << "\n" <<"**************** Exporting InterfaceMesh using ModelPart: Start ******************" << "\n" <<std::endl;
         for(std::size_t j = 0; j < num_interfaces_; j++)
         {
-            std::string interface_name = "interface" + std::to_string(j+1);
+            std::cout << "\nName of the interface under progress : " << interfaces_.at(j).nameOfInterface << std::endl;
 
             // *******************************Create a mesh as a ModelPart************************************ //
-            std::cout << "Accessing Mesh from openFOAM" << std::endl;
             std::vector<int> patchIDs;
 
             // For every patch that participates in the coupling interface. We are keeping one patch for one interface
@@ -188,21 +204,20 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             }
             std::cout << "Total Number of Elements/faces in this interface: " << interfaces_.at(j).numElements << std::endl;
 
-            // Considering 1st interface ONLY
-            // Create CoSimIO::ModelPart- Put in public Member function
-            CoSimIO::ModelPart model_part_interface_flap("interface_flap_model_part");
+            // Make CoSimIO::ModelPart and push in the array of model_part_interfaces
+            model_part_interfaces_.push_back(CoSimIO::make_unique<CoSimIO::ModelPart>(interfaces_.at(j).nameOfInterface));
 
             // For Nodes and Element IDs for CoSimIO
             std::cout << "Creating Model Part (Nodes and Elements) for CoSimIO : start" << std::endl;
             std::vector<int> NodeIDs;
-            NodeIDs.resize( interfaces_.at(j).numNodes );
+            NodeIDs.resize(interfaces_.at(j).numNodes);
             int nodeIndex = 1; //As Node indexing starts with 1 in CoSimIO
 
             std::vector<int> ElemIDs;
             ElemIDs.resize(interfaces_.at(j).numElements);
             int elemIndex = 1; //As element indexing starts with 1 in CoSimIO
 
-            // Accessing the Co-ordinates of nodes in the Inteface and making CoSimIO nodes and elements
+            // Accessing the coordinates of nodes in the Inteface and making CoSimIO nodes and elements
             for(std::size_t i = 0; i < patchIDs.size(); i++)
             {
                 forAll(mesh_.boundary()[patchIDs[i]],facei)
@@ -220,9 +235,10 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                         {
                             // Make CoSimIO Nodes
                             NodeIDs.push_back(nodeIndex); // Later used to make CoSimIO::Element
-                            CoSimIO::Node& node = model_part_interface_flap.CreateNewNode( nodeIndex, pointX[0], pointX[1], pointX[2]);
+                            CoSimIO::Node& node = model_part_interfaces_.at(j)->CreateNewNode( nodeIndex, pointX[0], pointX[1], pointX[2]);
 
-                            array_of_nodes.push_back(pointX);// Push new element in the list to compare
+                            array_of_nodes.push_back(pointX);// Push new node in the list to compare
+
                             connectivity.push_back(nodeIndex); // connectivity to make that element
                             nodeIndex++;
                         }
@@ -233,51 +249,41 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                     }
 
                     ElemIDs.push_back(elemIndex); // For future use
-                    CoSimIO::Element& element = model_part_interface_flap.CreateNewElement( elemIndex, CoSimIO::ElementType::Quadrilateral2D4, connectivity );
+                    CoSimIO::Element& element = model_part_interfaces_.at(j)->CreateNewElement( elemIndex, CoSimIO::ElementType::Quadrilateral2D4, connectivity );
                     elemIndex++;
                 }
             }
-            std::cout << "Converting InterfaceMesh to a CoSimIO::ModelPart -> End" << std::endl;
+            std::cout << "Name of the interface done : " << interfaces_.at(j).nameOfInterface << std::endl;
 
             // Export InterfaceMesh/ModelPart to CoSimulation using CoSimIO
-            std::cout << "Exporting Mesh as a ModelPart: Start for an interface flap" << std::endl;
-            CoSimIO::Info info;
+            std::cout << "Exporting Mesh as a ModelPart for an interface: " << interfaces_.at(j).nameOfInterface << std::endl;
             info.Clear();
-            info.Set("identifier", "interface_flap");
+            info.Set("identifier", interfaces_.at(j).nameOfInterface);
             info.Set("connection_name", connection_name);
-            auto export_info = CoSimIO::ExportMesh(info, model_part_interface_flap);
-            std::cout << "*********************** Exporting InterfaceMesh using ModelPart: End ************************" << "\n" <<std::endl;
+            auto export_info = CoSimIO::ExportMesh(info, *model_part_interfaces_.at(j));
 
-        }
-
-        // Resizing the Data Vectors for Import Export operations
-        for(std::size_t i=0; i < num_interfaces_; i++)
-        {
+            // Resizing the Data Vectors for Import Export operations with CoSimIO
             // Import Data from CoSimulation (Displacement/Delta) present only on faceNodes/Nodes. No need to resize it
-            for(std::size_t j=0; j< interfaces_.at(i).importData.size(); j++)
+            for(std::size_t i=0; i < num_interfaces_; i++)
             {
-                std::string dataName = interfaces_.at(i).importData.at(j);
-
-                if(dataName.find("Displacement") == 0 || dataName.find("DisplacementDelta") == 0) //If "Displacement" or "DisplacementDelta" string is found it will return 0
+                // Export Data to CoSimulation (force/Stress) present only on faceCenters/Elements
+                for(std::size_t j=0; j< interfaces_.at(i).exportData.size(); j++)
                 {
-                    //data_to_recv.resize((interfaces_.at(i).numNodes) * dim);
-                }
-                //else if() //if some other variables
-            }
+                    std::string dataName = interfaces_.at(i).exportData.at(j);
 
-            // Export Data to CoSimulation (force/Stress) present only on faceCenters/Elements
-            for(std::size_t j=0; j< interfaces_.at(i).exportData.size(); j++)
-            {
-                std::string dataName = interfaces_.at(i).exportData.at(j);
-
-                if(dataName.find("Force") == 0 || dataName.find("Stress") == 0) //If "force" or "stress" string is found it will return 0
-                {
-                    data_to_send.resize((interfaces_.at(i).numElements) * dim);
+                    if(dataName.find("Force") == 0 || dataName.find("Stress") == 0) //If "force" or "stress" string is found it will return 0
+                    {
+                        interfaces_.at(i).data_to_send.resize((interfaces_.at(i).numElements) * dim);
+                    }
                 }
-                //else if() //if some other variables
+
             }
+            std::cout << "Name of the interface Finished processing : " << interfaces_.at(j).nameOfInterface << std::endl;
+            array_of_nodes.clear(); //Clear all the entries of array_nodes, so that new empty vector will be available for the comparision
 
         }
+        std::cout << "*********************** Exporting InterfaceMesh using ModelPart: End ************************" << "\n" <<std::endl;
+
     }
 
     catch(const std::exception& e)
@@ -292,71 +298,67 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 {
     std::cout << "CoSimulation Adapter's function object : execution()" << std::endl;
 
-    if(mesh_.foundObject<pointVectorField>("pointDisplacement"))
+    // *************************************** Force/Load Related ****************************************** //
+    for(std::size_t i=0; i < num_interfaces_; i++)
     {
-        // *************************************** Force/Load Related ****************************************** //
-        std::cout<< "Force calculation : start" << std::endl;
-        for(std::size_t i=0; i < num_interfaces_; i++)
-        {
-            // For "Wirte Data" variables which need to send to CoSimulation
-            for(std::size_t j=0; j< interfaces_.at(i).exportData.size(); j++)
-            {
-                std::string dataName = interfaces_.at(i).exportData.at(j);
-                std::cout<< "interface number = "<< i << " with Export DataName = " << dataName << std::endl;
+        std::cout<< "Force calculation started for the interface : " << interfaces_.at(i).nameOfInterface << std::endl;
 
-                if(dataName.find("Force") == 0 )
-                {
-                    calculateForces(j);
-                }
+        // For "Write Data" variables which need to send to CoSimulation
+        for(std::size_t j=0; j< interfaces_.at(i).exportData.size(); j++)
+        {
+            std::string dataName = interfaces_.at(i).exportData.at(j);
+
+            if(dataName.find("Force") == 0 )
+            {
+                calculateForces(i);
             }
         }
-        std::cout<< "Force calculation : End" << std::endl;
+        std::cout << "Force calculation ended for the interface : " << interfaces_.at(i).nameOfInterface << std::endl;
 
         // Export this force array to CoSimulation //Elemental Force Data
         CoSimIO::Info connect_info;
         connect_info.Clear();
-        connect_info.Set("identifier", "load_cells");
+        connect_info.Set("identifier", interfaces_.at(i).exportDataIdentifier[0]);
         connect_info.Set("connection_name", connection_name);
-        connect_info = CoSimIO::ExportData(connect_info, data_to_send);
+        connect_info = CoSimIO::ExportData(connect_info, interfaces_.at(i).data_to_send);
 
-        std::cout<< runTime_.timeName() << " : Data has been exported from OpenFOAM to CoSimulation: Force values with array size = " << data_to_send.size() << std::endl;
+        std::cout<< runTime_.timeName() << " : Data has been exported from OpenFOAM to CoSimulation (interface name = " << interfaces_.at(i).nameOfInterface << ") , Force values with array size = " << interfaces_.at(i).data_to_send.size() << std::endl;
+    }
 
-        // *************************************** Displcement Related ****************************************** //
+    // *************************************** Displcement Related ****************************************** //
+    for (std::size_t i = 0; i < interfaces_.size(); i++)
+    {
         // Import the displacement array from the CoSimulation
+        CoSimIO::Info connect_info;
         connect_info.Clear();
-        connect_info.Set("identifier", "disp");
+        connect_info.Set("identifier", interfaces_.at(i).importDataIdentifier[0]);
         connect_info.Set("connection_name", connection_name);
-        connect_info = CoSimIO::ImportData(connect_info, data_to_recv);
-        //Check size of Receive data = Expected Receive data. Get it from top.
-        //COSIMIO_CHECK_EQUAL(data_to_recv.size(), );
+        connect_info = CoSimIO::ImportData(connect_info, interfaces_.at(i).data_to_recv);
+        COSIMIO_CHECK_EQUAL(interfaces_.at(i).data_to_recv.size() , (interfaces_.at(i).numNodes) * dim ); //Check size of Receive data = Number of nodes*dim Is it require??
 
-        std::cout<< runTime_.timeName() << " : Data has been imported from CoSimulation to OpenFOAM: Disp values with array size = " << data_to_recv.size() << std::endl;
+        std::cout<< runTime_.timeName() << " : Data has been imported from CoSimulation to OpenFOAM: (interface name = " << interfaces_.at(i).nameOfInterface << ") , Disp values with array size = " << interfaces_.at(i).data_to_recv.size() << std::endl;
 
-        // Get the displacement on the patch and assign it those values received from CoSimulation,
-        // For every patch that participates in the coupling interface
-        std::cout<< "Displacement replacement : start" << std::endl;
-        for (std::size_t i = 0; i < interfaces_.size(); i++)
+        std::cout<< "Displacement replacement started for the interface : " << interfaces_.at(i).nameOfInterface << std::endl;
+
+        // Get the displacement on the patch(for every patch in the interface) and assign it those values received from CoSimulation
+        for (std::size_t j = 0; j < interfaces_.at(i).patchNames.size(); j++)
         {
-            for (std::size_t j = 0; j < interfaces_.at(i).patchNames.size(); j++)
-            {
-                Foam::pointVectorField* point_disp;
-                point_disp = const_cast<pointVectorField*>( &mesh_.lookupObject<pointVectorField>("pointDisplacement") );
-                label patchIndex = mesh_.boundaryMesh().findPatchID(interfaces_.at(i).patchNames[j]);//Remove hardcoded part for finding patchIndex
-                std::cout << "Interface number = " << i << " and patch number = " << patchIndex << " and patch name = " << interfaces_.at(i).patchNames[j] << std::endl;
-                fixedValuePointPatchVectorField& pointDisplacementFluidPatch = refCast<fixedValuePointPatchVectorField>(point_disp->boundaryFieldRef()[patchIndex]);
+            Foam::pointVectorField* point_disp;
+            point_disp = const_cast<pointVectorField*>( &mesh_.lookupObject<pointVectorField>("pointDisplacement") );
+            label patchIndex = mesh_.boundaryMesh().findPatchID(interfaces_.at(i).patchNames[j]);//Remove hardcoded part for finding patchIndex
+            fixedValuePointPatchVectorField& pointDisplacementFluidPatch = refCast<fixedValuePointPatchVectorField>(point_disp->boundaryFieldRef()[patchIndex]);
 
-                int iterator = 0;
-                forAll(point_disp->boundaryFieldRef()[patchIndex] ,i)
-                {
-                    pointDisplacementFluidPatch[i][0] = data_to_recv[iterator++];
-                    pointDisplacementFluidPatch[i][1] = data_to_recv[iterator++];
-                    if (dim ==3)
-                        pointDisplacementFluidPatch[i][2] = data_to_recv[iterator++];
-                }
+            int iterator = 0;
+            forAll(point_disp->boundaryFieldRef()[patchIndex] ,k)
+            {
+                pointDisplacementFluidPatch[k][0] = interfaces_.at(i).data_to_recv[iterator++];
+                pointDisplacementFluidPatch[k][1] = interfaces_.at(i).data_to_recv[iterator++];
+                if (dim ==3)
+                    pointDisplacementFluidPatch[k][2] = interfaces_.at(i).data_to_recv[iterator++];
             }
         }
 
-        std::cout<< "Displacement replacement : End" << std::endl;
+        std::cout<< "Displacement replacement ended for the interface : " << interfaces_.at(i).nameOfInterface << std::endl;
     }
 
     return true;
@@ -590,8 +592,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
         // Get the patchID
         int patchID = mesh_.boundaryMesh().findPatchID((interfaces_.at(interface_index).patchNames).at(i));
 
-        std::cout<< "PatchNumber for force calculation " << patchID << std::endl;
-
         // Throw an error if the patch was not found
         if (patchID == -1){
             std::cout<< "ERROR: Patch " << (interfaces_.at(interface_index).patchNames).at(i) << " does not exist." << std::endl;
@@ -651,15 +651,15 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
         {
             // Copy the force into the buffer
             // x-dimension
-            data_to_send[bufferIndex++] = Force_->boundaryField()[patchID][i].x();
+            interfaces_.at(interface_index).data_to_send[bufferIndex++] = Force_->boundaryField()[patchID][i].x();
 
             // y-dimension
-            data_to_send[bufferIndex++] = Force_->boundaryField()[patchID][i].y();
+            interfaces_.at(interface_index).data_to_send[bufferIndex++] = Force_->boundaryField()[patchID][i].y();
 
             if(dim == 3)
             {
                 // z-dimension
-                data_to_send[bufferIndex++] = Force_->boundaryField()[patchID][i].z();
+                interfaces_.at(interface_index).data_to_send[bufferIndex++] = Force_->boundaryField()[patchID][i].z();
             }
         }
 

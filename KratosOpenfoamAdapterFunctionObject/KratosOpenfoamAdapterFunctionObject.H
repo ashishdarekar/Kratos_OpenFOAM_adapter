@@ -102,6 +102,9 @@ private:
     //- Member variables required for CoSimIO
     std::string connection_name;
 
+    // CoSimIO info object- one is sufficient
+    CoSimIO::Info info;
+
     //- Member for OpenFOAM
     std::size_t time_step_ = 0 ;
     std::size_t num_interfaces_ = 0;
@@ -126,7 +129,8 @@ private:
 
         //- For making geometry of a interface Mesh(Model Part)
         std::vector<vector> array_of_nodes;
-        //std::vector<std::unique_ptr<vector>> array_of_nodes;
+
+
 
 protected:
     //- Protected Data to set the parameters required for coupling
@@ -159,22 +163,23 @@ protected:
         //- This strucutre is made to save all the data related to an interface
         struct InterfaceData
         {
+            std::string nameOfInterface;
             std::vector<std::string> patchNames;
             std::vector<std::string> importData;
+            std::vector<std::string> importDataIdentifier;
             std::vector<std::string> exportData;
+            std::vector<std::string> exportDataIdentifier;
+            std::vector<double> data_to_send;
+            std::vector<double> data_to_recv;
             uint numNodes = 0;
             uint numElements = 0;
         };
 
-        //- Array of strctures to save all interfaces
+        //- Array of strctures to store data for all coupling interfaces
         std::vector<struct InterfaceData> interfaces_;
 
         //- Array of CoSimIO::Model parts for all coupling interfaces
-        //std::vector<CoSimIO::ModelPart> model_part_interfaces_;
         std::vector<std::unique_ptr<CoSimIO::ModelPart>> model_part_interfaces_;
-
-        //- create CoSimIO::ModelPart -> Not working
-        //CoSimIO::ModelPart model_part_interface_flap("interface_flap_model_part");
 
         //- Auxiliar functions
         bool calculateForces(std::size_t interface_index);
