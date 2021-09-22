@@ -15,7 +15,7 @@
             {
                 "type" : "average_value_based",
                 "solver"         : "Openfoam_Kratos_Wrapper",
-                "data_name"      : "load_cells",
+                "data_name"      : "load_cells_interface_flap",
                 "echo_level" : 4
             }
         ],
@@ -33,20 +33,20 @@
             "name": "structure",
             "input_data_list": [
                 {
-                    "data"              : "load",
+                    "data"              : "load_interface_flap",
                     "from_solver"       : "Openfoam_Kratos_Wrapper",
-                    "from_solver_data"  : "load",
+                    "from_solver_data"  : "load_interface_flap",
                     "data_transfer_operator" : "mapper",
-                    "before_data_transfer_operations" : ["mapping_element_node_1"],
-                    "after_data_transfer_operations" : ["scaling_loads_1"],
-                    "data_transfer_operator_options" : [ "use_transpose"]
+                    "before_data_transfer_operations" : ["mapping_element_node_interface_flap"],
+                    "after_data_transfer_operations" : ["scaling_loads_interface_flap"],
+                    "data_transfer_operator_options" : ["use_transpose"]
                 }
             ],
             "output_data_list": [
                 {
-                    "data"           : "disp",
+                    "data"           : "disp_interface_flap",
                     "to_solver"      : "Openfoam_Kratos_Wrapper",
-                    "to_solver_data" : "disp",
+                    "to_solver_data" : "disp_interface_flap",
                     "data_transfer_operator" : "mapper"
                 }
             ]
@@ -58,21 +58,18 @@
         }
         ],
         "coupling_operations" : {
-            "scaling_loads_1" : {
+            "scaling_loads_interface_flap" : {
                 "type"           : "scaling",
                 "solver"         : "structure",
-                "data_name"      : "load",
-                "scaling_factor" : " (sin(((t)/0.01)/1500*pi/2))**2 ",
-                //"scaling_factor" : " (sin(((t)/0.02)/750*pi/2))**2 ",
+                "data_name"      : "load_interface_flap",
+                "scaling_factor" : "(sin(((t)/0.01)/1500*pi/2))**2 ",
                 "echo_level"     : 4,
                 "interval"       : [0.0, 15.0]
-                //"interval"       : [0.0, 15.0]
             },
-            "mapping_element_node_1" : {
+            "mapping_element_node_interface_flap" : {
                 "type"           : "elemental_data_to_nodal_data",
-                "solver"         :
-                 "Openfoam_Kratos_Wrapper",
-                "data_name"      : "load_cells",
+                "solver"         : "Openfoam_Kratos_Wrapper",
+                "data_name"      : "load_cells_interface_flap",
                 "echo_level"     : 4
             },
             "coupling_output_1" : {
@@ -100,8 +97,8 @@
                 "type" : "solver_wrappers.external.openfoam_wrapper",
                 "solver_wrapper_settings" : {
                     "import_meshes"    : ["interface_flap"],
-                    "export_data"      : ["disp"],
-                    "import_data"      : ["load_cells"]
+                    "export_data"      : ["disp_interface_flap"],
+                    "import_data"      : ["load_cells_interface_flap"]
                 },
                 "io_settings" : {
                     "type"       : "kratos_co_sim_io",
@@ -109,18 +106,18 @@
                     "connect_to" : "Openfoam_Adapter"
                 },
                 "data" : {
-                    "disp" : {
+                    "disp_interface_flap" : {
                         "model_part_name"   : "interface_flap",
                         "dimension" : 3,
                         "variable_name" : "DISPLACEMENT"
                     },
-                    "load_cells" : {
+                    "load_cells_interface_flap" : {
                         "model_part_name"   : "interface_flap",
                         "location" : "element",
                         "dimension" : 3,
                         "variable_name" : "FORCE"
                     },
-                    "load" : { // same as load_cells but has data on nodes => required for the mapper!
+                    "load_interface_flap" : { // same as load_cells but has data on nodes => required for the mapper!
                         "model_part_name"   : "interface_flap",
                         "dimension" : 3,
                         "variable_name" : "FORCE"
@@ -134,12 +131,12 @@
                     "input_file"  : "ProjectParametersCSM"
                 },
                 "data" : {
-                    "disp" : {
+                    "disp_interface_flap" : {
                         "model_part_name" : "Structure.GENERIC_FSI_Interface",
                         "variable_name" : "DISPLACEMENT",
                         "dimension" : 3
                     },
-                    "load" : {
+                    "load_interface_flap" : {
                         "model_part_name" : "Structure.GENERIC_FSI_Interface",
                         "variable_name" : "POINT_LOAD",
                         "dimension" : 3

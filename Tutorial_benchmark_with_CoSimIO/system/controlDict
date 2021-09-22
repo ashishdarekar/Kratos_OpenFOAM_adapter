@@ -73,23 +73,6 @@ functions
                 exportData              (Force0);
                 exportDataIdentifier    (load_cells_interface_flap);
             }
-
-            Interface2
-            {
-                //name                    interface_square_block;
-                //patches                 (squareblock);
-                //importData              (Displacement1);
-                //importDataIdentifier    (disp_interface_square_block);
-                //exportData              (Force1);
-                //exportDataIdentifier    (load_cells_interface_square_block);
-
-                name                    interface_square_block;
-                patches                 (flap); //Testing purpose same geometry use with different name
-                importData              (Displacement1);
-                importDataIdentifier    (disp_interface_square_block);
-                exportData              (Force1);
-                exportDataIdentifier    (load_cells_interface_square_block);
-            }
         }
 
         Parameters
