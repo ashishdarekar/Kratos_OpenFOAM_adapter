@@ -3,6 +3,7 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
 
 # Requirements:
 1. [OpenFOAM-7](https://openfoam.org/download/7-ubuntu/)
+2. [KRATOS](https://github.com/KratosMultiphysics/Kratos)
 2. [CoSimIO](https://github.com/KratosMultiphysics/CoSimIO)
 
 # How to run the first tutorial: Cavity
@@ -12,28 +13,22 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
     3. *wclean*
     4. *wmake*
 
-3. **To run the first tutorial case:**
-    1. Go to the folder .../Tutorial_cavity (https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/tree/main/Tutorial_cavity)
-    2. In one terminal run the OpneFOAM commands:
-        1. Go to SuperUser: *sudo -E bash*
-        2. *blockMesh*
-        3. *icoFoam*
-    3. Simultaneously open another terminal to export and import data in OpenFoam using CoSimIO:
-        1. Go to SuperUser: *sudo -E bash*
-        2. *g++ trial_export_import_data_using_CoSimIO.cpp -o export_import*
-    4. To see the OpenFOAM results in ParaView:
-        1. *paraFoam -case .*
-
-4. **To run the FSI-Benchmarking case:**
-    1. Go to the folder .../Tutorial_benchmark (https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/tree/main/Tutorial_benchmark)
+2. **To run the FSI-Benchmarking case:**
+    1. Go to the folder .../Tutorial_benchmark_with_CoSimIO (https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/tree/main/Tutorial_benchmark_with_CoSimIO)
     2. In one terminal run the OpneFOAM commands:
         1. Go to SuperUser: *sudo -E bash*
         2. *blockMesh*
         3. *pimpleFoam*
-    3. Simultaneously open another terminal to export and import data in OpenFoam using CoSimIO:
-        1. Go to SuperUser: *sudo -E bash*
-        2. *g++ trial_export_import_data_using_CoSimIO.cpp -o export_import*
-    4. To see the OpenFOAM results in ParaView:
+    3. Simultaneously, open another terminal to run KRATOS:
+        1. *startkratos*
+        2. *runkratos MainKratosCoSim.py*
+    4. To see the results in ParaView:
         1. *paraFoam -case .*
+        2. Load the KRATOS results from the folder ../vtk_output
+    5. Displacement of the tip can be seen using
+        1. *./plot_displacement.py*
+        2. *./plot_disp_prep.sh*
+    6. To clean all generated files during simulation
+        1. *./clean.sh*
 
 **Note:** To compile the export and import data files, Dont forget to add Path of the **co_sim_io.hpp** ($HOME/CoSimIO) into your include path.
