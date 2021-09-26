@@ -62,7 +62,7 @@ functions
         dim 3;
         //thick 1;
         coupling  Implicit;
-        nMaxImplicit 10;
+        nMaxImplicit 12;
 
         interfaces
         {

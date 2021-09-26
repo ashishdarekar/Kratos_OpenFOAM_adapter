@@ -291,13 +291,14 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 
             std::cout << "Implicit Coupling setup Done" << std::endl;
 
-            writeDataFieldsForImplicitCoupling();
+            //writeDataFieldsForImplicitCoupling();
 
-            std::cout << "Implicit Coupling: Writing Data Done" << std::endl;
+            //std::cout << "Implicit Coupling: Writing Data Done" << std::endl;
 
             const_cast<Time&>(runTime_).setEndTime(GREAT); //Set the solver's end time  = infinity
 
         }
+
     }
 
     catch(const std::exception& e)
@@ -314,6 +315,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 
     if(mesh_.foundObject<pointVectorField>("pointDisplacement"))
     {
+
         // *************************************** Force/Load Related ****************************************** //
         std::cout<< "Force calculation : start" << std::endl;
         for(std::size_t i=0; i < num_interfaces_; i++)
@@ -341,10 +343,9 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 
         std::cout<< runTime_.timeName() << " : Data has been exported from OpenFOAM to CoSimulation: Force values with array size = " << data_to_send.size() << std::endl;
 
-
         // *************************************** Implicit coupling related ************************************ //
-        // Reading Field data
-        if(coupling_scheme == "Implicit" && (!isSimulationConverged) && nIterationImplicit < nMaxImplicit)
+        // Reading Field data which are saved in the copies
+        if(coupling_scheme == "Implicit" && repeat_time_step && nIterationImplicit < nMaxImplicit)
         {
             readDataFieldsForImplicitCoupling();
         }
@@ -357,8 +358,14 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         connect_info = CoSimIO::ImportData(connect_info, data_to_recv);
         //Check size of Receive data = Expected Receive data. Get it from top.
         //COSIMIO_CHECK_EQUAL(data_to_recv.size(), );
-
         std::cout<< runTime_.timeName() << " : Data has been imported from CoSimulation to OpenFOAM: Disp values with array size = " << data_to_recv.size() << std::endl;
+
+        CoSimIO::Info implicit_info;
+        implicit_info.Set("connection_name", connection_name);
+        implicit_info.Set("identifier", "repeat_time_step_info");
+        auto repeat_time_step_info = CoSimIO::ImportInfo(implicit_info);
+        repeat_time_step = repeat_time_step_info.Get<bool>("repeat_time_step");
+        std::cout<< "repeat_time_step = " << repeat_time_step << std::endl;
 
         // Get the displacement on the patch and assign it those values received from CoSimulation,
         // For every patch that participates in the coupling interface
@@ -386,7 +393,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         std::cout<< "Displacement replacement : End" << std::endl;
 
         // Writing Field data
-        if(coupling_scheme == "Implicit" && (!isSimulationConverged) && nIterationImplicit < nMaxImplicit)
+        if(coupling_scheme == "Implicit" && repeat_time_step && nIterationImplicit < nMaxImplicit)
         {
             writeDataFieldsForImplicitCoupling();
             nIterationImplicit ++;
@@ -969,6 +976,7 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::makeCopyOfObjec
     return;
 }
 
+// Make copies of all the fields
 // Writing all the fields for that time step required in an Implicit coupling
 void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::writeDataFieldsForImplicitCoupling()
 {
