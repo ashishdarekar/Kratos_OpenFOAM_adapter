@@ -79,11 +79,11 @@
                 "type"           : "scaling",
                 "solver"         : "structure",
                 "data_name"      : "load",
-                //"scaling_factor" : " (sin(((t)/0.01)/1500*pi/2))**2 ",
-                "scaling_factor" : " (sin(((t)/0.02)/250*pi/2))**2 ",
+                "scaling_factor" : " (sin(((t)/0.01)/1500*pi/2))**2 ",
+                //"scaling_factor" : " (sin(((t)/0.02)/250*pi/2))**2 ",
                 "echo_level"     : 4,
-                "interval"       : [0.0, 5.0]
-                //"interval"       : [0.0, 15.0]
+                //"interval"       : [0.0, 5.0]
+                "interval"       : [0.0, 15.0]
             },
             "mapping_element_node_1" : {
                 "type"           : "elemental_data_to_nodal_data",
