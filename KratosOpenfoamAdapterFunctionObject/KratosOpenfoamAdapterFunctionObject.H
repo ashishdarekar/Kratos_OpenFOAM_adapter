@@ -201,7 +201,6 @@ private:
         Foam::pointField oldMeshPoints_;
 
         bool repeat_time_step = 0;
-        int nMaxImplicit;
         int nIterationImplicit = 0;
 
 

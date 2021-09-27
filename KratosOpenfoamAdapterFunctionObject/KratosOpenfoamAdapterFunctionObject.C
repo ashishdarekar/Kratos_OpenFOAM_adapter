@@ -69,9 +69,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         coupling_scheme = dict.lookupOrDefault<word>("coupling", "Explicit");
         std::cout<< "Name of the coupling scheme is: " << coupling_scheme <<std::endl;
 
-        nMaxImplicit = dict.lookupOrDefault<int>("nMaxImplicit", 10);
-        std::cout<< "Maximum number of Iterations per time step in Implicit coupling: " << nMaxImplicit <<std::endl;
-
         if(dict.lookupOrDefault("adjustTimeStep", false))
         {
             std::cout << "Cannot support adjustable time step" << std::endl;
@@ -345,7 +342,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 
         // *************************************** Implicit coupling related ************************************ //
         // Reading Field data which are saved in the copies
-        if(coupling_scheme == "Implicit" && repeat_time_step && nIterationImplicit < nMaxImplicit)
+        if(coupling_scheme == "Implicit" && repeat_time_step)
         {
             readDataFieldsForImplicitCoupling();
         }
@@ -393,7 +390,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         std::cout<< "Displacement replacement : End" << std::endl;
 
         // Writing Field data
-        if(coupling_scheme == "Implicit" && repeat_time_step && nIterationImplicit < nMaxImplicit)
+        if(coupling_scheme == "Implicit" && repeat_time_step)
         {
             writeDataFieldsForImplicitCoupling();
             nIterationImplicit ++;

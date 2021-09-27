@@ -11,7 +11,7 @@
     {
         "type" : "coupled_solvers.gauss_seidel_strong",
         "echo_level" : 4,
-        "num_coupling_iterations" : 12,
+        "num_coupling_iterations" : 50,
         "predictors" : [
             {
                 "type"          : "average_value_based",
