@@ -50,7 +50,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
     // Which is going to executed before first time step and hence we can exit the simulation
     // if something is wrong here.
 
-    std::cout << "CoSimulation Adapter's function object : read()" << std::endl;
+    Pout << "CoSimulation Adapter's function object : read()" << endl;
 
     try
     {
@@ -58,19 +58,19 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         fvMeshFunctionObject::read(dict);
 
         my_name = dict.lookupOrDefault<word>("participant", "fluid");
-        std::cout<< "Name of the participant is: " << my_name <<std::endl;
+        Pout << "Name of the participant is: " << my_name <<endl;
 
         dim = dict.lookupOrDefault<int>("dim", 3);
-        std::cout<< "Dimension of a problem is: " << dim <<std::endl;
+        Pout << "Dimension of a problem is: " << dim <<endl;
 
         thick = dict.lookupOrDefault<double>("thick", 1.0);
-        std::cout<< "Thickness of a domain is: " << thick <<std::endl;
+        Pout << "Thickness of a domain is: " << thick <<endl;
 
         word name_of_interface;
 
         if(dict.lookupOrDefault("adjustTimeStep", false))
         {
-            std::cout << "Cannot support adjustable time step" << std::endl;
+            Pout << "Cannot support adjustable time step" << endl;
             //EXIT THE SIMULATION
         }
 
@@ -78,27 +78,27 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         solverType_ = dict.lookupOrDefault<word>("solvertype", "none");
         if (solverType_.compare("compressible") == 0 || solverType_.compare("incompressible") == 0)
         {
-            std::cout << "Known solver type: " << solverType_ << std::endl;
+            Pout << "Known solver type: " << solverType_ << endl;
         }
         else if (solverType_.compare("none") == 0)
         {
-            std::cout << "Determining the solver type..." << std::endl;
+            Pout << "Determining the solver type..." << endl;
             solverType_ = determineSolverType();
         }
         else
         {
-            std::cout << "Unknown solver type. Determining the solver type..." << std::endl;
+            Pout << "Unknown solver type. Determining the solver type..." << endl;
             solverType_ = determineSolverType();
         }
 
         // Every interface is a subdictionary of "interfaces"
         const dictionary * interfaceSubdictPtr = dict.subDictPtr("interfaces");
 
-        std::cout << "Interfaces Reading: Start" << std::endl;
+        Pout << "Interfaces Reading: Start" << endl;
 
         if(!interfaceSubdictPtr)
         {
-            std::cout << "No Interfaces found" << std::endl;
+            Pout << "No Interfaces found" << endl;
             //EXIT THE SIMULATION
         }
         else
@@ -112,7 +112,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                     struct InterfaceData interfacedata;
 
                     interfacedata.nameOfInterface = interfaceSubdict.lookupType<word>("name");
-                    std::cout << "Name of the interface is = " << interfacedata.nameOfInterface << std::endl;
+                    Pout << "Name of the interface is = " << interfacedata.nameOfInterface << endl;
 
                     wordList patches = interfaceSubdict.lookupType<wordList>("patches");
                     for(auto patch : patches)
@@ -152,24 +152,13 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             }
         }
 
-        std::cout << "Interfaces Reading: Done" << std::endl;
-        std::cout << "Number of interfaces found: " << num_interfaces_<< std::endl;
+        Pout << "Interfaces Reading: Done" << endl;
+        Pout << "Number of interfaces found: " << num_interfaces_<< endl;
 
-        // Connection between openFOAM and Kratos-CoSimulation using CoSimIO
-        CoSimIO::Info settings;
-        settings.Set("my_name", "Openfoam_Adapter");
-        settings.Set("connect_to", "Openfoam_Kratos_Wrapper");
-        settings.Set("echo_level", 0);
-        settings.Set("version", "1.25");
-
-        auto connect_info = CoSimIO::Connect(settings);
-        COSIMIO_CHECK_EQUAL(connect_info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Connected);
-        connection_name = connect_info.Get<std::string>("connection_name");
-
-        std::cout << "\n" <<"**************** Exporting InterfaceMesh using ModelPart: Start ******************" << "\n" <<std::endl;
+        Pout << "**************** Exporting InterfaceMesh using ModelPart: Start ******************" <<endl;
         for(std::size_t j = 0; j < num_interfaces_; j++)
         {
-            std::cout << "\nName of the interface under progress : " << interfaces_.at(j).nameOfInterface << std::endl;
+            Pout << "Name of the interface under progress : " << interfaces_.at(j).nameOfInterface << endl;
 
             // *******************************Create a mesh as a ModelPart************************************ //
             std::vector<int> patchIDs;
@@ -183,7 +172,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                 // Throw an error if the patch was not found
                 if (patchID == -1)
                 {
-                    std::cout<< "ERROR: Patch " << (interfaces_.at(j).patchNames).at(i) << " does not exist." << std::endl;
+                    Pout << "ERROR: Patch " << (interfaces_.at(j).patchNames).at(i) << " does not exist." << endl;
                 }
 
                 // Add the patch in the list
@@ -195,20 +184,21 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             {
                 interfaces_.at(j).numNodes += mesh_.boundaryMesh()[patchIDs.at(i)].localPoints().size();
             }
-            std::cout << "Total Number of Nodes in this interface: " << interfaces_.at(j).numNodes  << std::endl;
+            Pout << "Total Number of Nodes in this interface: " << interfaces_.at(j).numNodes  << endl;
 
             // Count the number of elements/faces for all the patches in that interface
             for (std::size_t i = 0; i < patchIDs.size(); i++)
             {
                 interfaces_.at(j).numElements += mesh_.boundary()[patchIDs[i]].size();
             }
-            std::cout << "Total Number of Elements/faces in this interface: " << interfaces_.at(j).numElements << std::endl;
+
+            Pout << "Total Number of Elements/faces in this interface: " << interfaces_.at(j).numElements << endl;
 
             // Make CoSimIO::ModelPart and push in the array of model_part_interfaces
             model_part_interfaces_.push_back(CoSimIO::make_unique<CoSimIO::ModelPart>(interfaces_.at(j).nameOfInterface));
 
             // For Nodes and Element IDs for CoSimIO
-            std::cout << "Creating Model Part (Nodes and Elements) for CoSimIO : start" << std::endl;
+            Pout << "Creating Model Part (Nodes and Elements) for CoSimIO : start" << endl;
             std::vector<int> NodeIDs;
             NodeIDs.resize(interfaces_.at(j).numNodes);
             int nodeIndex = 1; //As Node indexing starts with 1 in CoSimIO
@@ -253,10 +243,21 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                     elemIndex++;
                 }
             }
-            std::cout << "Name of the interface done : " << interfaces_.at(j).nameOfInterface << std::endl;
+            Pout << "Name of the interface done : " << interfaces_.at(j).nameOfInterface << endl;
+
+            // Connection between openFOAM and Kratos-CoSimulation using CoSimIO
+            CoSimIO::Info settings;
+            settings.Set("my_name", "Openfoam_Adapter");
+            settings.Set("connect_to", "Openfoam_Kratos_Wrapper");
+            settings.Set("echo_level", 0);
+            settings.Set("version", "1.25");
+
+            auto connect_info = CoSimIO::Connect(settings);
+            COSIMIO_CHECK_EQUAL(connect_info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Connected);
+            connection_name = connect_info.Get<std::string>("connection_name");
 
             // Export InterfaceMesh/ModelPart to CoSimulation using CoSimIO
-            std::cout << "Exporting Mesh as a ModelPart for an interface: " << interfaces_.at(j).nameOfInterface << std::endl;
+            Pout << "Exporting Mesh as a ModelPart for an interface: " << interfaces_.at(j).nameOfInterface << endl;
             info.Clear();
             info.Set("identifier", interfaces_.at(j).nameOfInterface);
             info.Set("connection_name", connection_name);
@@ -278,11 +279,11 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                 }
 
             }
-            std::cout << "Name of the interface Finished processing : " << interfaces_.at(j).nameOfInterface << std::endl;
+            Pout << "Name of the interface Finished processing : " << interfaces_.at(j).nameOfInterface << endl;
             array_of_nodes.clear(); //Clear all the entries of array_nodes, so that new empty vector will be available for the comparision
 
         }
-        std::cout << "*********************** Exporting InterfaceMesh using ModelPart: End ************************" << "\n" <<std::endl;
+        Pout << "*********************** Exporting InterfaceMesh using ModelPart: End ************************" << "\n" <<endl;
 
     }
 
@@ -296,12 +297,12 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 {
-    std::cout << "CoSimulation Adapter's function object : execution()" << std::endl;
+    Pout << "CoSimulation Adapter's function object : execution()" << endl;
 
     // *************************************** Force/Load Related ****************************************** //
     for(std::size_t i=0; i < num_interfaces_; i++)
     {
-        std::cout<< "Force calculation started for the interface : " << interfaces_.at(i).nameOfInterface << std::endl;
+        Pout << "Force calculation started for the interface : " << interfaces_.at(i).nameOfInterface << endl;
 
         // For "Write Data" variables which need to send to CoSimulation
         for(std::size_t j=0; j< interfaces_.at(i).exportData.size(); j++)
@@ -313,7 +314,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
                 calculateForces(i);
             }
         }
-        std::cout << "Force calculation ended for the interface : " << interfaces_.at(i).nameOfInterface << std::endl;
+        Pout << "Force calculation ended for the interface : " << interfaces_.at(i).nameOfInterface << endl;
 
         // Export this force array to CoSimulation //Elemental Force Data
         CoSimIO::Info connect_info;
@@ -322,7 +323,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         connect_info.Set("connection_name", connection_name);
         connect_info = CoSimIO::ExportData(connect_info, interfaces_.at(i).data_to_send);
 
-        std::cout<< runTime_.timeName() << " : Data has been exported from OpenFOAM to CoSimulation (interface name = " << interfaces_.at(i).nameOfInterface << ") , Force values with array size = " << interfaces_.at(i).data_to_send.size() << std::endl;
+        Pout << runTime_.timeName() << " : Data has been exported from OpenFOAM to CoSimulation (interface name = " << interfaces_.at(i).nameOfInterface << ") , Force values with array size = " << interfaces_.at(i).data_to_send.size() << endl;
     }
 
     // *************************************** Displcement Related ****************************************** //
@@ -336,9 +337,9 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         connect_info = CoSimIO::ImportData(connect_info, interfaces_.at(i).data_to_recv);
         COSIMIO_CHECK_EQUAL(interfaces_.at(i).data_to_recv.size() , (interfaces_.at(i).numNodes) * dim ); //Check size of Receive data = Number of nodes*dim Is it require??
 
-        std::cout<< runTime_.timeName() << " : Data has been imported from CoSimulation to OpenFOAM: (interface name = " << interfaces_.at(i).nameOfInterface << ") , Disp values with array size = " << interfaces_.at(i).data_to_recv.size() << std::endl;
+        Pout << runTime_.timeName() << " : Data has been imported from CoSimulation to OpenFOAM: (interface name = " << interfaces_.at(i).nameOfInterface << ") , Disp values with array size = " << interfaces_.at(i).data_to_recv.size() << endl;
 
-        std::cout<< "Displacement replacement started for the interface : " << interfaces_.at(i).nameOfInterface << std::endl;
+        Pout << "Displacement replacement started for the interface : " << interfaces_.at(i).nameOfInterface << endl;
 
         // Get the displacement on the patch(for every patch in the interface) and assign it those values received from CoSimulation
         for (std::size_t j = 0; j < interfaces_.at(i).patchNames.size(); j++)
@@ -358,7 +359,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
             }
         }
 
-        std::cout<< "Displacement replacement ended for the interface : " << interfaces_.at(i).nameOfInterface << std::endl;
+        Pout << "Displacement replacement ended for the interface : " << interfaces_.at(i).nameOfInterface << endl;
     }
 
     return true;
@@ -367,7 +368,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::end()
 {
     // Dicsonect from CoSimIO
-    std::cout << "\n" << "CoSimulation Adapter's function object : end()" << std::endl;
+    Pout << "CoSimulation Adapter's function object : end()" << endl;
 
     // DisConnection between OpenFOAM and Kratos-CoSimulation using CoSimIO
     CoSimIO::Info connect_info;
@@ -381,7 +382,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::end()
 
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::write()
 {
-    std::cout << "\n" << "CoSimulation Adapter's function object : write()" << std::endl;
+    Pout << "CoSimulation Adapter's function object : write()" << endl;
 
     return true;
 }
@@ -400,18 +401,18 @@ std::string Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::determin
         if (p_.dimensions() == pressureDimensionsCompressible)
         {
             solverType_ = "compressible";
-            std::cout << "Solver Type : Compressible " << std::endl;
+            Pout << "Solver Type : Compressible " << endl;
         }
         else if (p_.dimensions() == pressureDimensionsIncompressible)
         {
             solverType_ = "incompressible";
-            std::cout << "Solver Type : InCompressible " << std::endl;
+            Pout << "Solver Type : InCompressible " << endl;
         }
     }
 
     if(solverType_  == "unknown")
     {
-        std::cout << "Solver Type: Neither Compressible nor Incompresible" << std::endl;
+        Pout << "Solver Type: Neither Compressible nor Incompresible" << endl;
     }
 
     return solverType_;
@@ -594,7 +595,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
 
         // Throw an error if the patch was not found
         if (patchID == -1){
-            std::cout<< "ERROR: Patch " << (interfaces_.at(interface_index).patchNames).at(i) << " does not exist." << std::endl;
+            Pout << "ERROR: Patch " << (interfaces_.at(interface_index).patchNames).at(i) << " does not exist." << endl;
         }
 
     // Add the patch in the list

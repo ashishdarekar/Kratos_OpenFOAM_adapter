@@ -66,6 +66,15 @@ SourceFiles
 #include "turbulentTransportModel.H"
 #include "turbulentFluidThermoModel.H"
 
+//For MPI
+/* #include "UPstream.H"
+#include "PstreamReduceOps.H"
+#include "OSspecific.H"
+#include "PstreamGlobals.H"
+#include "SubList.H"
+#include "allReduce.H"
+ */
+
 // Main adapter header files
 // #include "CoSimulationAdapter.H"
 
@@ -130,7 +139,9 @@ private:
         //- For making geometry of a interface Mesh(Model Part)
         std::vector<vector> array_of_nodes;
 
-
+        // Parallel Related
+        int TotalNumOfProcesse = Pstream::nProcs();
+        int MyRank = Pstream::myProcNo();
 
 protected:
     //- Protected Data to set the parameters required for coupling
