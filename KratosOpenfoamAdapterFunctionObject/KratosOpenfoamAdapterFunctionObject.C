@@ -155,7 +155,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
         Pout << "Interfaces Reading: Done" << endl;
         Pout << "Number of interfaces found: " << num_interfaces_<< endl;
 
-        Pout << "**************** Exporting InterfaceMesh using ModelPart: Start ******************" <<endl;
+        Pout << "**************** Exporting InterfaceMesh using ModelPart: Start ******************" << endl;
         for(std::size_t j = 0; j < num_interfaces_; j++)
         {
             Pout << "Name of the interface under progress : " << interfaces_.at(j).nameOfInterface << endl;
@@ -283,7 +283,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             array_of_nodes.clear(); //Clear all the entries of array_nodes, so that new empty vector will be available for the comparision
 
         }
-        Pout << "*********************** Exporting InterfaceMesh using ModelPart: End ************************" << "\n" <<endl;
+        Pout << "**************** Exporting InterfaceMesh using ModelPart: End ********************" << endl;
 
     }
 
