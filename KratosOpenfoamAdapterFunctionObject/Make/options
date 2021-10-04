@@ -11,7 +11,11 @@ EXE_INC = \
     -I$(LIB_SRC)/TurbulenceModels/turbulenceModels/lnInclude \
     -I$(LIB_SRC)/TurbulenceModels/compressible/lnInclude \
     -I$(LIB_SRC)/TurbulenceModels/incompressible/lnInclude \
-    -I$(LIB_SRC)/triSurface/lnInclude
+    -I$(LIB_SRC)/triSurface/lnInclude \
+    -I$(MPI_ROOT) \
+    -I$(MPI_ROOT2) \
+    -I$(HOME)/Documents/MS/CoSimIO/co_sim_io/includes \
+    -L$(HOME)/Documents/MS/CoSimIO/bin
 
 LIB_LIBS = \
     -lfluidThermophysicalModels \
@@ -24,4 +28,5 @@ LIB_LIBS = \
     -lspecie \
     -lfileFormats \
     -lfiniteVolume \
-    -lmeshTools
+    -lmeshTools \
+    -lco_sim_io_mpi

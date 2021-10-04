@@ -168,6 +168,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             {
                 // Get the patchID
                 int patchID = mesh_.boundaryMesh().findPatchID((interfaces_.at(j).patchNames).at(i));
+                //int ashish = patchNeighbourField();
 
                 // Throw an error if the patch was not found
                 if (patchID == -1)
@@ -252,7 +253,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             settings.Set("echo_level", 0);
             settings.Set("version", "1.25");
 
-            auto connect_info = CoSimIO::Connect(settings);
+            auto connect_info = CoSimIO::ConnectMPI(settings, MPI_COMM_WORLD);
             COSIMIO_CHECK_EQUAL(connect_info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Connected);
             connection_name = connect_info.Get<std::string>("connection_name");
 
