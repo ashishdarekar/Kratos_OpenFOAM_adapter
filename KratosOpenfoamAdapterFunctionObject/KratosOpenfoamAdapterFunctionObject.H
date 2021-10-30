@@ -196,6 +196,7 @@ protected:
         bool calculateForces(std::size_t interface_index);
         std::string determineSolverType();
 
+        bool is_same_points(Foam::vector& pointX, Foam::vector& pointY);
         int compare_nodes(Foam::vector& pointX);
 
         //- Stress tensor (see the OpenFOAM "Forces" function object)

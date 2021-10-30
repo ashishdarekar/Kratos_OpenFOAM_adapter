@@ -168,7 +168,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             {
                 // Get the patchID
                 int patchID = mesh_.boundaryMesh().findPatchID((interfaces_.at(j).patchNames).at(i));
-                //int ashish = patchNeighbourField();
+
 
                 // Throw an error if the patch was not found
                 if (patchID == -1)
@@ -207,10 +207,71 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             std::vector<int> ElemIDs;
             ElemIDs.resize(interfaces_.at(j).numElements);
             int elemIndex = 1; //As element indexing starts with 1 in CoSimIO
+            //tmp<volScalarField> p = mesh_.lookupObject<volScalarField>("p");
 
             // Accessing the coordinates of nodes in the Inteface and making CoSimIO nodes and elements
             for(std::size_t i = 0; i < patchIDs.size(); i++)
             {
+                //********************** For Ghost Nodes calculations*********************************//
+                label patchIndex1 = mesh_.boundaryMesh().findPatchID(interfaces_.at(j).patchNames[i]);
+                label patchIndex2 ;
+                forAll ( mesh_.boundaryMesh() , ipatch )
+                {
+                    word BCtype = mesh_.boundaryMesh().types()[ipatch];
+                    if( BCtype == "processor" )
+                    {
+                        patchIndex2 = ipatch;
+                    }
+                }
+                Pout<<" \n Patch Id of the interface = " << patchIndex1 << " and patchId of the Processor = " << patchIndex2<< endl;
+
+                const UList<label> &bfaceCells1 = mesh_.boundaryMesh()[patchIndex1].faceCells();
+                const UList<label> &bfaceCells2 = mesh_.boundaryMesh()[patchIndex2].faceCells();
+
+                Pout<<" \n number of faces on interfaces = " << bfaceCells1.size() << " and number of faces on processor = " << bfaceCells2.size()<< endl;
+                int count =0;
+
+                forAll(bfaceCells1, bfacei1)
+                {
+                    const label& faceID1 = mesh_.boundaryMesh()[patchIndex1].start() + bfacei1;
+                    //Pout<<"before------->bfacei = " << bfacei << ", with face id = " << faceID << endl;
+                    forAll(mesh_.faces()[faceID1], nodei1)
+                    {
+                        const label& nodeID1 = mesh_.faces()[faceID1][nodei1];
+                        //Pout<<"Interface------->nodei1 = " << nodei1 << ", with node id = " << nodeID1 << endl;
+                        auto pointX = mesh_.points()[nodeID1];
+                        //Pout<<"{X,Y,Z = " << pointX[0] << " , " << pointX[1] << " , " <<pointX[2] << " }"<< endl;
+
+                        forAll(bfaceCells2, bfacei2)
+                        {
+                            const label& faceID2 = mesh_.boundaryMesh()[patchIndex2].start() + bfacei2;
+                            //Pout<<"before------->bfacei = " << bfacei << ", with face id = " << faceID << endl;
+                            forAll(mesh_.faces()[faceID2], nodei2)
+                            {
+                                const label& nodeID2 = mesh_.faces()[faceID2][nodei2]; //for OpenFOAM
+                                //Pout<<"Processor------->nodei2 = " << nodei2 << ", with node id = " << nodeID2 << endl;
+                                auto pointY = mesh_.points()[nodeID2];
+                                //Pout<<"{X,Y,Z = " << pointY[0] << " , " << pointY[1] << " , " <<pointY[2] << " }"<< endl;
+
+                                bool answer = is_same_points(pointX,pointY);
+                                if(answer ==1 )
+                                {
+                                    count ++;
+                                    Pout << "Found match in the nodeIDs with NodeID = "  << nodeID1 <<endl;
+                                    Pout<<"{X,Y,Z = " << pointY[0] << " , " << pointY[1] << " , " <<pointY[2] << " }"<< endl;
+
+                                }
+
+                            }
+
+                        }
+                    }
+
+                }
+
+                Pout << "Total counter = "  << count <<endl;
+                //********************** For Ghost Nodes calculations*********************************//
+
                 forAll(mesh_.boundary()[patchIDs[i]],facei)
                 {
                     const label& faceID = mesh_.boundaryMesh()[patchIDs[i]].start() + facei;
@@ -226,7 +287,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                         {
                             // Make CoSimIO Nodes
                             NodeIDs.push_back(nodeIndex); // Later used to make CoSimIO::Element
-                            CoSimIO::Node& node = model_part_interfaces_.at(j)->CreateNewNode( nodeIndex, pointX[0], pointX[1], pointX[2]);
+                            model_part_interfaces_.at(j)->CreateNewNode( nodeIndex, pointX[0], pointX[1], pointX[2]);
 
                             array_of_nodes.push_back(pointX);// Push new node in the list to compare
 
@@ -240,11 +301,26 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                     }
 
                     ElemIDs.push_back(elemIndex); // For future use
-                    CoSimIO::Element& element = model_part_interfaces_.at(j)->CreateNewElement( elemIndex, CoSimIO::ElementType::Quadrilateral2D4, connectivity );
+                    model_part_interfaces_.at(j)->CreateNewElement( elemIndex, CoSimIO::ElementType::Quadrilateral2D4, connectivity );
                     elemIndex++;
                 }
             }
             Pout << "Name of the interface done : " << interfaces_.at(j).nameOfInterface << endl;
+
+            /*forAll ( mesh_.boundaryMesh() , ipatch )
+            {
+                word BCtype = mesh_.boundaryMesh().types()[ipatch];
+                const UList<label> &bfaceCells = mesh_.boundaryMesh()[ipatch].faceCells();
+                Pout<<"ipatch = " << ipatch<< " and size" << bfaceCells.size() << endl;
+
+                if( BCtype == "processor" )
+                {
+                    Pout<<"Processor_ipatch = " << ipatch<< " and size = " << bfaceCells.size() << endl;
+                }
+
+            }
+            Pout << "Ashish 2.2" <<endl; */
+
 
             // Connection between openFOAM and Kratos-CoSimulation using CoSimIO
             CoSimIO::Info settings;
@@ -324,6 +400,11 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         connect_info.Set("connection_name", connection_name);
         connect_info = CoSimIO::ExportData(connect_info, interfaces_.at(i).data_to_send);
 
+        for(std::size_t p=0; p<interfaces_.at(i).data_to_send.size(); p++)
+        {
+            Pout<<"force output : " <<interfaces_.at(i).data_to_send.at(p)<<endl;
+        }
+
         Pout << runTime_.timeName() << " : Data has been exported from OpenFOAM to CoSimulation (interface name = " << interfaces_.at(i).nameOfInterface << ") , Force values with array size = " << interfaces_.at(i).data_to_send.size() << endl;
     }
 
@@ -339,6 +420,11 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         COSIMIO_CHECK_EQUAL(interfaces_.at(i).data_to_recv.size() , (interfaces_.at(i).numNodes) * dim ); //Check size of Receive data = Number of nodes*dim Is it require??
 
         Pout << runTime_.timeName() << " : Data has been imported from CoSimulation to OpenFOAM: (interface name = " << interfaces_.at(i).nameOfInterface << ") , Disp values with array size = " << interfaces_.at(i).data_to_recv.size() << endl;
+
+        for(std::size_t p=0; p<interfaces_.at(i).data_to_recv.size(); p++)
+        {
+            Pout<<"disp intput : " <<interfaces_.at(i).data_to_recv.at(p)<<endl;
+        }
 
         Pout << "Displacement replacement started for the interface : " << interfaces_.at(i).nameOfInterface << endl;
 
@@ -420,7 +506,7 @@ std::string Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::determin
 }
 
 // To compare the Foam::Vector. Check whether it is really required?
-bool is_same_points(Foam::vector& pointX, Foam::vector& pointY)
+bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::is_same_points(Foam::vector& pointX, Foam::vector& pointY)
 {
     if(pointX[0] == pointY[0] && pointX[1] == pointY[1] && pointX[2] == pointY[2])
         return true;
