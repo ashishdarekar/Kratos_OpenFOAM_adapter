@@ -15,6 +15,7 @@ EXE_INC = \
     -I$(MPI_ROOT) \
     -I$(MPI_ROOT2) \
     -I$(HOME)/Documents/MS/CoSimIO/co_sim_io/includes \
+    -I$(HOME)/Documents/MS/CoSimIO \
     -L$(HOME)/Documents/MS/CoSimIO/bin
 
 LIB_LIBS = \
