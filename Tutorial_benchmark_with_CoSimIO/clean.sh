@@ -2,9 +2,10 @@
 set -e -u
 
 echo "--- Cleaning CoSimulation result files in $(pwd)"
-rm -rfv .CoSimIOFileComm_Openfoam_Adapter_Openfoam_Kratos_Wrapper/
+rm -rfv .CoSimIOComm_Openfoam_Adapter_Openfoam_Kratos_Wrapper/
 rm -rfv vtk_output/
 rm -rfv vtk_output_coupling/
+rm -rfv Wall_Structure_partitioned/
 
 echo "--- Cleaning OpenFOAM result files in $(pwd)"
 if [ -n "${WM_PROJECT:-}" ] || error "No OpenFOAM environment is active."; then
@@ -14,9 +15,9 @@ if [ -n "${WM_PROJECT:-}" ] || error "No OpenFOAM environment is active."; then
     rm -rfv 0/uniform/functionObjects/functionObjectProperties
 fi
 
-echo "--- Cleaning logfiles"
-rm logopenfoam
-rm logkratos
+#echo "--- Cleaning logfiles"
+#rm logopenfoam
+#rm logkratos
 
 echo "--- Cleaning Post-processing files in $(pwd)"
 rm disp.txt
