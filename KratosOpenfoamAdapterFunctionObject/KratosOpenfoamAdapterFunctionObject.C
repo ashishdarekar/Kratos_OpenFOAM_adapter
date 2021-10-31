@@ -212,7 +212,8 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             for(std::size_t i = 0; i < patchIDs.size(); i++)
             {
                 label patchIndex1 = mesh_.boundaryMesh().findPatchID(interfaces_.at(j).patchNames[i]);
-                label patchIndex2 ;
+                label patchIndex2 = 0; //Check the default value, What should I provide?
+
                 forAll ( mesh_.boundaryMesh() , ipatch )
                 {
                     word BCtype = mesh_.boundaryMesh().types()[ipatch];
@@ -221,12 +222,8 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                         patchIndex2 = ipatch;
                     }
                 }
-                Pout<<" \n Patch Id of the interface = " << patchIndex1 << " and patchId of the Processor = " << patchIndex2<< endl;
-
                 const UList<label> &bfaceCells1 = mesh_.boundaryMesh()[patchIndex1].faceCells();
                 const UList<label> &bfaceCells2 = mesh_.boundaryMesh()[patchIndex2].faceCells();
-
-                Pout<<" \n number of faces on interfaces = " << bfaceCells1.size() << " and number of faces on processor = " << bfaceCells2.size()<< endl;
 
                 int is_ghost_node = 0;
                 forAll(bfaceCells1, bfacei1)
@@ -246,36 +243,28 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                             NodeIDs.push_back(nodeIndex); // Later used to make CoSimIO::Element
 
                             //While creation of node check if it has to be created in the way of ghost or local
-                            //is_ghost_node = functiontocheckghost(); //1 if ghost node
-                            forAll(bfaceCells2, bfacei2)
+                            forAll(bfaceCells2, bfacei2) //compare with all the nodes in the Processor common patch
                             {
                                 const label& faceID2 = mesh_.boundaryMesh()[patchIndex2].start() + bfacei2;
-                                //Pout<<"before------->bfacei = " << bfacei << ", with face id = " << faceID << endl;
                                 forAll(mesh_.faces()[faceID2], nodei2)
                                 {
                                     const label& nodeID2 = mesh_.faces()[faceID2][nodei2]; //for OpenFOAM
-                                    //Pout<<"Processor------->nodei2 = " << nodei2 << ", with node id = " << nodeID2 << endl;
                                     auto pointY = mesh_.points()[nodeID2];
-                                    //Pout<<"{X,Y,Z = " << pointY[0] << " , " << pointY[1] << " , " <<pointY[2] << " }"<< endl;
 
-                                    bool answer = is_same_points(pointX,pointY);
-                                    if(answer == 1 )
+                                    if(is_same_points(pointX,pointY) == 1 )
                                     {
-                                        Pout << "Found match in the nodeIDs with NodeID = "  << nodeID1 <<endl;
-                                        Pout<<"{X,Y,Z = " << pointY[0] << " , " << pointY[1] << " , " <<pointY[2] << " }"<< endl;
                                         is_ghost_node = 1; //need to create this node as a gghost node
-
                                     }
                                 }
                             }
 
                             if(is_ghost_node){
                                 const processorPolyPatch& pp = refCast<const processorPolyPatch>( mesh_.boundaryMesh()[patchIndex2] );
-                                Pout << " Neightbour processor rank by calculation =  "  << pp.neighbProcNo() << endl;
                                 model_part_interfaces_.at(j)->CreateNewGhostNode( nodeIndex, pointX[0], pointX[1], pointX[2], pp.neighbProcNo());
                                 is_ghost_node = 0; //make it zero again
                             }
-                            else{
+                            else
+                            {
                                 model_part_interfaces_.at(j)->CreateNewNode( nodeIndex, pointX[0], pointX[1], pointX[2]);
                             }
 
