@@ -124,6 +124,85 @@ private:
     int dim = 3; //Dimension of the problem, need to check how we can get this? We will provide this in config file.
     double thick = 1.0; //Thickness of the problem , Added to make the force value independent of the Thickess for 2D
 
+    class Node
+    {
+        private:
+            uint localNodeIndex_;
+            uint nodeIndexforCoSim_;
+            vector position_;
+            bool ghost_ = 0;
+
+        public:
+            Node(vector position, uint localNodeIndex, uint nodeIndexforCoSim, bool is_ghost_node){
+                localNodeIndex_ = localNodeIndex;
+                nodeIndexforCoSim_ = nodeIndexforCoSim;
+                position_ = position;
+                ghost_ = is_ghost_node;
+            };
+
+            vector getNodePosition(){
+                return position_;
+            };
+
+            uint getNodeIndexForCoSim(){
+                return nodeIndexforCoSim_;
+            };
+
+            void setNodeIndexForCoSim(uint index){
+                nodeIndexforCoSim_ = index;
+            };
+
+            uint getLocalNodeIndex(){
+                return localNodeIndex_;
+            };
+
+            void setLocalNodeIndex(uint index){
+                localNodeIndex_ = index;
+            };
+
+            bool getGhostStatus(){return ghost_;};
+
+    };
+
+    std::vector<Node> Interface_nodes;
+
+    class Element
+    {
+        private:
+            uint localElementIndex_;
+            std::vector<uint> elementalNodeIndexes_;
+            std::vector<Node> elementalNodes_;
+            double forceValue;
+
+        public:
+            Element(uint localElementIndex){
+                localElementIndex_ = localElementIndex;
+            };
+
+            uint getLocalElementIndex(){
+                return localElementIndex_;
+            };
+
+            void addNodeIndexInList(uint nodeIndex){
+                elementalNodeIndexes_.push_back(nodeIndex);
+            };
+
+            std::vector<uint> getElementalNodeIndexes(){
+                return elementalNodeIndexes_;
+            };
+
+            void addNodesInList(Node nodei){
+                elementalNodes_.push_back(nodei);
+            };
+
+            std::vector<Node> getElementalNodes(){
+                return elementalNodes_;
+            }
+    };
+
+
+    std::vector<Element> Interface_elements;
+
     // Private Member Functions
 
         //- Disallow default bitwise copy construct

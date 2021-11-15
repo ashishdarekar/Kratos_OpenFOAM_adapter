@@ -1,7 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "Wall_Structure",
-        "parallel_type"   : "MPI",
+        "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
         "end_time"        : 5.0,
         "echo_level"      : 4
@@ -32,9 +32,9 @@
         "residual_relative_tolerance"        : 1e-7,
         "residual_absolute_tolerance"        : 1e-7,
         "max_iteration"                      : 20,
-        /* "linear_solver_settings"             : {
+        "linear_solver_settings"             : {
             "solver_type" : "LinearSolversApplication.sparse_qr"
-        }, */
+        },
         "rotation_dofs"            : false
     },
     "processes" :
@@ -93,7 +93,7 @@
                 },
                 "output_variables" : ["DISPLACEMENT"]
             }
-            },{
+            }/* ,{
                 "python_module"   : "compare_two_files_check_process",
                 "kratos_module"   : "KratosMultiphysics",
                 "help"            : "",
@@ -104,7 +104,7 @@
                     "comparison_type"     : "dat_file_variables_time_history",
                     "tolerance" : 1e-3
                 }
-            }
+            } */
             ]
     },
     "output_processes" : {
