@@ -171,7 +171,7 @@ private:
         private:
             uint localElementIndex_;
             std::vector<uint> elementalNodeIndexes_;
-            std::vector<Node> elementalNodes_;
+            std::vector<Node> elementalNodes_; //Not useful unless it contains the actual nodes
             double forceValue;
 
         public:
