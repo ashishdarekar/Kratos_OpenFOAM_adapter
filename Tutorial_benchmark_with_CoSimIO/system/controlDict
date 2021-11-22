@@ -24,7 +24,7 @@ startTime           0;
 
 stopAt              endTime;
 
-endTime             5.0; //25
+endTime             50.0; //25
 
 deltaT              0.01;//0.001
 
@@ -56,7 +56,7 @@ functions
     KratosOpenfoamAdapterFunctionObject1
     {
         type KratosOpenfoamAdapterFunctionObject;
-        libs ("libKratosOpenfoamAdapterFunctionObjectFunctionObjects.so");
+        libs ("../KratosOpenfoamAdapterFunctionObject/libKratosOpenfoamAdapterFunctionObjectFunctionObjects.so");
 
         participant Fluid;
         dim 3;

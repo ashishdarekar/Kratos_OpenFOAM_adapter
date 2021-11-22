@@ -2,28 +2,32 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time" : 5.0,
+        "end_time" : 50.0,
         "echo_level" : 4,
-        "print_colors" : true,
+        "print_colors" : false,
         "parallel_type" : "MPI"
     },
     "solver_settings" :
     {
         "type" : "coupled_solvers.gauss_seidel_weak",
         "echo_level" : 4,
-        /*"predictors" : [
+        "predictors" : [
             {
                 "type" : "average_value_based",
                 "solver"         : "Openfoam_Kratos_Wrapper",
                 "data_name"      : "load_cells_interface_flap",
                 "echo_level" : 4
             }
-        ],*/
+        ],
         "data_transfer_operators" : {
             "mapper" : {
                 "type" : "kratos_mapping",
                 "mapper_settings" : {
-                    "mapper_type" : "nearest_neighbor"
+                    "mapper_type" : "nearest_neighbor",
+                    "echo_level" : 2,
+                    "search_settings" : {
+                        "search_radius" : 2
+                    }
                 }
             }
         },
@@ -71,8 +75,8 @@
                 "solver"         : "Openfoam_Kratos_Wrapper",
                 "data_name"      : "load_cells_interface_flap",//Is it correct?(Ask Philipp)
                 "echo_level"     : 4
-            }
-            /* "coupling_output_1" : {
+            },
+            "coupling_output_1" : {
                 "type"          : "coupling_output",
                 "solver"        : "Openfoam_Kratos_Wrapper",
                 "execution_point" : "finalize_solution_step",
@@ -80,15 +84,13 @@
                     "model_part_name"                             : "interface_flap",
                     "output_control_type"                         : "step",
                     "output_interval"                             : 1,
-                    "file_format"                                 : "ascii",
-                    "output_precision"                            : 7,
                     "output_sub_model_parts"                      : false,
                     "output_path"                                 : "vtk_output_coupling",
                     "save_output_files_in_folder"                 : true,
                     "nodal_solution_step_data_variables"          : ["FORCE"],
                     "element_data_value_variables"                : ["FORCE"]
                 }
-            } */
+            }
         },
         "solvers" :
         {
@@ -103,6 +105,7 @@
                 "io_settings" : {
                     "type"       : "kratos_co_sim_io",
                     "echo_level" : 4,
+                    //"communication_format" : "pipe",
                     "connect_to" : "Openfoam_Adapter"
                 },
                 "data" : {
