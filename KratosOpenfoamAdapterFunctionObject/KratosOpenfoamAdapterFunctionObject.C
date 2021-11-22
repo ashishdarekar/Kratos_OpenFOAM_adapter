@@ -1117,7 +1117,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
             int iterator = 0;
             forAll(point_disp->boundaryFieldRef()[patchIndex] ,k)
             {
-                Pout<< "Displ node number = " << k <<endl;
+                //Pout<< "Displ node number = " << k <<endl;
                 pointDisplacementFluidPatch[k][0] = interfaces_.at(i).data_to_recv[iterator++];
                 pointDisplacementFluidPatch[k][1] = interfaces_.at(i).data_to_recv[iterator++];
                 if (dim ==3)

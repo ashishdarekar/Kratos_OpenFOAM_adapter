@@ -69,10 +69,10 @@
             "mapping_element_node_interface_flap" : {
                 "type"           : "elemental_data_to_nodal_data",
                 "solver"         : "Openfoam_Kratos_Wrapper",
-                "data_name"      : "load_cells_interface_flap",
+                "data_name"      : "load_cells_interface_flap",//Is it correct?(Ask Philipp)
                 "echo_level"     : 4
-            },
-            "coupling_output_1" : {
+            }
+            /* "coupling_output_1" : {
                 "type"          : "coupling_output",
                 "solver"        : "Openfoam_Kratos_Wrapper",
                 "execution_point" : "finalize_solution_step",
@@ -88,7 +88,7 @@
                     "nodal_solution_step_data_variables"          : ["FORCE"],
                     "element_data_value_variables"                : ["FORCE"]
                 }
-            }
+            } */
         },
         "solvers" :
         {
