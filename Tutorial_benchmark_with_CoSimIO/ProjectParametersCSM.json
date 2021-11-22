@@ -3,7 +3,7 @@
         "problem_name"    : "Wall_Structure",
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
-        "end_time"        : 5.0,
+        "end_time"        : 50.0,
         "echo_level"      : 4
     },
     "solver_settings"          : {
@@ -120,7 +120,7 @@
                 "file_format"                                 : "ascii",
                 "output_precision"                            : 7,
                 "output_sub_model_parts"                      : false,
-                "folder_name"                                 : "vtk_output",
+                "folder_name"                                 : "vtk_output_structure",
                 "save_output_files_in_folder"                 : true,
                 "nodal_solution_step_data_variables"          : ["DISPLACEMENT","POINT_LOAD"]
             }

@@ -1,1 +1,6 @@
 .vscode/settings.json
+
+*.so
+*.vtk
+*.o
+*Tutorial_benchmark_with_CoSimIO/
