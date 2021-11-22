@@ -1078,10 +1078,10 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         connect_info.Set("connection_name", connection_name);
         connect_info = CoSimIO::ExportData(connect_info, interfaces_.at(i).data_to_send);
 
-        for(std::size_t p=0; p<interfaces_.at(i).data_to_send.size(); p++)
+        /* for(std::size_t p=0; p<interfaces_.at(i).data_to_send.size(); p++)
         {
             Pout<<"force output : " <<interfaces_.at(i).data_to_send.at(p)<<endl;
-        }
+        } */
 
         Pout << runTime_.timeName() << " : Data has been exported from OpenFOAM to CoSimulation (interface name = " << interfaces_.at(i).nameOfInterface << ") , Force values with array size = " << interfaces_.at(i).data_to_send.size() << endl;
     }
@@ -1099,10 +1099,10 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 
         Pout << runTime_.timeName() << " : Data has been imported from CoSimulation to OpenFOAM: (interface name = " << interfaces_.at(i).nameOfInterface << ") , Disp values with array size = " << interfaces_.at(i).data_to_recv.size() << endl;
 
-        for(std::size_t p=0; p<interfaces_.at(i).data_to_recv.size(); p++)
+        /* for(std::size_t p=0; p<interfaces_.at(i).data_to_recv.size(); p++)
         {
             Pout<<"disp intput : " <<interfaces_.at(i).data_to_recv.at(p)<<endl;
-        }
+        } */
 
         Pout << "Displacement replacement started for the interface : " << interfaces_.at(i).nameOfInterface << endl;
 

@@ -73,7 +73,7 @@
             "mapping_element_node_interface_flap" : {
                 "type"           : "elemental_data_to_nodal_data",
                 "solver"         : "Openfoam_Kratos_Wrapper",
-                "data_name"      : "load_cells_interface_flap",//Is it correct?(Ask Philipp)
+                "data_name"      : "load_cells_interface_flap",
                 "echo_level"     : 4
             },
             "coupling_output_1" : {
