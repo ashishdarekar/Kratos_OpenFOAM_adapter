@@ -4,3 +4,5 @@
 *.vtk
 *.o
 *Tutorial_benchmark_with_CoSimIO/
+*KratosOpenfoamAdapterFunctionObject/lnInclude/
+*KratosOpenfoamAdapterFunctionObject/Make/
