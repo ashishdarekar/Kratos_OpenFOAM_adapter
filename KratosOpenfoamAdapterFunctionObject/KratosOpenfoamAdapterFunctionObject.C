@@ -172,7 +172,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                 // Get the patchID
                 int patchID = mesh_.boundaryMesh().findPatchID((interfaces_.at(j).patchNames).at(i));
 
-
                 // Throw an error if the patch was not found
                 if (patchID == -1)
                 {
@@ -183,184 +182,183 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                 patchIDs.push_back(patchID);
             }
 
-            // Count the Nodes for all the patches in that interface
-            for (std::size_t i = 0; i < patchIDs.size(); i++)
-            {
-                interfaces_.at(j).numNodes += mesh_.boundaryMesh()[patchIDs.at(i)].localPoints().size();
-            }
-            if(MyRank == 0 ) {Pout << "Total Number of Nodes in this interface: " << interfaces_.at(j).numNodes  << endl;}
-
-            // Count the number of elements/faces for all the patches in that interface
-            for (std::size_t i = 0; i < patchIDs.size(); i++)
-            {
-                interfaces_.at(j).numElements += mesh_.boundary()[patchIDs[i]].size();
-            }
-
-            if(MyRank == 0 ) {Pout << "Total Number of Elements/faces in this interface: " << interfaces_.at(j).numElements << endl;}
-
-            // Make CoSimIO::ModelPart and push in the array of model_part_interfaces
-            model_part_interfaces_.push_back(CoSimIO::make_unique<CoSimIO::ModelPart>(interfaces_.at(j).nameOfInterface));
-
-            // For Nodes and Element IDs for CoSimIO
-            if(MyRank == 0 ) {Pout << "Creating Model Part (Nodes and Elements) for CoSimIO : start" << endl;}
-
             //New code 22.11.2021
             if(1)
             {
+                scalarListList sendDataNumNodeIndex(Pstream::nProcs());
+                scalarListList recvDataNumNodeIndex(Pstream::nProcs());
+
+                // Count the Nodes for all the patches in that interface
+                for (std::size_t i = 0; i < patchIDs.size(); i++)
+                {
+                    interfaces_.at(j).numNodes += mesh_.boundaryMesh()[patchIDs.at(i)].localPoints().size();
+                }
+                for(int i=0; i< TotalNumOfProcesses ; i++)
+                {
+                    sendDataNumNodeIndex[i].setSize(1);
+                    sendDataNumNodeIndex[i][0] = interfaces_.at(j).numNodes ;
+                }
+
+                //Pout << "Total Number of Nodes in this interface: " << interfaces_.at(j).numNodes  << endl;
+
+                // Count the number of elements/faces for all the patches in that interface
+                for (std::size_t i = 0; i < patchIDs.size(); i++)
+                {
+                    interfaces_.at(j).numElements += mesh_.boundary()[patchIDs[i]].size();
+                }
+
+                //Pout << "Total Number of Elements/faces in this interface: " << interfaces_.at(j).numElements << endl;
+
+                // Make CoSimIO::ModelPart and push in the array of model_part_interfaces
+                model_part_interfaces_.push_back(CoSimIO::make_unique<CoSimIO::ModelPart>(interfaces_.at(j).nameOfInterface));
+
+                //Pout << "Creating Model Part (Nodes and Elements) for CoSimIO : start" << endl;
+
+                //MPI Exchange to know start Index for Node formation
+                Pstream::exchange<scalarList, scalar>(sendDataNumNodeIndex, recvDataNumNodeIndex);
+
+                int nodeIndex = 1 ; //Default value of Serial run
+                int elemIndex = 1;
+                int nighbor_proc_id = 0;
+                for(int i = 0 ; i < MyRank; i++)
+                {
+                    nodeIndex += recvDataNumNodeIndex[i][0];
+                }
+                Pout << "NodeIndex starts from = " << nodeIndex <<endl;
+
+                // Accessing the coordinates of all nodes in the Inteface and collecting nodal and elemental data
+                for(std::size_t i = 0; i < patchIDs.size(); i++)
+                {
+                    label patchIndex1 = mesh_.boundaryMesh().findPatchID(interfaces_.at(j).patchNames[i]); //Patch Id of Interface Flap
+                    const UList<label> &bfaceCells1 = mesh_.boundaryMesh()[patchIndex1].faceCells();
+                    label patchIndex2 = 0; //Check the default value, What should I provide?
+
+                    // Travel through all the nodes in that MPI Rank
+                    forAll(bfaceCells1, bfacei1)
+                    {
+                        const label& faceID1 = mesh_.boundaryMesh()[patchIDs[i]].start() + bfacei1;
+
+                        Element new_element = Element(elemIndex++);//make new element and then increase the elemental index counter
+
+                        forAll(mesh_.faces()[faceID1], nodei1)
+                        {
+                            const label& nodeID1 = mesh_.faces()[faceID1][nodei1]; //for OpenFOAM
+                            auto pointX = mesh_.points()[nodeID1];
+                            std::vector<bool> is_common_node(TotalNumOfProcesses , 0); //Total number of max neighbours  = NumOfProcesses-1
+
+                            int result = compare_nodes(pointX); // return nodeIndex(starting from 1) if node is already present and (-1) if node is not present
+
+                            if(result == (-1)) // For new node
+                            {
+                                //--------------------------------- FORALL Neighbouring Boundaries -----------------------------------//
+                                forAll(mesh_.boundaryMesh() , ipatch)
+                                {
+                                    word BCtype = mesh_.boundaryMesh().types()[ipatch];
+                                    if(BCtype == "processor")
+                                    {
+                                        patchIndex2 = ipatch; //patchIndex 2 can be replace with ipatch
+                                        const processorPolyPatch& pp = refCast<const processorPolyPatch>( mesh_.boundaryMesh()[patchIndex2] );
+                                        int nighbor_proc_id = pp.neighbProcNo();
+
+                                        const UList<label> &bfaceCells2 = mesh_.boundaryMesh()[patchIndex2].faceCells();
+
+                                        //While creation of node check if it has to be created in the way of ghost or local, CHECK it in ALL neighbour or sharing boundaries
+                                        forAll(bfaceCells2, bfacei2) //compare with all the nodes in the Processor common patch
+                                        {
+                                            const label& faceID2 = mesh_.boundaryMesh()[patchIndex2].start() + bfacei2;
+                                            forAll(mesh_.faces()[faceID2], nodei2)
+                                            {
+                                                const label& nodeID2 = mesh_.faces()[faceID2][nodei2]; //for OpenFOAM
+                                                auto pointY = mesh_.points()[nodeID2];
+
+                                                if(is_same_points(pointX,pointY) == 1 )//once this is found Go out from the For loop and create the node
+                                                {
+                                                    is_common_node.at(nighbor_proc_id) = 1; //need to create this node as a gghost node
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                bool new_node_created = 0; //ON/OFF
+                                for(int i = 0; i< TotalNumOfProcesses ; i++)
+                                {
+                                    if(is_common_node.at(i) == 1)//Any one
+                                    {
+                                        if(new_node_created == 0)
+                                        {
+                                            Node new_node = Node(pointX, nodeIndex, nodeIndex, i);//cosimIndex kept same as local index (by default), later need to change
+                                            new_node_created = 1;
+                                            Interface_nodes.push_back(new_node);
+                                            new_element.addNodeIndexInList(nodeIndex);// connectivity to make that element
+                                            new_element.addNodesInList(new_node);// Add new node in the element
+                                            nodeIndex++;
+                                            array_of_nodes.push_back(pointX);// Push new node in the list to compare
+                                        }
+                                        else{
+                                            Interface_nodes.at(nodeIndex-2).setCommonWithRank(i); //With which Id it is common
+                                        }
+                                    }
+                                }
+                                is_common_node.clear(); //No need anyways it will be deleted once it goes out of scope
+
+                                if(new_node_created == 0) //if Still node is not created then only create it normally
+                                {
+                                    Node new_node = Node(pointX, nodeIndex, nodeIndex, MyRank);//cosimIndex kept same as local index (by default), later need to change
+                                    Interface_nodes.push_back(new_node);
+                                    new_element.addNodeIndexInList(nodeIndex);// connectivity to make that element
+                                    new_element.addNodesInList(new_node);// Add new node in the element
+                                    nodeIndex++;
+                                    array_of_nodes.push_back(pointX);// Push new node in the list to compare
+                                }
+
+                            }
+                            else{
+                                //No need to produce new Node
+                                new_element.addNodeIndexInList(result);// connectivity to make that element
+                                new_element.addNodesInList(Interface_nodes.at(result-1));// Add old node in the List of nodes for that element, result-1 as Vector index starts from 0
+                            }
+                        }
+                        //Once Element is set push it to the List of Elements
+                        Interface_elements.push_back(new_element);
+                    }
+
+                    Pout << "[OF]Name of the interface done : " << interfaces_.at(j).nameOfInterface << endl;
+                    Pout << "[OF]Total number of Nodes formed: " << Interface_nodes.size() <<endl;
+                    Pout << "[OF]Total number of Elements formed: " << Interface_elements.size() <<endl;
+
+                    int num_common_nodes = 0;
+                    for(int j = 0 ; j<TotalNumOfProcesses ;j++)
+                    {
+                        for(auto& nodei: Interface_nodes)
+                        {
+                            if(nodei.getCommonWithRank().at(j) == 1)
+                            {
+                                num_common_nodes++;
+                            }
+                        }
+                        neighbour_ids_comm_num_of_nodes.push_back(j);
+                        neighbour_ids_comm_num_of_nodes.push_back(num_common_nodes);
+                        num_common_nodes = 0 ; //Reset to 0 , to count for next
+                    }
+
+                    /* Pout << "Size of the array = " << neighbour_ids_comm_num_of_nodes.size() << endl;
+
+                    for(auto& i : neighbour_ids_comm_num_of_nodes)
+                    {
+                        Pout << "Element of a array " << i << endl;
+                    } */
+                }
+
                 //Trying MPI_Send and MPI_Recv
                 scalarListList sendData(Pstream::nProcs());
                 scalarListList recvData(Pstream::nProcs());
                 //fill in the Send Data
                 sendData[0].setSize(16);
                 sendData[1].setSize(16);
-                int nodeIndex = 1 ; //Default value of Serial run
-                if(MyRank == 0)
-                {
-                    nodeIndex = 1;
-                }
-                else//MyRank ==1
-                {
-                    nodeIndex = 273;
-                }
-
-                int elemIndex = 1;
-                int nighbor_proc_id = 0;
-                // Accessing the coordinates of nodes in the Inteface and collecting nodal and elemental data
-                // Nodes which are common between the processes are given the "ghost_" = 1
-                if(1)
-                {
-                    for(std::size_t i = 0; i < patchIDs.size(); i++)
-                    {
-                        label patchIndex1 = mesh_.boundaryMesh().findPatchID(interfaces_.at(j).patchNames[i]); //Patch Id of Interface Flap
-                        const UList<label> &bfaceCells1 = mesh_.boundaryMesh()[patchIndex1].faceCells();
-                        //Pout << "Patch Id of Interface Flap patch in proc " << MyRank << " is =  " << patchIndex1 <<endl;
-
-                        label patchIndex2 = 0; //Check the default value, What should I provide?
-                        int num_common_nodes = 0;
-
-                        forAll(bfaceCells1, bfacei1)
-                        {
-                            const label& faceID1 = mesh_.boundaryMesh()[patchIDs[i]].start() + bfacei1;
-
-                            Element new_element = Element(elemIndex++);//make new element and then increase the elemental index counter
-
-                            forAll(mesh_.faces()[faceID1], nodei1)
-                            {
-                                const label& nodeID1 = mesh_.faces()[faceID1][nodei1]; //for OpenFOAM
-                                auto pointX = mesh_.points()[nodeID1];
-                                std::vector<int> is_common_node(TotalNumOfProcesses , 0); //Total number of max neighbours  = NumOfProcesses-1
-
-                                int result = compare_nodes(pointX); // return nodeIndex(starting from 1) if node is already present and (-1) if node is not present
-
-                                if(result == (-1)) // For new node
-                                {
-                                    //--------------------------------- FORALL Neighbouring Boundaries -----------------------------------//
-                                    forAll(mesh_.boundaryMesh() , ipatch)
-                                    {
-                                        word BCtype = mesh_.boundaryMesh().types()[ipatch];
-                                        if(BCtype == "processor")
-                                        {
-                                            patchIndex2 = ipatch; //patchIndex 2 can be replace with ipatch
-                                            const processorPolyPatch& pp = refCast<const processorPolyPatch>( mesh_.boundaryMesh()[patchIndex2] );
-                                            int nighbor_proc_id = pp.neighbProcNo();
-
-                                            const UList<label> &bfaceCells2 = mesh_.boundaryMesh()[patchIndex2].faceCells();
-
-                                            //While creation of node check if it has to be created in the way of ghost or local, CHECK it in ALL neighbour or sharing boundaries
-                                            forAll(bfaceCells2, bfacei2) //compare with all the nodes in the Processor common patch
-                                            {
-                                                const label& faceID2 = mesh_.boundaryMesh()[patchIndex2].start() + bfacei2;
-                                                forAll(mesh_.faces()[faceID2], nodei2)
-                                                {
-                                                    const label& nodeID2 = mesh_.faces()[faceID2][nodei2]; //for OpenFOAM
-                                                    auto pointY = mesh_.points()[nodeID2];
-
-                                                    if(is_same_points(pointX,pointY) == 1 )//once this is found Go out from the For loop and create the node
-                                                    {
-                                                        //Pout << "Found match in the nodeIDs with NodeID = "  << nodeID1 << " , " << nodeID2 << endl;
-                                                        //Pout<<"{X,Y,Z = " << pointY[0] << " , " << pointY[1] << " , " <<pointY[2] << " }"<< endl;
-                                                        is_common_node.at(nighbor_proc_id) = 1; //need to create this node as a gghost node
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    int new_node_created = 0; //ON/OFF
-                                    for(int i = 0; i< TotalNumOfProcesses ; i++)
-                                    {
-                                        if(is_common_node.at(i) == 1)//Any one
-                                        {
-                                            if(new_node_created == 0)
-                                            {
-                                                Node new_node = Node(pointX, nodeIndex, nodeIndex, i);//cosimIndex kept same as local index (by default), later need to change
-                                                new_node_created = 1;
-                                                Interface_nodes.push_back(new_node);
-                                                new_element.addNodeIndexInList(nodeIndex);// connectivity to make that element
-                                                new_element.addNodesInList(new_node);// Add new node in the element
-                                                nodeIndex++;
-                                                array_of_nodes.push_back(pointX);// Push new node in the list to compare
-                                            }
-                                            else{
-                                                Interface_nodes.at(nodeIndex-2).setCommonWithRank(i); //With which Id it is common
-                                            }
-                                        }
-                                    }
-                                    is_common_node.clear(); //For next Node
-
-                                    if(new_node_created == 0) //Still node is not created then only create it normally
-                                    {
-                                        Node new_node = Node(pointX, nodeIndex, nodeIndex, MyRank);//cosimIndex kept same as local index (by default), later need to change
-                                        Interface_nodes.push_back(new_node);
-                                        new_element.addNodeIndexInList(nodeIndex);// connectivity to make that element
-                                        new_element.addNodesInList(new_node);// Add new node in the element
-                                        nodeIndex++;
-                                        array_of_nodes.push_back(pointX);// Push new node in the list to compare
-                                    }
-
-                                }
-                                else{
-                                    //No need to produce new Node
-                                    new_element.addNodeIndexInList(result);// connectivity to make that element
-                                    new_element.addNodesInList(Interface_nodes.at(result-1));// Add old node in the List of nodes for that element, result-1 as Vector index starts from 0
-                                }
-                            }
-                            //Once Element is set push it to the List of Elements
-                            Interface_elements.push_back(new_element);
-                        }
-
-                        Pout << "[OF]Name of the interface done : " << interfaces_.at(j).nameOfInterface << endl;
-                        Pout << "[OF]Total number of Nodes formed: " << Interface_nodes.size() <<endl;
-                        Pout << "[OF]Total number of Elements formed: " << Interface_elements.size() <<endl;
-
-                        for(int j = 0 ; j<TotalNumOfProcesses ;j++)
-                        {
-                            for(auto& nodei: Interface_nodes)
-                            {
-                                if(nodei.getCommonWithRank().at(j) == 1)
-                                {
-                                    num_common_nodes++;
-                                }
-                            }
-                            //Pout << "[OF]Total number of Common Nodes formed for Rank = " << MyRank << " With the Rank = "  << j << " are = " << num_common_nodes<<endl;
-                            neighbour_ids_comm_num_of_nodes.push_back(j);
-                            neighbour_ids_comm_num_of_nodes.push_back(num_common_nodes);
-                            num_common_nodes = 0 ; //Reset to 0 , to count for next
-                        }
-
-                        Pout << "Size of the array = " << neighbour_ids_comm_num_of_nodes.size() << endl;
-
-                        for(auto& i : neighbour_ids_comm_num_of_nodes)
-                        {
-                            Pout << "Element of a array " << i << endl;
-                        }
-                    }
-
-                }
 
                 if(0)
                 {
-                    // Get the Ghost data from Proc 1 to Proc 0
                     int counter = 0;
                     if(MyRank == 1)
                     {

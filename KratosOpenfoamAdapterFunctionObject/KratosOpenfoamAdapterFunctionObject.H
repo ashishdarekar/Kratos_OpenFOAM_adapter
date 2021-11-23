@@ -131,7 +131,7 @@ private:
             int nodeIndexforCoSim_;
             vector position_;
             bool ghost_ = 0;
-            std::vector<bool>commonWithWhichRanks;
+            std::vector<bool>commonWithWhichRanks; //With howmany Ranks this node is shared
 
         public:
             Node(vector position, int localNodeIndex, int nodeIndexforCoSim, int commonRankFirstTime) : commonWithWhichRanks(Pstream::nProcs(),0){
