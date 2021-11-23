@@ -152,13 +152,16 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             }
         }
 
-        Pout << "Interfaces Reading: Done" << endl;
-        Pout << "Number of interfaces found: " << num_interfaces_<< endl;
+        if(MyRank == 0 )
+        {
+            Pout << "Interfaces Reading: Done" << endl;
+            Pout << "Number of interfaces found: " << num_interfaces_<< endl;
 
-        Pout << "**************** Exporting InterfaceMesh using ModelPart: Start ******************" << endl;
+            Pout << "**************** Exporting InterfaceMesh using ModelPart: Start ******************" << endl;
+        }
         for(std::size_t j = 0; j < num_interfaces_; j++)
         {
-            Pout << "Name of the interface under progress : " << interfaces_.at(j).nameOfInterface << endl;
+            if(MyRank == 0 ) {Pout << "Name of the interface under progress : " << interfaces_.at(j).nameOfInterface << endl;}
 
             // *******************************Create a mesh as a ModelPart************************************ //
             std::vector<int> patchIDs;
@@ -185,7 +188,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             {
                 interfaces_.at(j).numNodes += mesh_.boundaryMesh()[patchIDs.at(i)].localPoints().size();
             }
-            Pout << "Total Number of Nodes in this interface: " << interfaces_.at(j).numNodes  << endl;
+            if(MyRank == 0 ) {Pout << "Total Number of Nodes in this interface: " << interfaces_.at(j).numNodes  << endl;}
 
             // Count the number of elements/faces for all the patches in that interface
             for (std::size_t i = 0; i < patchIDs.size(); i++)
@@ -193,538 +196,15 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                 interfaces_.at(j).numElements += mesh_.boundary()[patchIDs[i]].size();
             }
 
-            Pout << "Total Number of Elements/faces in this interface: " << interfaces_.at(j).numElements << endl;
+            if(MyRank == 0 ) {Pout << "Total Number of Elements/faces in this interface: " << interfaces_.at(j).numElements << endl;}
 
             // Make CoSimIO::ModelPart and push in the array of model_part_interfaces
             model_part_interfaces_.push_back(CoSimIO::make_unique<CoSimIO::ModelPart>(interfaces_.at(j).nameOfInterface));
 
             // For Nodes and Element IDs for CoSimIO
-            Pout << "Creating Model Part (Nodes and Elements) for CoSimIO : start" << endl;
-            if(0)
-            {
-                int nodeIndex;
-                if(MyRank ==0)
-                {
-                    nodeIndex = 1; //As Node indexing starts with 1 in CoSimIO
-                }
-                else
-                {
-                    nodeIndex = 273;
+            if(MyRank == 0 ) {Pout << "Creating Model Part (Nodes and Elements) for CoSimIO : start" << endl;}
 
-                }
-
-                int elemIndex = 1; //As element indexing starts with 1 in CoSimIO
-
-                //Customization
-                vector point135(8.85, 5.97,  0.5);
-                vector point136(8.85, 5.97, -0.5);
-                vector point252(8.85, 6.03,  0.5);
-                vector point251(8.85, 6.03, -0.5);
-
-                // Accessing the coordinates of nodes in the Inteface and making CoSimIO nodes and elements
-                for(std::size_t i = 0; i < patchIDs.size(); i++)
-                {
-                    label patchIndex1 = mesh_.boundaryMesh().findPatchID(interfaces_.at(j).patchNames[i]);
-                    label patchIndex2 = 0; //Check the default value, What should I provide?
-
-                    forAll(mesh_.boundaryMesh() , ipatch)
-                    {
-                        word BCtype = mesh_.boundaryMesh().types()[ipatch];
-                        if( BCtype == "processor" )
-                        {
-                            patchIndex2 = ipatch;
-                        }
-                    }
-                    const UList<label> &bfaceCells1 = mesh_.boundaryMesh()[patchIndex1].faceCells();
-                    const UList<label> &bfaceCells2 = mesh_.boundaryMesh()[patchIndex2].faceCells();
-
-                    int is_ghost_node = 0;
-                    forAll(bfaceCells1, bfacei1)
-                    {
-                        const label& faceID1 = mesh_.boundaryMesh()[patchIDs[i]].start() + bfacei1;
-
-                        std::vector<CoSimIO::IdType> connectivity;
-                        forAll(mesh_.faces()[faceID1], nodei1)
-                        {
-                            const label& nodeID1 = mesh_.faces()[faceID1][nodei1]; //for OpenFOAM
-                            auto pointX = mesh_.points()[nodeID1];
-
-                            int result = compare_nodes(pointX); // return nodeIndex if node is already present and (-1) if node is not present
-
-                            if(result == (-1)) // For new node
-                            {
-                                //While creation of node check if it has to be created in the way of ghost or local
-                                forAll(bfaceCells2, bfacei2) //compare with all the nodes in the Processor common patch
-                                {
-                                    const label& faceID2 = mesh_.boundaryMesh()[patchIndex2].start() + bfacei2;
-                                    forAll(mesh_.faces()[faceID2], nodei2)
-                                    {
-                                        const label& nodeID2 = mesh_.faces()[faceID2][nodei2]; //for OpenFOAM
-                                        auto pointY = mesh_.points()[nodeID2];
-
-                                        if(is_same_points(pointX,pointY) == 1 )//once this is found Go out from the For loop and create the node
-                                        {
-                                            Pout << "Found match in the nodeIDs with NodeID = "  << nodeID1 << " , " << nodeID2 << endl;
-                                            Pout<<"{X,Y,Z = " << pointY[0] << " , " << pointY[1] << " , " <<pointY[2] << " }"<< endl;
-                                            is_ghost_node = 1; //need to create this node as a gghost node
-                                        }
-                                    }
-                                }
-
-                                //Creation of the node either normal of Ghost
-                                if(is_ghost_node && MyRank==1)
-                                {
-                                    if(is_same_points(pointX, point136))
-                                    {
-                                        Pout << "I m in point136 : Actaul node index going on = "<< nodeIndex <<endl;
-                                        const processorPolyPatch& pp = refCast<const processorPolyPatch>( mesh_.boundaryMesh()[patchIndex2] );
-                                        model_part_interfaces_.at(j)->CreateNewGhostNode( 136, pointX[0], pointX[1], pointX[2], pp.neighbProcNo());
-                                        {Pout << "Making ghost Node with Index = "<< 136 <<endl;}
-                                        is_ghost_node = 0; //make it zero again
-
-                                        //array_of_nodes.push_back(pointX);// Push new node in the list to compare
-                                        connectivity.push_back(136); // connectivity to make that element
-                                        //nodeIndex ++;
-                                    }else if(is_same_points(pointX, point135))
-                                    {
-                                        Pout << "I m in point135 : Actaul node index going on = "<< nodeIndex <<endl;
-                                        const processorPolyPatch& pp = refCast<const processorPolyPatch>( mesh_.boundaryMesh()[patchIndex2] );
-                                        model_part_interfaces_.at(j)->CreateNewGhostNode( 135, pointX[0], pointX[1], pointX[2], pp.neighbProcNo());
-                                        {Pout << "Making ghost Node with Index = "<< 135 <<endl;}
-                                        is_ghost_node = 0; //make it zero again
-
-                                        //array_of_nodes.push_back(pointX);// Push new node in the list to compare
-                                        connectivity.push_back(135); // connectivity to make that element
-                                        //nodeIndex ++;
-                                    }else if(is_same_points(pointX, point251))
-                                    {
-                                        Pout << "I m in point251 : Actaul node index going on = "<< nodeIndex <<endl;
-                                        const processorPolyPatch& pp = refCast<const processorPolyPatch>( mesh_.boundaryMesh()[patchIndex2] );
-                                        model_part_interfaces_.at(j)->CreateNewGhostNode( 251, pointX[0], pointX[1], pointX[2], pp.neighbProcNo());
-                                        {Pout << "Making ghost Node with Index = "<< 251 <<endl;}
-                                        is_ghost_node = 0; //make it zero again
-
-                                        //array_of_nodes.push_back(pointX);// Push new node in the list to compare
-                                        connectivity.push_back(251); // connectivity to make that element
-                                        //nodeIndex ++;
-                                    }else if(is_same_points(pointX, point252))
-                                    {
-                                        Pout << "I m in point252 : Actaul node index going on = "<< nodeIndex <<endl;
-                                        const processorPolyPatch& pp = refCast<const processorPolyPatch>( mesh_.boundaryMesh()[patchIndex2] );
-                                        model_part_interfaces_.at(j)->CreateNewGhostNode( 252, pointX[0], pointX[1], pointX[2], pp.neighbProcNo());
-                                        {Pout << "Making ghost Node with Index = "<< 252 <<endl;}
-                                        is_ghost_node = 0; //make it zero again
-
-                                        //array_of_nodes.push_back(pointX);// Push new node in the list to compare
-                                        connectivity.push_back(252); // connectivity to make that element
-                                        //nodeIndex ++;
-                                    }else
-                                    {
-                                        Pout << "I m in default : Actaul node index going on = "<< nodeIndex <<endl;
-                                        const processorPolyPatch& pp = refCast<const processorPolyPatch>( mesh_.boundaryMesh()[patchIndex2] );
-                                        model_part_interfaces_.at(j)->CreateNewGhostNode( nodeIndex, pointX[0], pointX[1], pointX[2], pp.neighbProcNo());
-
-                                        is_ghost_node = 0; //make it zero again
-
-                                        array_of_nodes.push_back(pointX);// Push new node in the list to compare
-                                        connectivity.push_back(nodeIndex); // connectivity to make that element
-                                        nodeIndex ++;
-                                    }
-
-                                    /* const processorPolyPatch& pp = refCast<const processorPolyPatch>( mesh_.boundaryMesh()[patchIndex2] );
-                                    model_part_interfaces_.at(j)->CreateNewGhostNode( nodeIndex, pointX[0], pointX[1], pointX[2], pp.neighbProcNo());//ASk Ghost nodes ID should start from 1???
-                                    if(1)
-                                        {Pout << "Making Ghost Node with Index = "<< nodeIndex << " and original ID = " << nodeID1 << endl;}
-                                    is_ghost_node = 0; //make it zero again
-
-                                    array_of_nodes.push_back(pointX);// Push new node in the list to compare
-                                    connectivity.push_back(nodeIndex); // connectivity to make that element
-                                    nodeIndex++; */
-                                }
-                                else
-                                {
-                                    model_part_interfaces_.at(j)->CreateNewNode( nodeIndex, pointX[0], pointX[1], pointX[2]);
-                                    if(MyRank ==1)
-                                        {Pout << "Making Normal Node with Index = "<< nodeIndex << " and original ID = " << nodeID1 <<endl;}
-
-                                    array_of_nodes.push_back(pointX);// Push new node in the list to compare
-                                    connectivity.push_back(nodeIndex); // connectivity to make that element
-                                    nodeIndex++;
-                                }
-
-                            }
-                            else // Old node index just push in connectivity to make new element
-                            {
-                                if(MyRank ==1)
-                                    {Pout << "Found Repetitive node = "<< result <<endl;}
-                                if(MyRank ==1)
-                                {
-                                    result =result+272;
-                                }
-                                connectivity.push_back(result); // connectivity to make that element
-                            }
-                        }
-
-                        model_part_interfaces_.at(j)->CreateNewElement( elemIndex, CoSimIO::ElementType::Quadrilateral2D4, connectivity );
-                        if(MyRank ==1)
-                            {Pout << "Making Element with Index = "<< elemIndex << ": using nodeindexes ={" << connectivity.at(0) << "," << connectivity.at(1) << "," <<connectivity.at(2) << "," <<connectivity.at(3) << "}" <<endl;}
-                        elemIndex++;
-                    }
-
-                }
-
-                Pout << "Name of the interface done : " << interfaces_.at(j).nameOfInterface << endl;
-
-                Pout << "Total number of (local, Ghost, total) = (" << model_part_interfaces_.at(j)->NumberOfLocalNodes() << " , " <<model_part_interfaces_.at(j)->NumberOfGhostNodes() <<  " , "<<model_part_interfaces_.at(j)->NumberOfNodes() << " )"<<endl;
-                Pout << "Total number of Elements formed: " << model_part_interfaces_.at(j)->NumberOfElements() <<endl;
-
-
-                // iterate elements (with range based loop)
-                /* for (auto& element : model_part_interfaces_.at(j)->Elements()) {
-                    Pout<< "Element Id = " << element.Id() << " : Made up of following nodes: " <<endl;
-                    for (auto node_it=element.NodesBegin(); node_it!=element.NodesEnd(); ++node_it) {
-                        CoSimIO::Node& node = **node_it;
-                        Pout<< "Node Id = " << node.Id() << " : with Co-ordinates (x,y,z) = ("<< node.X() << " , " << node.Y() << " , " << node.Z() << ")" << endl;
-                    }
-                }
-
-                // iterate ghost nodes
-                for (auto& ghost_node : model_part_interfaces_.at(j)->GhostNodes()) {
-                    // do sth with node, e.g. print the id:
-                    Pout<< "Ghost Node Id = " << ghost_node.Id() << " : with Co-ordinates (x,y,z) = ("<< ghost_node.X() << " , " << ghost_node.Y() << " , " << ghost_node.Z() << ")" << endl;
-                } */
-
-            }
-
-            //New Code 14.11.2021
-            if(0)
-            {
-                int nodeIndex = 1;
-                int elemIndex = 1;
-                int num_ghost_nodes=0;
-                int nighbor_proc_id = 0;
-                // Accessing the coordinates of nodes in the Inteface and making CoSimIO nodes and elements
-                for(std::size_t i = 0; i < patchIDs.size(); i++)
-                {
-                    label patchIndex1 = mesh_.boundaryMesh().findPatchID(interfaces_.at(j).patchNames[i]);
-                    label patchIndex2 = 0; //Check the default value, What should I provide?
-
-                    forAll(mesh_.boundaryMesh() , ipatch)
-                    {
-                        word BCtype = mesh_.boundaryMesh().types()[ipatch];
-                        if( BCtype == "processor" )
-                        {
-                            patchIndex2 = ipatch;
-                        }
-                    }
-                    const UList<label> &bfaceCells1 = mesh_.boundaryMesh()[patchIndex1].faceCells();
-                    const UList<label> &bfaceCells2 = mesh_.boundaryMesh()[patchIndex2].faceCells();
-                    const processorPolyPatch& pp = refCast<const processorPolyPatch>( mesh_.boundaryMesh()[patchIndex2] );
-                    nighbor_proc_id = pp.neighbProcNo();
-
-                    int is_ghost_node = 0;
-
-                    forAll(bfaceCells1, bfacei1)
-                    {
-                        const label& faceID1 = mesh_.boundaryMesh()[patchIDs[i]].start() + bfacei1;
-                        Element new_element = Element(elemIndex++);//make new element and then increase the elemental index counter
-
-                        forAll(mesh_.faces()[faceID1], nodei1)
-                        {
-                            const label& nodeID1 = mesh_.faces()[faceID1][nodei1]; //for OpenFOAM
-                            auto pointX = mesh_.points()[nodeID1];
-
-                            int result = compare_nodes(pointX); // return nodeIndex(starting from 1) if node is already present and (-1) if node is not present
-
-                            if(result == (-1)) // For new node
-                            {
-                                //While creation of node check if it has to be created in the way of ghost or local
-                                forAll(bfaceCells2, bfacei2) //compare with all the nodes in the Processor common patch
-                                {
-                                    const label& faceID2 = mesh_.boundaryMesh()[patchIndex2].start() + bfacei2;
-                                    forAll(mesh_.faces()[faceID2], nodei2)
-                                    {
-                                        const label& nodeID2 = mesh_.faces()[faceID2][nodei2]; //for OpenFOAM
-                                        auto pointY = mesh_.points()[nodeID2];
-
-                                        if(is_same_points(pointX,pointY) == 1 )//once this is found Go out from the For loop and create the node
-                                        {
-                                            //Pout << "Found match in the nodeIDs with NodeID = "  << nodeID1 << " , " << nodeID2 << endl;
-                                            //Pout<<"{X,Y,Z = " << pointY[0] << " , " << pointY[1] << " , " <<pointY[2] << " }"<< endl;
-                                            is_ghost_node = 1; //need to create this node as a gghost node
-                                        }
-                                    }
-                                }
-
-                                if(is_ghost_node == 1){
-                                    //Node new_node = Node(pointX, nodeID1, nodeIndex, 1);
-                                    Node new_node = Node(pointX, nodeIndex, nodeIndex, 1);//cosimIndex kept same as local index (by default), later need to change
-                                    Interface_nodes.push_back(new_node);
-                                    new_element.addNodeIndexInList(nodeIndex);// connectivity to make that element
-                                    new_element.addNodesInList(new_node);// Add new node in the element
-                                    nodeIndex++;
-                                    array_of_nodes.push_back(pointX);// Push new node in the list to compare
-                                    is_ghost_node = 0; //For next Node
-                                }
-                                else{
-                                    Node new_node = Node(pointX, nodeIndex, nodeIndex, 0);//cosimIndex kept same as local index (by default), later need to change
-                                    Interface_nodes.push_back(new_node);
-                                    new_element.addNodeIndexInList(nodeIndex);// connectivity to make that element
-                                    new_element.addNodesInList(new_node);// Add new node in the element
-                                    nodeIndex++;
-                                    array_of_nodes.push_back(pointX);// Push new node in the list to compare
-                                }
-                            }
-                            else{
-                                //No need to produce new Node
-                                new_element.addNodeIndexInList(result);// connectivity to make that element
-                                new_element.addNodesInList(Interface_nodes.at(result-1));// Add old node in the List of nodes for that element, result-1 as Vector index starts from 0
-                            }
-                        }
-                        //Once Element is set push it to the List of Elements
-                        Interface_elements.push_back(new_element);
-                    }
-
-                }
-
-                Pout << "Name of the interface done : " << interfaces_.at(j).nameOfInterface << endl;
-
-                //Pout << "Total number of (local, Ghost, total) = (" << model_part_interfaces_.at(j)->NumberOfLocalNodes() << " , " <<model_part_interfaces_.at(j)->NumberOfGhostNodes() <<  " , "<<model_part_interfaces_.at(j)->NumberOfNodes() << " )"<<endl;
-                //Pout << "Total number of Elements formed: " << model_part_interfaces_.at(j)->NumberOfElements() <<endl;
-                Pout << "[OF]Total number of Nodes formed: " << Interface_nodes.size() <<endl;
-                Pout << "[OF]Total number of Elements formed: " << Interface_elements.size() <<endl;
-
-                for(auto& nodei: Interface_nodes)
-                {
-                    if(nodei.getGhostStatus())
-                    {
-                        num_ghost_nodes++;
-                    }
-                }
-
-                Pout << "[OF]Total number of Ghost Nodes formed: " << num_ghost_nodes<<endl;
-
-                int shift = Interface_nodes.size() - num_ghost_nodes ; //272-4 = 268 (for proc 0), //56-4 = 52(for proc 1)
-                int pass_ghost_counter = 0;
-
-                //Trying MPI_Send and MPI_Recv
-                scalarListList sendData(Pstream::nProcs());
-                scalarListList recvData(Pstream::nProcs());
-                //fill in the Send Data
-                sendData[0].setSize(16);
-                sendData[1].setSize(16);
-
-                int counter = 0;
-
-                //Making CoSim Nodes
-                if(MyRank == 0) //Ghost only in 0
-                {
-                    for(auto& nodei : Interface_nodes)
-                    {
-                        if(nodei.getGhostStatus())
-                        {
-                            vector nodePosition  = nodei.getNodePosition();
-                            nodei.setNodeIndexForCoSim(++shift);
-
-                            model_part_interfaces_.at(j)->CreateNewGhostNode( nodei.getNodeIndexForCoSim(), nodePosition[0], nodePosition[1], nodePosition[2], nighbor_proc_id);
-
-                            //if(MyRank == 0){Pout << "Making ghost Node with LocalIndex = "<<  nodei.getLocalNodeIndex() << " and CoSimNodeIndex = " << nodei.getNodeIndexForCoSim() <<endl;}
-                            pass_ghost_counter ++;
-                        }
-                        else
-                        {
-                            vector nodePosition  = nodei.getNodePosition();
-                            nodei.setNodeIndexForCoSim(nodei.getLocalNodeIndex() - pass_ghost_counter);
-                            model_part_interfaces_.at(j)->CreateNewNode( nodei.getNodeIndexForCoSim(), nodePosition[0], nodePosition[1], nodePosition[2]);
-                            //if(MyRank == 0) {Pout << "Making Normal Node with LocalIndex = "<<  nodei.getLocalNodeIndex() << " and CoSimNodeIndex = " << nodei.getNodeIndexForCoSim() <<endl;}
-                        }
-
-                    }
-
-                    Pout << "[COSIM]Total number of Nodes(local, Ghost, total) = (" << model_part_interfaces_.at(j)->NumberOfLocalNodes() << " , " <<model_part_interfaces_.at(j)->NumberOfGhostNodes() <<  " , "<<model_part_interfaces_.at(j)->NumberOfNodes() << " )"<<endl;
-
-                    //Making CoSim elements
-                    std::vector<CoSimIO::IdType> connectivity;
-                    for(auto& elementi : Interface_elements)
-                    {
-                        /* for(auto elementalNodeIndexi : elementi.getElementalNodeIndexes())
-                        {
-                            connectivity.push_back(elementalNodeIndexi);
-                        } */
-                        for(auto& elementalNodeIndexi : elementi.getElementalNodes())
-                        {
-                            connectivity.push_back(Interface_nodes.at(elementalNodeIndexi.getNodeIndexForCoSim()-1).getNodeIndexForCoSim());
-                        }
-
-                        model_part_interfaces_.at(j)->CreateNewElement( elementi.getLocalElementIndex(), CoSimIO::ElementType::Quadrilateral2D4, connectivity );
-                        connectivity.clear();
-                    }
-
-                    Pout << "[COSIM]Total number of Elements = " << model_part_interfaces_.at(j)->NumberOfElements() <<endl;
-
-                    // iterate ghost nodes
-                    for (auto& ghost_node : model_part_interfaces_.at(j)->GhostNodes()) {
-                        // do sth with node, e.g. print the id:
-                        //Pout<< "Ghost Node Id = " << ghost_node.Id() << " : with Co-ordinates (x,y,z) = ("<< ghost_node.X() << " , " << ghost_node.Y() << " , " << ghost_node.Z() << ")" << endl;
-
-                        sendData[1][counter++] = ghost_node.Id();
-                        sendData[1][counter++] = ghost_node.X();
-                        sendData[1][counter++] = ghost_node.Y();
-                        sendData[1][counter++] = ghost_node.Z();
-                    }
-
-
-                }
-
-                //MPI related stuff
-                Pstream::exchange<scalarList, scalar>(sendData, recvData);
-
-                if(MyRank == 1) //Proc = 1
-                {
-                    // Received data from proc 0
-                    for(int i = 0; i<recvData[0].size();i+=4) {
-                        // do sth with node, e.g. print the id:
-                        //Pout<< "RECV Ghost Node Id = " << recvData[0][i] << " : with Co-ordinates (x,y,z) = ("<< recvData[0][i+1]  << " , " << recvData[0][i+2]  << " , " << recvData[0][i+3]  << ")" << endl;
-                    }
-
-
-                    for(auto& nodei : Interface_nodes)
-                    {
-                        //vector trial_node;
-                        if(nodei.getGhostStatus())
-                        {
-                            for(int i = 0; i<recvData[0].size()/4 ; i++)
-                            {
-                                vector trial_node(recvData[0][i*4+1], recvData[0][i*4+2], recvData[0][i*4+3]);
-
-                                vector nodePosition  = nodei.getNodePosition();
-
-                                if (is_same_points(trial_node, nodePosition))
-                                {
-                                    nodei.setNodeIndexForCoSim(recvData[0][i*4+0]); //Take node Id of that
-
-                                    model_part_interfaces_.at(j)->CreateNewNode( nodei.getNodeIndexForCoSim(), nodePosition[0], nodePosition[1], nodePosition[2]);
-
-                                    //if(MyRank == 1){Pout << "Making local_ghost Node with LocalIndex = "<<  nodei.getLocalNodeIndex() << " and CoSimNodeIndex = " << nodei.getNodeIndexForCoSim() <<endl;}
-                                    pass_ghost_counter ++;
-
-                                }
-                            }
-
-                        }
-                        else
-                        {
-                            vector nodePosition  = nodei.getNodePosition();
-                            nodei.setNodeIndexForCoSim(272 + nodei.getLocalNodeIndex() - pass_ghost_counter);
-                            model_part_interfaces_.at(j)->CreateNewNode( nodei.getNodeIndexForCoSim(), nodePosition[0], nodePosition[1], nodePosition[2]);
-                            //if(MyRank == 1) {Pout << "Making Normal Node with LocalIndex = "<<  nodei.getLocalNodeIndex() << " and CoSimNodeIndex = " << nodei.getNodeIndexForCoSim() <<endl;}
-                        }
-
-                    }
-
-                    Pout << "[COSIM]Total number of Nodes(local, Ghost, total) = (" << model_part_interfaces_.at(j)->NumberOfLocalNodes() << " , " <<model_part_interfaces_.at(j)->NumberOfGhostNodes() <<  " , "<<model_part_interfaces_.at(j)->NumberOfNodes() << " )"<<endl;
-
-                    //Making CoSim elements
-                    std::vector<CoSimIO::IdType> connectivity;
-                    for(auto& elementi : Interface_elements)
-                    {
-                        for(auto& elementalNodeIndexi : elementi.getElementalNodes())
-                        {
-                            //Pout<< "Value of a index = " << elementalNodeIndexi.getNodeIndexForCoSim()<< " and "<<  Interface_nodes.at(elementalNodeIndexi.getNodeIndexForCoSim()-1).getNodeIndexForCoSim() << endl;
-                            connectivity.push_back(Interface_nodes.at(elementalNodeIndexi.getNodeIndexForCoSim()-1).getNodeIndexForCoSim());
-                        }
-                        model_part_interfaces_.at(j)->CreateNewElement( elementi.getLocalElementIndex(), CoSimIO::ElementType::Quadrilateral2D4, connectivity );
-                        connectivity.clear();
-                    }
-
-                    Pout << "[COSIM]Total number of Elements = " << model_part_interfaces_.at(j)->NumberOfElements() <<endl;
-
-                }
-
-                //Printing some things
-                if(MyRank == 0 && 0)
-                {
-                    // Iterate over all the nodes
-                    for(auto& node: model_part_interfaces_.at(j)->Nodes())
-                    {
-                        Pout<< "Node Id = " << node.Id() << " : with Co-ordinates (x,y,z) = ("<< node.X() << " , " << node.Y() << " , " << node.Z() << ")" << endl;
-                    }
-                    /*
-                    // iterate elements (with range based loop)
-                    for (auto& element : model_part_interfaces_.at(j)->Elements()) {
-                        Pout<< "Element Id = " << element.Id() << " : Made up of following nodes: " <<endl;
-                        for (auto node_it=element.NodesBegin(); node_it!=element.NodesEnd(); ++node_it) {
-                            CoSimIO::Node& node = **node_it;
-                            Pout<< "Node Id = " << node.Id() << " : with Co-ordinates (x,y,z) = ("<< node.X() << " , " << node.Y() << " , " << node.Z() << ")" << endl;
-                        }
-                    }
-
-                    // iterate ghost nodes
-                    for (auto& ghost_node : model_part_interfaces_.at(j)->GhostNodes()) {
-                        // do sth with node, e.g. print the id:
-                        Pout<< "Ghost Node Id = " << ghost_node.Id() << " : with Co-ordinates (x,y,z) = ("<< ghost_node.X() << " , " << ghost_node.Y() << " , " << ghost_node.Z() << ")" << endl;
-                    } */
-                }
-            }
-
-            if(0)
-            {
-                //Trying MPI_Send and MPI_Recv
-                scalarListList sendData(Pstream::nProcs());
-                scalarListList recvData(Pstream::nProcs());
-                //fill in the Send Data
-                sendData[0].setSize(4);
-                sendData[1].setSize(4);
-
-
-                if(MyRank == 0)
-                {
-                    sendData[0][0] = 1;
-                    sendData[0][1] = 2;
-                    sendData[0][2] = 3;
-                    sendData[0][3] = 4;
-
-                    sendData[1][0] = 8;
-                    sendData[1][1] = 9;
-                    sendData[1][2] = 10;
-                    sendData[1][3] = 11;
-
-                }
-
-                if(MyRank == 1)
-                {
-                    sendData[0][0] = 11;
-                    sendData[0][1] = 21;
-                    sendData[0][2] = 31;
-                    sendData[0][3] = 41;
-
-                    sendData[1][0] = 81;
-                    sendData[1][1] = 91;
-                    sendData[1][2] = 101;
-                    sendData[1][3] = 111;
-
-                }
-
-
-                Pstream::exchange<scalarList, scalar>(sendData, recvData);
-
-                //Check the receive data now
-                if(MyRank == 1)
-                {
-                    Pout<<"Value of the element = " <<recvData[0][0] << endl;
-                    Pout<<"Value of the element = " <<recvData[0][1] << endl;
-                    Pout<<"Value of the element = " <<recvData[0][2] << endl;
-                    Pout<<"Value of the element = " <<recvData[0][3] << endl;
-
-                    Pout<<"Value of the element = " <<recvData[1][0] << endl;
-                    Pout<<"Value of the element = " <<recvData[1][1] << endl;
-                    Pout<<"Value of the element = " <<recvData[1][2] << endl;
-                    Pout<<"Value of the element = " <<recvData[1][3] << endl;
-                }
-            }
-
-
-            //New code 19.11.2021
+            //New code 22.11.2021
             if(1)
             {
                 //Trying MPI_Send and MPI_Recv
@@ -742,259 +222,293 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                 {
                     nodeIndex = 273;
                 }
+
                 int elemIndex = 1;
-                int num_ghost_nodes=0;
                 int nighbor_proc_id = 0;
-                // Accessing the coordinates of nodes in the Inteface and making CoSimIO nodes and elements
-                for(std::size_t i = 0; i < patchIDs.size(); i++)
+                // Accessing the coordinates of nodes in the Inteface and collecting nodal and elemental data
+                // Nodes which are common between the processes are given the "ghost_" = 1
+                if(1)
                 {
-                    label patchIndex1 = mesh_.boundaryMesh().findPatchID(interfaces_.at(j).patchNames[i]);
-                    label patchIndex2 = 0; //Check the default value, What should I provide?
-
-                    forAll(mesh_.boundaryMesh() , ipatch)
+                    for(std::size_t i = 0; i < patchIDs.size(); i++)
                     {
-                        word BCtype = mesh_.boundaryMesh().types()[ipatch];
-                        if( BCtype == "processor" )
+                        label patchIndex1 = mesh_.boundaryMesh().findPatchID(interfaces_.at(j).patchNames[i]); //Patch Id of Interface Flap
+                        const UList<label> &bfaceCells1 = mesh_.boundaryMesh()[patchIndex1].faceCells();
+                        //Pout << "Patch Id of Interface Flap patch in proc " << MyRank << " is =  " << patchIndex1 <<endl;
+
+                        label patchIndex2 = 0; //Check the default value, What should I provide?
+                        int num_common_nodes = 0;
+
+                        forAll(bfaceCells1, bfacei1)
                         {
-                            patchIndex2 = ipatch;
-                        }
-                    }
-                    const UList<label> &bfaceCells1 = mesh_.boundaryMesh()[patchIndex1].faceCells();
-                    const UList<label> &bfaceCells2 = mesh_.boundaryMesh()[patchIndex2].faceCells();
-                    const processorPolyPatch& pp = refCast<const processorPolyPatch>( mesh_.boundaryMesh()[patchIndex2] );
-                    nighbor_proc_id = pp.neighbProcNo();
+                            const label& faceID1 = mesh_.boundaryMesh()[patchIDs[i]].start() + bfacei1;
 
-                    int is_ghost_node = 0;
+                            Element new_element = Element(elemIndex++);//make new element and then increase the elemental index counter
 
-                    forAll(bfaceCells1, bfacei1)
-                    {
-                        const label& faceID1 = mesh_.boundaryMesh()[patchIDs[i]].start() + bfacei1;
-                        Element new_element = Element(elemIndex++);//make new element and then increase the elemental index counter
-
-                        forAll(mesh_.faces()[faceID1], nodei1)
-                        {
-                            const label& nodeID1 = mesh_.faces()[faceID1][nodei1]; //for OpenFOAM
-                            auto pointX = mesh_.points()[nodeID1];
-
-                            int result = compare_nodes(pointX); // return nodeIndex(starting from 1) if node is already present and (-1) if node is not present
-
-                            if(result == (-1)) // For new node
+                            forAll(mesh_.faces()[faceID1], nodei1)
                             {
-                                //While creation of node check if it has to be created in the way of ghost or local
-                                forAll(bfaceCells2, bfacei2) //compare with all the nodes in the Processor common patch
-                                {
-                                    const label& faceID2 = mesh_.boundaryMesh()[patchIndex2].start() + bfacei2;
-                                    forAll(mesh_.faces()[faceID2], nodei2)
-                                    {
-                                        const label& nodeID2 = mesh_.faces()[faceID2][nodei2]; //for OpenFOAM
-                                        auto pointY = mesh_.points()[nodeID2];
+                                const label& nodeID1 = mesh_.faces()[faceID1][nodei1]; //for OpenFOAM
+                                auto pointX = mesh_.points()[nodeID1];
+                                std::vector<int> is_common_node(TotalNumOfProcesses , 0); //Total number of max neighbours  = NumOfProcesses-1
 
-                                        if(is_same_points(pointX,pointY) == 1 )//once this is found Go out from the For loop and create the node
+                                int result = compare_nodes(pointX); // return nodeIndex(starting from 1) if node is already present and (-1) if node is not present
+
+                                if(result == (-1)) // For new node
+                                {
+                                    //--------------------------------- FORALL Neighbouring Boundaries -----------------------------------//
+                                    forAll(mesh_.boundaryMesh() , ipatch)
+                                    {
+                                        word BCtype = mesh_.boundaryMesh().types()[ipatch];
+                                        if(BCtype == "processor")
                                         {
-                                            //Pout << "Found match in the nodeIDs with NodeID = "  << nodeID1 << " , " << nodeID2 << endl;
-                                            //Pout<<"{X,Y,Z = " << pointY[0] << " , " << pointY[1] << " , " <<pointY[2] << " }"<< endl;
-                                            is_ghost_node = 1; //need to create this node as a gghost node
+                                            patchIndex2 = ipatch; //patchIndex 2 can be replace with ipatch
+                                            const processorPolyPatch& pp = refCast<const processorPolyPatch>( mesh_.boundaryMesh()[patchIndex2] );
+                                            int nighbor_proc_id = pp.neighbProcNo();
+
+                                            const UList<label> &bfaceCells2 = mesh_.boundaryMesh()[patchIndex2].faceCells();
+
+                                            //While creation of node check if it has to be created in the way of ghost or local, CHECK it in ALL neighbour or sharing boundaries
+                                            forAll(bfaceCells2, bfacei2) //compare with all the nodes in the Processor common patch
+                                            {
+                                                const label& faceID2 = mesh_.boundaryMesh()[patchIndex2].start() + bfacei2;
+                                                forAll(mesh_.faces()[faceID2], nodei2)
+                                                {
+                                                    const label& nodeID2 = mesh_.faces()[faceID2][nodei2]; //for OpenFOAM
+                                                    auto pointY = mesh_.points()[nodeID2];
+
+                                                    if(is_same_points(pointX,pointY) == 1 )//once this is found Go out from the For loop and create the node
+                                                    {
+                                                        //Pout << "Found match in the nodeIDs with NodeID = "  << nodeID1 << " , " << nodeID2 << endl;
+                                                        //Pout<<"{X,Y,Z = " << pointY[0] << " , " << pointY[1] << " , " <<pointY[2] << " }"<< endl;
+                                                        is_common_node.at(nighbor_proc_id) = 1; //need to create this node as a gghost node
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
-                                }
 
-                                if(is_ghost_node == 1){
-                                    //Node new_node = Node(pointX, nodeID1, nodeIndex, 1);
-                                    Node new_node = Node(pointX, nodeIndex, nodeIndex, 1);//cosimIndex kept same as local index (by default), later need to change
-                                    Interface_nodes.push_back(new_node);
-                                    new_element.addNodeIndexInList(nodeIndex);// connectivity to make that element
-                                    new_element.addNodesInList(new_node);// Add new node in the element
-                                    nodeIndex++;
-                                    array_of_nodes.push_back(pointX);// Push new node in the list to compare
-                                    is_ghost_node = 0; //For next Node
+                                    int new_node_created = 0; //ON/OFF
+                                    for(int i = 0; i< TotalNumOfProcesses ; i++)
+                                    {
+                                        if(is_common_node.at(i) == 1)//Any one
+                                        {
+                                            if(new_node_created == 0)
+                                            {
+                                                Node new_node = Node(pointX, nodeIndex, nodeIndex, i);//cosimIndex kept same as local index (by default), later need to change
+                                                new_node_created = 1;
+                                                Interface_nodes.push_back(new_node);
+                                                new_element.addNodeIndexInList(nodeIndex);// connectivity to make that element
+                                                new_element.addNodesInList(new_node);// Add new node in the element
+                                                nodeIndex++;
+                                                array_of_nodes.push_back(pointX);// Push new node in the list to compare
+                                            }
+                                            else{
+                                                Interface_nodes.at(nodeIndex-2).setCommonWithRank(i); //With which Id it is common
+                                            }
+                                        }
+                                    }
+                                    is_common_node.clear(); //For next Node
+
+                                    if(new_node_created == 0) //Still node is not created then only create it normally
+                                    {
+                                        Node new_node = Node(pointX, nodeIndex, nodeIndex, MyRank);//cosimIndex kept same as local index (by default), later need to change
+                                        Interface_nodes.push_back(new_node);
+                                        new_element.addNodeIndexInList(nodeIndex);// connectivity to make that element
+                                        new_element.addNodesInList(new_node);// Add new node in the element
+                                        nodeIndex++;
+                                        array_of_nodes.push_back(pointX);// Push new node in the list to compare
+                                    }
+
                                 }
                                 else{
-                                    Node new_node = Node(pointX, nodeIndex, nodeIndex, 0);//cosimIndex kept same as local index (by default), later need to change
-                                    Interface_nodes.push_back(new_node);
-                                    new_element.addNodeIndexInList(nodeIndex);// connectivity to make that element
-                                    new_element.addNodesInList(new_node);// Add new node in the element
-                                    nodeIndex++;
-                                    array_of_nodes.push_back(pointX);// Push new node in the list to compare
+                                    //No need to produce new Node
+                                    new_element.addNodeIndexInList(result);// connectivity to make that element
+                                    new_element.addNodesInList(Interface_nodes.at(result-1));// Add old node in the List of nodes for that element, result-1 as Vector index starts from 0
                                 }
                             }
-                            else{
-                                //No need to produce new Node
-                                new_element.addNodeIndexInList(result);// connectivity to make that element
-                                new_element.addNodesInList(Interface_nodes.at(result-1));// Add old node in the List of nodes for that element, result-1 as Vector index starts from 0
-                            }
+                            //Once Element is set push it to the List of Elements
+                            Interface_elements.push_back(new_element);
                         }
-                        //Once Element is set push it to the List of Elements
-                        Interface_elements.push_back(new_element);
-                    }
 
-                }
+                        Pout << "[OF]Name of the interface done : " << interfaces_.at(j).nameOfInterface << endl;
+                        Pout << "[OF]Total number of Nodes formed: " << Interface_nodes.size() <<endl;
+                        Pout << "[OF]Total number of Elements formed: " << Interface_elements.size() <<endl;
 
-                Pout << "Name of the interface done : " << interfaces_.at(j).nameOfInterface << endl;
-
-                //Pout << "Total number of (local, Ghost, total) = (" << model_part_interfaces_.at(j)->NumberOfLocalNodes() << " , " <<model_part_interfaces_.at(j)->NumberOfGhostNodes() <<  " , "<<model_part_interfaces_.at(j)->NumberOfNodes() << " )"<<endl;
-                //Pout << "Total number of Elements formed: " << model_part_interfaces_.at(j)->NumberOfElements() <<endl;
-                Pout << "[OF]Total number of Nodes formed: " << Interface_nodes.size() <<endl;
-                Pout << "[OF]Total number of Elements formed: " << Interface_elements.size() <<endl;
-
-                for(auto& nodei: Interface_nodes)
-                {
-                    if(nodei.getGhostStatus())
-                    {
-                        //Pout <<"[OF]Ghost Node with the Id = " << nodei.getLocalNodeIndex() <<endl;
-                        num_ghost_nodes++;
-                    }
-                }
-
-                Pout << "[OF]Total number of Ghost Nodes formed: " << num_ghost_nodes<<endl;
-
-                // Get the Ghost data from Proc 1 to Proc 0
-                int counter = 0;
-                if(MyRank == 1)
-                {
-                    // iterate ghost nodes
-                    for (auto& nodei: Interface_nodes)
-                    {
-                        if(nodei.getGhostStatus() == 1)
+                        for(int j = 0 ; j<TotalNumOfProcesses ;j++)
                         {
-                            sendData[0][counter++] = nodei.getLocalNodeIndex();
-                            vector nodePosition  = nodei.getNodePosition();
-                            sendData[0][counter++] = nodePosition[0];
-                            sendData[0][counter++] = nodePosition[1];
-                            sendData[0][counter++] = nodePosition[2];
-                        }
-                    }
-                }
-
-                //MPI related stuff
-                Pstream::exchange<scalarList, scalar>(sendData, recvData);
-
-                if(MyRank == 0)
-                {
-                    // Received data from proc 1
-                    /* for(int i = 0; i<recvData[1].size();i+=4) {
-                        Pout<< "RECV Ghost Node Id = " << recvData[1][i] << " : with Co-ordinates (x,y,z) = ("<< recvData[1][i+1]  << " , " << recvData[1][i+2]  << " , " << recvData[1][i+3]  << ")" << endl;
-                    } */
-
-                    // Change the NodeIndexes for CoSimIO for the Ghost nodes in Proc 0 once with the received Data
-                    for (auto& nodei: Interface_nodes)
-                    {
-                        if(nodei.getGhostStatus() == 1)
-                        {
-                            vector nodePosition  = nodei.getNodePosition();
-
-                            for(int i = 0; i<recvData[0].size()/4 ; i++)
+                            for(auto& nodei: Interface_nodes)
                             {
-                                vector trial_node(recvData[1][i*4+1], recvData[1][i*4+2], recvData[1][i*4+3]);
-
-                                if(is_same_points(nodePosition,trial_node))
+                                if(nodei.getCommonWithRank().at(j) == 1)
                                 {
-                                    nodei.setNodeIndexForCoSim(recvData[1][i*4+0]); //Take node Id of that
+                                    num_common_nodes++;
                                 }
                             }
+                            //Pout << "[OF]Total number of Common Nodes formed for Rank = " << MyRank << " With the Rank = "  << j << " are = " << num_common_nodes<<endl;
+                            neighbour_ids_comm_num_of_nodes.push_back(j);
+                            neighbour_ids_comm_num_of_nodes.push_back(num_common_nodes);
+                            num_common_nodes = 0 ; //Reset to 0 , to count for next
                         }
-                    }
 
-                    for(auto& nodei: Interface_nodes)
-                    {
-                        if(nodei.getGhostStatus())
+                        Pout << "Size of the array = " << neighbour_ids_comm_num_of_nodes.size() << endl;
+
+                        for(auto& i : neighbour_ids_comm_num_of_nodes)
                         {
-                            //Pout <<"[OF]Ghost Node with the Original Id = " << nodei.getLocalNodeIndex() << " and ID for CoSim = " << nodei.getNodeIndexForCoSim() <<endl;
-                            num_ghost_nodes++;
+                            Pout << "Element of a array " << i << endl;
                         }
                     }
 
                 }
 
-                //Now make the CoSim Nodes and Elements
-
-                //Making CoSim Nodes
-                if(MyRank == 0) //Ghost only in 0
+                if(0)
                 {
-                    for(auto& nodei : Interface_nodes)
+                    // Get the Ghost data from Proc 1 to Proc 0
+                    int counter = 0;
+                    if(MyRank == 1)
                     {
-                        if(nodei.getGhostStatus())
+                        // iterate ghost nodes
+                        for (auto& nodei: Interface_nodes)
                         {
-                            vector nodePosition  = nodei.getNodePosition();
-                            model_part_interfaces_.at(j)->CreateNewGhostNode( nodei.getNodeIndexForCoSim(), nodePosition[0], nodePosition[1], nodePosition[2], nighbor_proc_id);
-                            //Pout << "Making ghost Node with LocalIndex = "<<  nodei.getLocalNodeIndex() << " and CoSimNodeIndex = " << nodei.getNodeIndexForCoSim() <<endl;
+                            if(nodei.getGhostStatus() == 1)
+                            {
+                                sendData[0][counter++] = nodei.getLocalNodeIndex();
+                                vector nodePosition  = nodei.getNodePosition();
+                                sendData[0][counter++] = nodePosition[0];
+                                sendData[0][counter++] = nodePosition[1];
+                                sendData[0][counter++] = nodePosition[2];
+                            }
                         }
-                        else
+                    }
+
+                    //MPI related stuff
+                    Pstream::exchange<scalarList, scalar>(sendData, recvData);
+
+                    if(MyRank == 0)
+                    {
+                        // Received data from proc 1
+                        /* for(int i = 0; i<recvData[1].size();i+=4) {
+                            Pout<< "RECV Ghost Node Id = " << recvData[1][i] << " : with Co-ordinates (x,y,z) = ("<< recvData[1][i+1]  << " , " << recvData[1][i+2]  << " , " << recvData[1][i+3]  << ")" << endl;
+                        } */
+
+                        // Change the NodeIndexes for CoSimIO for the Ghost nodes in Proc 0 once with the received Data
+                        for (auto& nodei: Interface_nodes)
+                        {
+                            if(nodei.getGhostStatus() == 1)
+                            {
+                                vector nodePosition  = nodei.getNodePosition();
+
+                                for(int i = 0; i<recvData[0].size()/4 ; i++)
+                                {
+                                    vector trial_node(recvData[1][i*4+1], recvData[1][i*4+2], recvData[1][i*4+3]);
+
+                                    if(is_same_points(nodePosition,trial_node))
+                                    {
+                                        nodei.setNodeIndexForCoSim(recvData[1][i*4+0]); //Take node Id of that
+                                    }
+                                }
+                            }
+                        }
+
+                        /* for(auto& nodei: Interface_nodes)
+                        {
+                            if(nodei.getGhostStatus())
+                            {
+                                //Pout <<"[OF]Ghost Node with the Original Id = " << nodei.getLocalNodeIndex() << " and ID for CoSim = " << nodei.getNodeIndexForCoSim() <<endl;
+                                num_common_nodes++;
+                            }
+                        } */
+
+                    }
+
+                    //Now make the CoSim Nodes and Elements
+
+                    //Making CoSim Nodes
+                    if(MyRank == 0) //Ghost only in 0
+                    {
+                        for(auto& nodei : Interface_nodes)
+                        {
+                            if(nodei.getGhostStatus())
+                            {
+                                vector nodePosition  = nodei.getNodePosition();
+                                model_part_interfaces_.at(j)->CreateNewGhostNode( nodei.getNodeIndexForCoSim(), nodePosition[0], nodePosition[1], nodePosition[2], nighbor_proc_id);
+                                //Pout << "Making ghost Node with LocalIndex = "<<  nodei.getLocalNodeIndex() << " and CoSimNodeIndex = " << nodei.getNodeIndexForCoSim() <<endl;
+                            }
+                            else
+                            {
+                                vector nodePosition  = nodei.getNodePosition();
+                                model_part_interfaces_.at(j)->CreateNewNode( nodei.getNodeIndexForCoSim(), nodePosition[0], nodePosition[1], nodePosition[2]);
+                                //Pout << "Making Normal Node with LocalIndex = "<<  nodei.getLocalNodeIndex() << " and CoSimNodeIndex = " << nodei.getNodeIndexForCoSim() <<endl;
+                            }
+
+                        }
+
+                        Pout << "[COSIM]Total number of Nodes(local, Ghost, total) = (" << model_part_interfaces_.at(j)->NumberOfLocalNodes() << " , " <<model_part_interfaces_.at(j)->NumberOfGhostNodes() <<  " , "<<model_part_interfaces_.at(j)->NumberOfNodes() << " )"<<endl;
+
+                        //Making CoSim elements
+                        std::vector<CoSimIO::IdType> connectivity;
+                        for(auto& elementi : Interface_elements)
+                        {
+                            for(auto& elementalNodeIndexi : elementi.getElementalNodes())
+                            {
+                                connectivity.push_back(Interface_nodes.at(elementalNodeIndexi.getLocalNodeIndex()-1).getNodeIndexForCoSim());
+                            }
+
+                            model_part_interfaces_.at(j)->CreateNewElement( elementi.getLocalElementIndex(), CoSimIO::ElementType::Quadrilateral2D4, connectivity );
+                            connectivity.clear();
+                        }
+
+                        Pout << "[COSIM]Total number of Elements = " << model_part_interfaces_.at(j)->NumberOfElements() <<endl;
+
+                    }
+                    else //For rank =1
+                    {
+                        for(auto& nodei : Interface_nodes)
                         {
                             vector nodePosition  = nodei.getNodePosition();
                             model_part_interfaces_.at(j)->CreateNewNode( nodei.getNodeIndexForCoSim(), nodePosition[0], nodePosition[1], nodePosition[2]);
                             //Pout << "Making Normal Node with LocalIndex = "<<  nodei.getLocalNodeIndex() << " and CoSimNodeIndex = " << nodei.getNodeIndexForCoSim() <<endl;
                         }
 
-                    }
+                        Pout << "[COSIM]Total number of Nodes(local, Ghost, total) = (" << model_part_interfaces_.at(j)->NumberOfLocalNodes() << " , " <<model_part_interfaces_.at(j)->NumberOfGhostNodes() <<  " , "<<model_part_interfaces_.at(j)->NumberOfNodes() << " )"<<endl;
 
-                    Pout << "[COSIM]Total number of Nodes(local, Ghost, total) = (" << model_part_interfaces_.at(j)->NumberOfLocalNodes() << " , " <<model_part_interfaces_.at(j)->NumberOfGhostNodes() <<  " , "<<model_part_interfaces_.at(j)->NumberOfNodes() << " )"<<endl;
-
-                    //Making CoSim elements
-                    std::vector<CoSimIO::IdType> connectivity;
-                    for(auto& elementi : Interface_elements)
-                    {
-                        for(auto& elementalNodeIndexi : elementi.getElementalNodes())
+                        //Making CoSim elements
+                        std::vector<CoSimIO::IdType> connectivity;
+                        for(auto& elementi : Interface_elements)
                         {
-                            connectivity.push_back(Interface_nodes.at(elementalNodeIndexi.getLocalNodeIndex()-1).getNodeIndexForCoSim());
+                            for(auto& elementalNodeIndexi : elementi.getElementalNodes())
+                            {
+                                connectivity.push_back(Interface_nodes.at(elementalNodeIndexi.getLocalNodeIndex()-272-1).getNodeIndexForCoSim());
+                            }
+
+                            model_part_interfaces_.at(j)->CreateNewElement( elementi.getLocalElementIndex(), CoSimIO::ElementType::Quadrilateral2D4, connectivity );
+                            connectivity.clear();
                         }
 
-                        model_part_interfaces_.at(j)->CreateNewElement( elementi.getLocalElementIndex(), CoSimIO::ElementType::Quadrilateral2D4, connectivity );
-                        connectivity.clear();
+                        Pout << "[COSIM]Total number of Elements = " << model_part_interfaces_.at(j)->NumberOfElements() <<endl;
+
                     }
 
-                    Pout << "[COSIM]Total number of Elements = " << model_part_interfaces_.at(j)->NumberOfElements() <<endl;
-
-                }
-                else //For rank =1
-                {
-                    for(auto& nodei : Interface_nodes)
+                    //Printing some things
+                    if(MyRank == 1 && 0)
                     {
-                        vector nodePosition  = nodei.getNodePosition();
-                        model_part_interfaces_.at(j)->CreateNewNode( nodei.getNodeIndexForCoSim(), nodePosition[0], nodePosition[1], nodePosition[2]);
-                        //Pout << "Making Normal Node with LocalIndex = "<<  nodei.getLocalNodeIndex() << " and CoSimNodeIndex = " << nodei.getNodeIndexForCoSim() <<endl;
-                    }
-
-                    Pout << "[COSIM]Total number of Nodes(local, Ghost, total) = (" << model_part_interfaces_.at(j)->NumberOfLocalNodes() << " , " <<model_part_interfaces_.at(j)->NumberOfGhostNodes() <<  " , "<<model_part_interfaces_.at(j)->NumberOfNodes() << " )"<<endl;
-
-                    //Making CoSim elements
-                    std::vector<CoSimIO::IdType> connectivity;
-                    for(auto& elementi : Interface_elements)
-                    {
-                        for(auto& elementalNodeIndexi : elementi.getElementalNodes())
+                        // Iterate over all the nodes
+                        for(auto& node: model_part_interfaces_.at(j)->Nodes())
                         {
-                            connectivity.push_back(Interface_nodes.at(elementalNodeIndexi.getLocalNodeIndex()-272-1).getNodeIndexForCoSim());
-                        }
-
-                        model_part_interfaces_.at(j)->CreateNewElement( elementi.getLocalElementIndex(), CoSimIO::ElementType::Quadrilateral2D4, connectivity );
-                        connectivity.clear();
-                    }
-
-                    Pout << "[COSIM]Total number of Elements = " << model_part_interfaces_.at(j)->NumberOfElements() <<endl;
-
-                }
-
-                //Printing some things
-                if(MyRank == 1 && 0)
-                {
-                    // Iterate over all the nodes
-                    for(auto& node: model_part_interfaces_.at(j)->Nodes())
-                    {
-                        Pout<< "Node Id = " << node.Id() << " : with Co-ordinates (x,y,z) = ("<< node.X() << " , " << node.Y() << " , " << node.Z() << ")" << endl;
-                    }
-
-                    // iterate elements (with range based loop)
-                    for (auto& element : model_part_interfaces_.at(j)->Elements()) {
-                        Pout<< "Element Id = " << element.Id() << " : Made up of following nodes: " <<endl;
-                        for (auto node_it=element.NodesBegin(); node_it!=element.NodesEnd(); ++node_it) {
-                            CoSimIO::Node& node = **node_it;
                             Pout<< "Node Id = " << node.Id() << " : with Co-ordinates (x,y,z) = ("<< node.X() << " , " << node.Y() << " , " << node.Z() << ")" << endl;
                         }
-                    }
 
-                    // iterate ghost nodes
-                    for (auto& ghost_node : model_part_interfaces_.at(j)->GhostNodes()) {
-                        // do sth with node, e.g. print the id:
-                        Pout<< "Ghost Node Id = " << ghost_node.Id() << " : with Co-ordinates (x,y,z) = ("<< ghost_node.X() << " , " << ghost_node.Y() << " , " << ghost_node.Z() << ")" << endl;
+                        // iterate elements (with range based loop)
+                        for (auto& element : model_part_interfaces_.at(j)->Elements()) {
+                            Pout<< "Element Id = " << element.Id() << " : Made up of following nodes: " <<endl;
+                            for (auto node_it=element.NodesBegin(); node_it!=element.NodesEnd(); ++node_it) {
+                                CoSimIO::Node& node = **node_it;
+                                Pout<< "Node Id = " << node.Id() << " : with Co-ordinates (x,y,z) = ("<< node.X() << " , " << node.Y() << " , " << node.Z() << ")" << endl;
+                            }
+                        }
+
+                        // iterate ghost nodes
+                        for (auto& ghost_node : model_part_interfaces_.at(j)->GhostNodes()) {
+                            // do sth with node, e.g. print the id:
+                            Pout<< "Ghost Node Id = " << ghost_node.Id() << " : with Co-ordinates (x,y,z) = ("<< ghost_node.X() << " , " << ghost_node.Y() << " , " << ghost_node.Z() << ")" << endl;
+                        }
                     }
                 }
 

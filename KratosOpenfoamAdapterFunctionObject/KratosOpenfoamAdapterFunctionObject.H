@@ -127,17 +127,18 @@ private:
     class Node
     {
         private:
-            uint localNodeIndex_;
-            uint nodeIndexforCoSim_;
+            int localNodeIndex_;
+            int nodeIndexforCoSim_;
             vector position_;
             bool ghost_ = 0;
+            std::vector<bool>commonWithWhichRanks;
 
         public:
-            Node(vector position, uint localNodeIndex, uint nodeIndexforCoSim, bool is_ghost_node){
+            Node(vector position, int localNodeIndex, int nodeIndexforCoSim, int commonRankFirstTime) : commonWithWhichRanks(Pstream::nProcs(),0){
                 localNodeIndex_ = localNodeIndex;
                 nodeIndexforCoSim_ = nodeIndexforCoSim;
                 position_ = position;
-                ghost_ = is_ghost_node;
+                setCommonWithRank(commonRankFirstTime);
             };
 
             vector getNodePosition(){
@@ -162,6 +163,17 @@ private:
 
             bool getGhostStatus(){return ghost_;};
 
+            void setCommonWithRank(int rank)
+            {
+                if(rank != Pstream::myProcNo()) //As if rank ==MyRank, it means  node is local
+                {
+                    commonWithWhichRanks.at(rank) = 1 ;
+                }
+            };
+
+            std::vector<bool> getCommonWithRank(){
+                return commonWithWhichRanks;
+            };
     };
 
     std::vector<Node> Interface_nodes;
@@ -219,8 +231,9 @@ private:
         std::vector<vector> array_of_nodes;
 
         // Parallel Related
-        int TotalNumOfProcesse = Pstream::nProcs();
+        int TotalNumOfProcesses = Pstream::nProcs();
         int MyRank = Pstream::myProcNo();
+        std::vector<int> neighbour_ids_comm_num_of_nodes; //Max size of a array =  TotalNumOfProcesses * 2
 
 protected:
     //- Protected Data to set the parameters required for coupling
