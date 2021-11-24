@@ -199,7 +199,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                     sendDataNumNodeIndex[i][0] = interfaces_.at(j).numNodes ;
                 }
 
-                //Pout << "Total Number of Nodes in this interface: " << interfaces_.at(j).numNodes  << endl;
+                Pout << "Total Number of Nodes in this interface: " << interfaces_.at(j).numNodes  << endl;
 
                 // Count the number of elements/faces for all the patches in that interface
                 for (std::size_t i = 0; i < patchIDs.size(); i++)
@@ -207,12 +207,12 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                     interfaces_.at(j).numElements += mesh_.boundary()[patchIDs[i]].size();
                 }
 
-                //Pout << "Total Number of Elements/faces in this interface: " << interfaces_.at(j).numElements << endl;
+                Pout << "Total Number of Elements/faces in this interface: " << interfaces_.at(j).numElements << endl;
 
                 // Make CoSimIO::ModelPart and push in the array of model_part_interfaces
                 model_part_interfaces_.push_back(CoSimIO::make_unique<CoSimIO::ModelPart>(interfaces_.at(j).nameOfInterface));
 
-                //Pout << "Creating Model Part (Nodes and Elements) for CoSimIO : start" << endl;
+                Pout << "Creating Model Part (Nodes and Elements) for CoSimIO : start" << endl;
 
                 //MPI Exchange to know start Index for Node formation
                 Pstream::exchange<scalarList, scalar>(sendDataNumNodeIndex, recvDataNumNodeIndex);
@@ -379,16 +379,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                     }
                 }
                 counter.clear();
-                //Pout << "Done with Filling of send vector" << endl;
-
-                /* if(MyRank == 0)
-                {
-                    for(int j = 0 ; j< TotalNumOfProcesses ;j++)
-                    {
-                        for(int i = 0 ; i< sendNodalData[j].size() ; i++)
-                        Pout << "Value for[" << j <<"]" << "["  << i << "] is = "  << sendNodalData[j][i]  << endl;
-                    }
-                } */
 
                 // MPI_Exchange
                 Pstream::exchange<scalarList, scalar>(sendNodalData, recvNodalData);
@@ -412,16 +402,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                                 }
                             }
                         }
-                    }
-                }
-                //Pout << "Done with changing the NodeIds" << endl;
-
-                //Printing some things
-                if(0)
-                {
-                    for (auto& nodei: Interface_nodes)
-                    {
-                        Pout<< "Node Local Id = " << nodei.getLocalNodeIndex() << ", with CoSim ID = " << nodei.getNodeIndexForCoSim() << " : with Co-ordinates (x,y,z) = ("<< nodei.getNodePosition()[0] << " , " << nodei.getNodePosition()[1] << " , " << nodei.getNodePosition()[2] << ")" << endl;
                     }
                 }
 
@@ -454,11 +434,9 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                     model_part_interfaces_.at(j)->CreateNewElement( elementi.getLocalElementIndex(), CoSimIO::ElementType::Quadrilateral2D4, connectivity );
                     connectivity.clear();
                 }
-
                 Pout << "[COSIM]Total number of Elements = " << model_part_interfaces_.at(j)->NumberOfElements() <<endl;
 
-
-                //Printing some things
+                //Printing Nodal and Elemental Data using CoSim utilities
                 if(MyRank == 1 && 0)
                 {
                     // Iterate over all the nodes
@@ -482,8 +460,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                         Pout<< "Ghost Node Id = " << ghost_node.Id() << " : with Co-ordinates (x,y,z) = ("<< ghost_node.X() << " , " << ghost_node.Y() << " , " << ghost_node.Z() << ")" << endl;
                     }
                 }
-
-
             }
 
             // Connection between openFOAM and Kratos-CoSimulation using CoSimIO
