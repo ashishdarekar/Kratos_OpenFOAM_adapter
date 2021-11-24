@@ -350,12 +350,54 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                     } */
                 }
 
-                //Trying MPI_Send and MPI_Recv
-                scalarListList sendData(Pstream::nProcs());
-                scalarListList recvData(Pstream::nProcs());
-                //fill in the Send Data
-                sendData[0].setSize(16);
-                sendData[1].setSize(16);
+                // ------------------Common Nodal Data exchange with all ranks --------------------------------//
+                scalarListList sendNodalData(Pstream::nProcs());
+                scalarListList recvNodalData(Pstream::nProcs());
+
+                // Decide the size of a send array
+                for(int i = 0; i < TotalNumOfProcesses ; i++)
+                {
+                    sendNodalData[i].setSize(4 * neighbour_ids_comm_num_of_nodes.at( 2*i + 1 )); //4 for each node, 1 for node index and 3 points coordinates
+                    //Pout << "SendData array size = " << sendNodalData[i].size() << endl;
+                }
+
+                // Filiing of the send array
+                std::vector<int>counter(TotalNumOfProcesses , 0);
+                for (auto& nodei: Interface_nodes)
+                {
+                    for(std::size_t i = 0 ;  i < nodei.getCommonWithRank().size() ; i++)
+                    {
+                        if(nodei.getCommonWithRank()[i] == 1)
+                        {
+                            sendNodalData[i][(counter.at(i))++] = nodei.getLocalNodeIndex();
+                            vector nodePosition  = nodei.getNodePosition();
+                            sendNodalData[i][(counter.at(i))++] = nodePosition[0];
+                            sendNodalData[i][(counter.at(i))++] = nodePosition[1];
+                            sendNodalData[i][(counter.at(i))++] = nodePosition[2];
+                        }
+                    }
+                }
+                counter.clear();
+                Pout << "Done with Filling of send vector" << endl;
+
+                if(MyRank == 0)
+                {
+                    for(int j = 0 ; j< TotalNumOfProcesses ;j++)
+                    {
+                        for(int i = 0 ; i< sendNodalData[j].size() ; i++)
+                        Pout << "Value for[" << j <<"]" << "["  << i << "] is = "  << sendNodalData[j][i]  << endl;
+                    }
+                }
+
+                // MPI_Exchange
+                Pstream::exchange<scalarList, scalar>(sendNodalData, recvNodalData);
+
+                // Update the nodeIndexes for common nodes (before making coSim nodes)
+
+
+                // Make coSim nodes
+
+                // Make Cosim elements
 
                 if(0)
                 {
@@ -367,23 +409,23 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                         {
                             if(nodei.getGhostStatus() == 1)
                             {
-                                sendData[0][counter++] = nodei.getLocalNodeIndex();
+                                sendNodalData[0][counter++] = nodei.getLocalNodeIndex();
                                 vector nodePosition  = nodei.getNodePosition();
-                                sendData[0][counter++] = nodePosition[0];
-                                sendData[0][counter++] = nodePosition[1];
-                                sendData[0][counter++] = nodePosition[2];
+                                sendNodalData[0][counter++] = nodePosition[0];
+                                sendNodalData[0][counter++] = nodePosition[1];
+                                sendNodalData[0][counter++] = nodePosition[2];
                             }
                         }
                     }
 
                     //MPI related stuff
-                    Pstream::exchange<scalarList, scalar>(sendData, recvData);
+                    Pstream::exchange<scalarList, scalar>(sendNodalData, recvNodalData);
 
                     if(MyRank == 0)
                     {
                         // Received data from proc 1
-                        /* for(int i = 0; i<recvData[1].size();i+=4) {
-                            Pout<< "RECV Ghost Node Id = " << recvData[1][i] << " : with Co-ordinates (x,y,z) = ("<< recvData[1][i+1]  << " , " << recvData[1][i+2]  << " , " << recvData[1][i+3]  << ")" << endl;
+                        /* for(int i = 0; i<recvNodalData[1].size();i+=4) {
+                            Pout<< "RECV Ghost Node Id = " << recvNodalData[1][i] << " : with Co-ordinates (x,y,z) = ("<< recvNodalData[1][i+1]  << " , " << recvNodalData[1][i+2]  << " , " << recvNodalData[1][i+3]  << ")" << endl;
                         } */
 
                         // Change the NodeIndexes for CoSimIO for the Ghost nodes in Proc 0 once with the received Data
@@ -393,13 +435,13 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                             {
                                 vector nodePosition  = nodei.getNodePosition();
 
-                                for(int i = 0; i<recvData[0].size()/4 ; i++)
+                                for(int i = 0; i<recvNodalData[0].size()/4 ; i++)
                                 {
-                                    vector trial_node(recvData[1][i*4+1], recvData[1][i*4+2], recvData[1][i*4+3]);
+                                    vector trial_node(recvNodalData[1][i*4+1], recvNodalData[1][i*4+2], recvNodalData[1][i*4+3]);
 
                                     if(is_same_points(nodePosition,trial_node))
                                     {
-                                        nodei.setNodeIndexForCoSim(recvData[1][i*4+0]); //Take node Id of that
+                                        nodei.setNodeIndexForCoSim(recvNodalData[1][i*4+0]); //Take node Id of that
                                     }
                                 }
                             }
