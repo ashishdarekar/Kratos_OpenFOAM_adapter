@@ -174,6 +174,27 @@ private:
             std::vector<bool> getCommonWithRank(){
                 return commonWithWhichRanks;
             };
+
+            int getHighestCommRank()
+            {
+                int highest_Rank = Pstream::nProcs(); //for local number returning highest number
+                for(std::size_t i = 0 ;  i < commonWithWhichRanks.size() ; i++)
+                {
+                    if(commonWithWhichRanks[i] == 1)
+                    {
+                        highest_Rank = i;
+                    }
+                }
+
+                if(highest_Rank > Pstream::myProcNo())
+                {
+                    return highest_Rank;
+                }
+                else
+                {
+                    return Pstream::nProcs(); //Returning highest number
+                }
+            };
     };
 
     std::vector<Node> Interface_nodes;
