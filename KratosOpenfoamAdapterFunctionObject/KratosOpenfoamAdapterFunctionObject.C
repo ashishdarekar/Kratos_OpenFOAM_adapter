@@ -151,14 +151,10 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                 }
             }
         }
+        Pout << "Interfaces Reading: Done" << endl;
+        Pout << "Number of interfaces found: " << num_interfaces_<< endl;
 
-        if(MyRank == 0 )
-        {
-            Pout << "Interfaces Reading: Done" << endl;
-            Pout << "Number of interfaces found: " << num_interfaces_<< endl;
-
-            Pout << "**************** Exporting InterfaceMesh using ModelPart: Start ******************" << endl;
-        }
+        Pout << "**************** Exporting InterfaceMesh using ModelPart: Start ******************" << endl;
         for(std::size_t j = 0; j < num_interfaces_; j++)
         {
             if(MyRank == 0 ) {Pout << "Name of the interface under progress : " << interfaces_.at(j).nameOfInterface << endl;}
@@ -225,7 +221,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                     nodeIndex += recvDataNumNodeIndex[i][0];
                 }
                 Pout << "NodeIndex starts from = " << nodeIndex <<endl;
-                int globalNodeIndexBegin = nodeIndex; //To presrve its value
+                int globalNodeIndexBegin = nodeIndex; //To presrve its value(use is later)
 
                 // Accessing the coordinates of all nodes in the Inteface and collecting nodal and elemental data
                 for(std::size_t i = 0; i < patchIDs.size(); i++)
@@ -468,8 +464,16 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             settings.Set("connect_to", "Openfoam_Kratos_Wrapper");
             settings.Set("echo_level", 0);
             settings.Set("version", "1.25");
+            CoSimIO::Info connect_info;
 
-            auto connect_info = CoSimIO::ConnectMPI(settings, MPI_COMM_WORLD);
+            if(TotalNumOfProcesses == 1)
+            {
+                connect_info = CoSimIO::Connect(settings);
+            }
+            else{
+                connect_info = CoSimIO::ConnectMPI(settings, MPI_COMM_WORLD);
+            }
+
             COSIMIO_CHECK_EQUAL(connect_info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Connected);
             connection_name = connect_info.Get<std::string>("connection_name");
 
@@ -610,8 +614,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::end()
 
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::write()
 {
-    Pout << "CoSimulation Adapter's function object : write()" << endl;
-
     return true;
 }
 

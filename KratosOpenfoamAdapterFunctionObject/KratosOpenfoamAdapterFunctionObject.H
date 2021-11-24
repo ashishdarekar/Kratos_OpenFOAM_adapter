@@ -130,7 +130,6 @@ private:
             int localNodeIndex_;
             int nodeIndexforCoSim_;
             vector position_;
-            bool ghost_ = 0;
             std::vector<bool>commonWithWhichRanks; //With howmany Ranks this node is shared
 
         public:
@@ -160,8 +159,6 @@ private:
             void setLocalNodeIndex(uint index){
                 localNodeIndex_ = index;
             };
-
-            bool getGhostStatus(){return ghost_;};
 
             void setCommonWithRank(int rank)
             {
@@ -204,7 +201,7 @@ private:
         private:
             uint localElementIndex_;
             std::vector<uint> elementalNodeIndexes_;
-            std::vector<Node> elementalNodes_; //Not useful unless it contains the actual nodes
+            std::vector<Node> elementalNodes_; //Not useful unless it contains the actual nodes make it Pointer
             double forceValue;
 
         public:
