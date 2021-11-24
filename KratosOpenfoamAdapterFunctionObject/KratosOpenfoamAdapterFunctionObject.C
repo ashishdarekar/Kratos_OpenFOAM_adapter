@@ -369,7 +369,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                     {
                         if(nodei.getCommonWithRank()[i] == 1)
                         {
-                            sendNodalData[i][(counter.at(i))++] = nodei.getLocalNodeIndex();
+                            sendNodalData[i][(counter.at(i))++] = nodei.getLocalNodeIndex(); //Provide Local Id only
                             vector nodePosition  = nodei.getNodePosition();
                             sendNodalData[i][(counter.at(i))++] = nodePosition[0];
                             sendNodalData[i][(counter.at(i))++] = nodePosition[1];
@@ -378,86 +378,58 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                     }
                 }
                 counter.clear();
-                Pout << "Done with Filling of send vector" << endl;
+                //Pout << "Done with Filling of send vector" << endl;
 
-                if(MyRank == 0)
+                /* if(MyRank == 0)
                 {
                     for(int j = 0 ; j< TotalNumOfProcesses ;j++)
                     {
                         for(int i = 0 ; i< sendNodalData[j].size() ; i++)
                         Pout << "Value for[" << j <<"]" << "["  << i << "] is = "  << sendNodalData[j][i]  << endl;
                     }
-                }
+                } */
 
                 // MPI_Exchange
                 Pstream::exchange<scalarList, scalar>(sendNodalData, recvNodalData);
 
-                // Update the nodeIndexes for common nodes (before making coSim nodes)
+                // Update the nodeIndexes for common nodes (before making CoSim nodes)
+                for (auto& nodei: Interface_nodes)
+                {
+                    for(std::size_t i = MyRank ;  i < nodei.getCommonWithRank().size() ; i++)
+                    {
+                        if(nodei.getCommonWithRank()[i] == 1)
+                        {
+                            vector nodePosition  = nodei.getNodePosition();
 
+                            for(int j = 0; j<recvNodalData[i].size()/4 ; j++)
+                            {
+                                vector trial_node(recvNodalData[i][j*4+1], recvNodalData[i][j*4+2], recvNodalData[i][j*4+3]);
 
-                // Make coSim nodes
+                                if(is_same_points(nodePosition,trial_node))
+                                {
+                                    nodei.setNodeIndexForCoSim(recvNodalData[i][j*4+0]); //Take node Id of that
+                                }
+                            }
+                        }
+                    }
+                }
+                //Pout << "Done with changing the NodeIds" << endl;
+
+                //Printing
+                if(0)
+                {
+                    for (auto& nodei: Interface_nodes)
+                    {
+                        Pout<< "Node Local Id = " << nodei.getLocalNodeIndex() << ", with CoSim ID = " << nodei.getNodeIndexForCoSim() << " : with Co-ordinates (x,y,z) = ("<< nodei.getNodePosition()[0] << " , " << nodei.getNodePosition()[1] << " , " << nodei.getNodePosition()[2] << ")" << endl;
+                    }
+                }
+
+                // Make CoSim nodes
 
                 // Make Cosim elements
 
                 if(0)
                 {
-                    int counter = 0;
-                    if(MyRank == 1)
-                    {
-                        // iterate ghost nodes
-                        for (auto& nodei: Interface_nodes)
-                        {
-                            if(nodei.getGhostStatus() == 1)
-                            {
-                                sendNodalData[0][counter++] = nodei.getLocalNodeIndex();
-                                vector nodePosition  = nodei.getNodePosition();
-                                sendNodalData[0][counter++] = nodePosition[0];
-                                sendNodalData[0][counter++] = nodePosition[1];
-                                sendNodalData[0][counter++] = nodePosition[2];
-                            }
-                        }
-                    }
-
-                    //MPI related stuff
-                    Pstream::exchange<scalarList, scalar>(sendNodalData, recvNodalData);
-
-                    if(MyRank == 0)
-                    {
-                        // Received data from proc 1
-                        /* for(int i = 0; i<recvNodalData[1].size();i+=4) {
-                            Pout<< "RECV Ghost Node Id = " << recvNodalData[1][i] << " : with Co-ordinates (x,y,z) = ("<< recvNodalData[1][i+1]  << " , " << recvNodalData[1][i+2]  << " , " << recvNodalData[1][i+3]  << ")" << endl;
-                        } */
-
-                        // Change the NodeIndexes for CoSimIO for the Ghost nodes in Proc 0 once with the received Data
-                        for (auto& nodei: Interface_nodes)
-                        {
-                            if(nodei.getGhostStatus() == 1)
-                            {
-                                vector nodePosition  = nodei.getNodePosition();
-
-                                for(int i = 0; i<recvNodalData[0].size()/4 ; i++)
-                                {
-                                    vector trial_node(recvNodalData[1][i*4+1], recvNodalData[1][i*4+2], recvNodalData[1][i*4+3]);
-
-                                    if(is_same_points(nodePosition,trial_node))
-                                    {
-                                        nodei.setNodeIndexForCoSim(recvNodalData[1][i*4+0]); //Take node Id of that
-                                    }
-                                }
-                            }
-                        }
-
-                        /* for(auto& nodei: Interface_nodes)
-                        {
-                            if(nodei.getGhostStatus())
-                            {
-                                //Pout <<"[OF]Ghost Node with the Original Id = " << nodei.getLocalNodeIndex() << " and ID for CoSim = " << nodei.getNodeIndexForCoSim() <<endl;
-                                num_common_nodes++;
-                            }
-                        } */
-
-                    }
-
                     //Now make the CoSim Nodes and Elements
 
                     //Making CoSim Nodes
