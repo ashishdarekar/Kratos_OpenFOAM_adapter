@@ -16,10 +16,10 @@ if [ -n "${WM_PROJECT:-}" ] || error "No OpenFOAM environment is active."; then
     rm -rfv 0/uniform/functionObjects/functionObjectProperties
 fi
 
-#echo "--- Cleaning logfiles"
-#rm logopenfoam
-#rm logkratos
+echo "--- Cleaning logfiles"
+rm -rfv logopenfoam
+rm -rfv logkratos
 
 echo "--- Cleaning Post-processing files in $(pwd)"
-rm disp.txt
-rm forces.txt
+rm -rfv disp.txt
+rm -rfv forces.txt
