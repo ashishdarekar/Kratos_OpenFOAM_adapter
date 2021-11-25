@@ -26,7 +26,7 @@ Usage
         Property                    | Description                                                                       | Required | Default value
         type                        | type name: KratosOpenfoamAdapterFunctionObject                                    | yes      |
         libs                        | Excutable: ("libKratosOpenfoamAdapterFunctionObjectFunctionObjects.so")           | yes      |
-        dim                         | Diemension of a problem                                                           | yes      | 3
+        dim                         | Diemension of a problem                                                           | yes      |      3
         interfaces                  | To save the coupling interfaces(Each interface is a subdirectory)                 | yes      |
             name                    | Name of the coupling interface                                                    | yes      |
             patches                 | WordList of the openFOAM patches which contain the coupling faces                 | yes      |
@@ -35,6 +35,7 @@ Usage
             exportData              | WordList of the variables to write by OpenFOAM                                    | yes      |
             exportDataIdentifier    | Export DataItendifiers required for communication with Kratos                     | yes      |
         parameters                  | List of Parameters required for FSI: rho, mu                                      | no       |
+        debugLevel                  | Debug level either "info" or "debug" to see printed information                   | no       |     info
     \endtable
 SourceFiles
     KratosOpenfoamAdapterFunctionObject.C

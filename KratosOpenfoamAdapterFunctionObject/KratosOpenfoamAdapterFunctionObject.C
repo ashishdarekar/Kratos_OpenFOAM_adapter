@@ -575,7 +575,6 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::importDataFromK
         //debugInfo( "Data has been imported from CoSimulation to OpenFOAM: (for coupling interface name = " + interfaces_.at(i).nameOfInterface + ") , Disp values with array size = " + std::to_string(interfaces_.at(i).data_to_recv.size()) , debugLevel);
         debugInfo( "Data has been imported from CoSimulation to OpenFOAM: (for coupling interface name = " + interfaces_.at(i).nameOfInterface + ")" , debugLevel);
 
-
         // Get the displacement on the patch(for every patch in the interface) and assign it those values received from CoSimulation
         for (std::size_t j = 0; j < interfaces_.at(i).patchNames.size(); j++)
         {
