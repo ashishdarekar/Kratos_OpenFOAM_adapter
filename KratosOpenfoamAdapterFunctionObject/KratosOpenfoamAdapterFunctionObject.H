@@ -194,7 +194,7 @@ private:
             };
     };
 
-    std::vector<Node> Interface_nodes;
+
 
     class Element
     {
@@ -230,7 +230,7 @@ private:
             }
     };
 
-    std::vector<Element> Interface_elements;
+
 
     // Private Member Functions
 
@@ -240,17 +240,12 @@ private:
         //- Disallow default bitwise assignment
         void operator=(const KratosOpenfoamAdapterFunctionObject&) = delete;
 
-        //- Private function for CoSimIO
-        std::vector<double> data_to_send;
-        std::vector<double> data_to_recv;
-
         //- For making geometry of a interface Mesh(Model Part)
-        std::vector<vector> array_of_nodes;
+        std::vector<vector> array_of_nodes; //Can we replace this?
 
         // Parallel Related
         int TotalNumOfProcesses = Pstream::nProcs();
         int MyRank = Pstream::myProcNo();
-        std::vector<int> neighbour_ids_comm_num_of_nodes; //Max size of a array =  TotalNumOfProcesses * 2
 
 protected:
     //- Protected Data to set the parameters required for coupling
@@ -285,6 +280,7 @@ protected:
         {
             std::string nameOfInterface;
             std::vector<std::string> patchNames;
+            std::vector<int> patchIDs;
             std::vector<std::string> importData;
             std::vector<std::string> importDataIdentifier;
             std::vector<std::string> exportData;
@@ -293,6 +289,9 @@ protected:
             std::vector<double> data_to_recv;
             uint numNodes = 0;
             uint numElements = 0;
+            std::vector<Node> Interface_nodes;              // Contain Node objects
+            std::vector<Element> Interface_elements;        // Contain elemental Objects
+            std::vector<int> neighbour_ids_comm_num_of_nodes; //Max size of a array =  TotalNumOfProcesses * 2
         };
 
         //- Array of strctures to store data for all coupling interfaces
