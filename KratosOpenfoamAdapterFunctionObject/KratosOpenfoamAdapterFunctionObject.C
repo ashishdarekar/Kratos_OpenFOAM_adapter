@@ -228,7 +228,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             {
                 nodeIndex += recvDataNumNodeIndex[i][0];
             }
-            Pout << "NodeIndex starts from = " << nodeIndex <<endl;
+            //Pout << "NodeIndex starts from = " << nodeIndex <<endl;
             int globalNodeIndexBegin = nodeIndex; //To presrve its value(use is later)
 
             // Accessing the coordinates of all nodes in the Inteface and collecting nodal and elemental data
@@ -349,7 +349,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                 interfaces_.at(j).neighbour_ids_comm_num_of_nodes.push_back(num_common_nodes);
                 num_common_nodes = 0 ; //Reset to 0 , to count for next
             }
-            Pout << "Ashish 1.1" <<endl;
 
             // ------------------Common Nodal Data exchange with all ranks --------------------------------//
             scalarListList sendNodalData(Pstream::nProcs());
@@ -359,9 +358,8 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
             for(int i = 0; i < TotalNumOfProcesses ; i++)
             {
                 sendNodalData[i].setSize(4 * interfaces_.at(j).neighbour_ids_comm_num_of_nodes.at( 2*i + 1 )); //4 for each node, 1 for node index and 3 points coordinates
-                Pout << "SendData array size = " << sendNodalData[i].size() << endl;
+                //Pout << "SendData array size = " << sendNodalData[i].size() << endl;
             }
-            Pout << "Ashish 1.2" <<endl;
 
             // Filiing of the send array
             std::vector<int>counter(TotalNumOfProcesses , 0);
@@ -380,11 +378,9 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                 }
             }
             counter.clear();
-            Pout << "Ashish 1.3" <<endl;
 
             // MPI_Exchange
             Pstream::exchange<scalarList, scalar>(sendNodalData, recvNodalData);
-            Pout << "Ashish 1.4" <<endl;
 
             // Update the nodeIndexes for common nodes (before making CoSim nodes)
             for (auto& nodei: interfaces_.at(j).Interface_nodes)
@@ -407,7 +403,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
                     }
                 }
             }
-            Pout << "Ashish 1.5" <<endl;
 
             // Make CoSim nodes
             for(auto& nodei : interfaces_.at(j).Interface_nodes)
@@ -830,9 +825,9 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
     );
 
     // For every boundary patch of the interface
-    for(std::size_t j=0; j< interfaces_.at(j).patchIDs.size(); j++)
+    for(std::size_t j=0; j< interfaces_.at(interface_index).patchIDs.size(); j++)
     {
-        int patchID = interfaces_.at(j).patchIDs.at(j);
+        int patchID = interfaces_.at(interface_index).patchIDs.at(j);
 
         const auto& surface = getFaceVectors(patchID);
 

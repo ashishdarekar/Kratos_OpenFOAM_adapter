@@ -18,7 +18,7 @@ Description
     CoSimulation_Adapter
     {
         type KratosOpenfoamAdapterFunctionObject;
-        libs ("libKratosOpenfoamAdapterFunctionObject.so");
+        libs ("<Path_to_KratosOpenfoamAdapterFunctionObject/libKratosOpenfoamAdapterFunctionObject.so>");
     }
     \endverbatim
 
@@ -65,18 +65,6 @@ SourceFiles
 #include "immiscibleIncompressibleTwoPhaseMixture.H"
 #include "turbulentTransportModel.H"
 #include "turbulentFluidThermoModel.H"
-
-//For MPI
-/* #include "UPstream.H"
-#include "PstreamReduceOps.H"
-#include "OSspecific.H"
-#include "PstreamGlobals.H"
-#include "SubList.H"
-#include "allReduce.H"
- */
-
-// Main adapter header files
-// #include "CoSimulationAdapter.H"
 
 //CoSimIO header file
 #include "co_sim_io_mpi.hpp"
@@ -194,8 +182,6 @@ private:
             };
     };
 
-
-
     class Element
     {
         private:
@@ -229,8 +215,6 @@ private:
                 return elementalNodes_;
             }
     };
-
-
 
     // Private Member Functions
 
