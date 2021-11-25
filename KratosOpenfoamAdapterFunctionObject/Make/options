@@ -14,9 +14,9 @@ EXE_INC = \
     -I$(LIB_SRC)/triSurface/lnInclude \
     -I$(MPI_ROOT) \
     -I$(MPI_ROOT2) \
-    -I$(HOME)/Downloads/CoSimIO/co_sim_io \
-    -I$(HOME)/Downloads/CoSimIO \
-    -L$(HOME)/Downloads/CoSimIO/bin
+    -I$(HOME)/Documents/MS/CoSimIO/co_sim_io \
+    -I$(HOME)/Documents/MS/CoSimIO \
+    -L$(HOME)/Documents/MS/CoSimIO/bin
 
 LIB_LIBS = \
     -lfluidThermophysicalModels \
