@@ -37,7 +37,7 @@
     },
     "problem_data": {
         "echo_level": 4,
-        "end_time": 50.0,
+        "end_time": 10.0,
         "parallel_type": "OpenMP",
         "problem_name": "Wall_Structure",
         "start_time": 0.0
@@ -74,22 +74,6 @@
                 "kratos_module": "KratosMultiphysics",
                 "process_name": "PointOutputProcess",
                 "python_module": "point_output_process"
-            },
-            {
-                "Parameters": {
-                    "comparison_type": "dat_file_variables_time_history",
-                    "dimension": 3,
-                    "help": "This process checks that two files are the same. This can be used in order to create tests, where a given solution is expected",
-                    "output_file_name": "fsi_wall/fsi_wall_csm_results_disp.dat",
-                    "reference_file_name": "fsi_wall/fsi_wall_csm_results_disp_ref.dat",
-                    "relative_tolerance": 1e-09,
-                    "remove_output_file": true,
-                    "tolerance": 0.001
-                },
-                "help": "",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "CompareTwoFilesCheckProcess",
-                "python_module": "compare_two_files_check_process"
             }
         ],
         "constraints_process_list": [
@@ -117,29 +101,6 @@
                 },
                 "kratos_module": "KratosMultiphysics",
                 "python_module": "assign_vector_variable_process"
-            }
-        ],
-        "json_output": [
-            {
-                "Parameters": {
-                    "check_for_flag": "",
-                    "gauss_points_output_variables": [],
-                    "help": "This process generates a json file containing the solution of a list of variables from a given submodelpart",
-                    "historical_value": true,
-                    "model_part_name": "Structure",
-                    "output_file_name": "fsi_wall/fsi_wall_csm_results_disp.json",
-                    "output_variables": [
-                        "DISPLACEMENT_Y"
-                    ],
-                    "resultant_solution": false,
-                    "sub_model_part_name": "",
-                    "time_frequency": 0.02,
-                    "use_node_coordinates": false
-                },
-                "help": "This process writes postprocessing files for testing purpose",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "JsonOutputProcess",
-                "python_module": "json_output_process"
             }
         ],
         "loads_process_list": []

@@ -2,10 +2,10 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time" : 50.0,
+        "end_time" : 10.0,
         "echo_level" : 4,
         "print_colors" : true,
-        "parallel_type" : "OpenMP"
+        "parallel_type" : "MPI"
     },
     "solver_settings" :
     {
@@ -29,7 +29,11 @@
             "mapper" : {
                 "type" : "kratos_mapping",
                 "mapper_settings" : {
-                    "mapper_type" : "nearest_neighbor"
+                    "mapper_type" : "nearest_neighbor",
+                    "echo_level" : 2,
+                    "search_settings" : {
+                        "search_radius" : 2
+                    }
                 }
             }
         },
@@ -150,8 +154,8 @@
                 "type" : "solver_wrappers.external.openfoam_wrapper",
                 "solver_wrapper_settings" : {
                     "import_meshes"    : ["interface_flap", "interface_square_block"],
-                    "export_data"      : ["disp_interface_flap", "disp_interface_square_block"],
-                    "import_data"      : ["load_cells_interface_flap", "load_cells_interface_square_block"]
+                    "export_data"      : ["disp_interface_flap_ordered", "disp_interface_square_block_ordered"],
+                    "import_data"      : ["load_cells_interface_flap_ordered", "load_cells_interface_square_block_ordered"]
                 },
                 "io_settings" : {
                     "type"       : "kratos_co_sim_io",
@@ -164,8 +168,19 @@
                         "dimension" : 3,
                         "variable_name" : "DISPLACEMENT"
                     },
+                    "disp_interface_flap_ordered" : {
+                        "model_part_name"   : "interface_flap.original_order",
+                        "dimension" : 3,
+                        "variable_name" : "DISPLACEMENT"
+                    },
                     "load_cells_interface_flap" : {
                         "model_part_name"   : "interface_flap",
+                        "location" : "element",
+                        "dimension" : 3,
+                        "variable_name" : "FORCE"
+                    },
+                    "load_cells_interface_flap_ordered" : {
+                        "model_part_name"   : "interface_flap.original_order",
                         "location" : "element",
                         "dimension" : 3,
                         "variable_name" : "FORCE"
@@ -181,8 +196,19 @@
                         "dimension" : 3,
                         "variable_name" : "DISPLACEMENT"
                     },
+                    "disp_interface_square_block_ordered" : {
+                        "model_part_name"   : "interface_square_block.original_order",
+                        "dimension" : 3,
+                        "variable_name" : "DISPLACEMENT"
+                    },
                     "load_cells_interface_square_block" : {
                         "model_part_name"   : "interface_square_block",
+                        "location" : "element",
+                        "dimension" : 3,
+                        "variable_name" : "FORCE"
+                    },
+                    "load_cells_interface_square_block_ordered" : {
+                        "model_part_name"   : "interface_square_block.original_order",
                         "location" : "element",
                         "dimension" : 3,
                         "variable_name" : "FORCE"

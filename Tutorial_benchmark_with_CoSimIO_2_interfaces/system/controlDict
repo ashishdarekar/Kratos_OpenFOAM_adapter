@@ -24,7 +24,7 @@ startTime           0;
 
 stopAt              endTime;
 
-endTime             50.0; //25
+endTime             10.0; //25
 
 deltaT              0.01;//0.001
 
@@ -56,7 +56,7 @@ functions
     KratosOpenfoamAdapterFunctionObject1
     {
         type KratosOpenfoamAdapterFunctionObject;
-        libs ("libKratosOpenfoamAdapterFunctionObjectFunctionObjects.so");
+        libs ("../KratosOpenfoamAdapterFunctionObject/libKratosOpenfoamAdapterFunctionObjectFunctionObjects.so");
 
         participant Fluid;
         dim 3;
@@ -69,26 +69,19 @@ functions
                 name                    interface_flap;
                 patches                 (flap);
                 importData              (Displacement0);
-                importDataIdentifier    (disp_interface_flap);
+                importDataIdentifier    (disp_interface_flap_ordered);
                 exportData              (Force0);
-                exportDataIdentifier    (load_cells_interface_flap);
+                exportDataIdentifier    (load_cells_interface_flap_ordered);
             }
 
             Interface2
             {
-                //name                    interface_square_block;
-                //patches                 (squareblock);
-                //importData              (Displacement1);
-                //importDataIdentifier    (disp_interface_square_block);
-                //exportData              (Force1);
-                //exportDataIdentifier    (load_cells_interface_square_block);
-
                 name                    interface_square_block;
                 patches                 (flap); //Testing purpose same geometry use with different name
                 importData              (Displacement1);
-                importDataIdentifier    (disp_interface_square_block);
+                importDataIdentifier    (disp_interface_square_block_ordered);
                 exportData              (Force1);
-                exportDataIdentifier    (load_cells_interface_square_block);
+                exportDataIdentifier    (load_cells_interface_square_block_ordered);
             }
         }
 
