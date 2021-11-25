@@ -2,21 +2,25 @@
 
 Master-Thesis Work
 Ashish Darekar
+
 Class
     Foam::functionObjects::KratosOpenfoamAdapterFunctionObject
+
 Description
     This function object tries to access the real time field data
     from OpenFOAM solver and make it available to the COsimIO
     for further coupling in Kratos-CoSimualtion application
     NOTE:This function object is created using the template given in the $FOAM_ETC/codeTemplates/ directory.
+
     Example of function object specification:
     \verbatim
     CoSimulation_Adapter
     {
         type KratosOpenfoamAdapterFunctionObject;
-        libs ("libKratosOpenfoamAdapterFunctionObject.so");
+        libs ("<Path_to_KratosOpenfoamAdapterFunctionObject>/libKratosOpenfoamAdapterFunctionObject.so");
     }
     \endverbatim
+
 Usage
     \table
         Property                    | Description                                                                       | Required | Default value
@@ -92,16 +96,16 @@ private:
     const Foam::Time& runTime_; //Copy of RunTime Time object
     const dictionary& dict_; //Copy of Control Dict
 
-    // Member variables required for CoSimIO
+    //- Member variables required for CoSimIO
     std::string connection_name;
 
-    // CoSimIO info object- one is sufficient
+    //- CoSimIO info object- one is sufficient
     CoSimIO::Info info;
 
-    // Member for OpenFOAM
+    //- Member for OpenFOAM
     std::size_t time_step_ = 0 ;
 
-    // Node and Element class for an Adapter to save Mesh data
+    //- Node and Element class for an Adapter to save Mesh data
     class Node
     {
         private:
@@ -220,11 +224,14 @@ private:
     int MyRank = Pstream::myProcNo();
 
 protected:
-    //- Dimension of the problem, need to check how we can get this? We will provide this in config file.
-    int dim = 3;
+    //- Dimension of the problem, need to check how we can get this? We will provide this in config file. (default = 3)
+    int dim ;
 
-    //- Thickness of the problem , Added to make the force value independent of the Thickess for 2D
-    double thick = 1.0;
+    //- Thickness of the problem , Added to make the force value independent of the Thickess for 2D (default = 1.0)
+    double thick ;
+
+    // - Debug Level for printing the Adapter related information, 2 Levels availale: "debug" and "info"(default)
+    std::string debugLevel ;
 
     //- Solver type compressible/incompressible
     std::string solverType_;
@@ -280,13 +287,13 @@ protected:
     );
 
     //- Auxiliar functions
-    bool calculateForces(std::size_t interface_index);
+    bool calculateForces(std::size_t );
 
     std::string determineSolverType();
 
-    bool is_same_points(Foam::vector& pointX, Foam::vector& pointY);
+    bool is_same_points(Foam::vector& , Foam::vector& );
 
-    int compare_nodes(Foam::vector& pointX);
+    int compare_nodes(Foam::vector& );
 
     //- Stress tensor (see the OpenFOAM "Forces" function object)
     Foam::tmp<Foam::volSymmTensorField> devRhoReff() const;
@@ -295,7 +302,7 @@ protected:
 
     Foam::tmp<Foam::volScalarField> mu() const;
 
-    Foam::vectorField getFaceVectors(const unsigned int patchID) const;
+    Foam::vectorField getFaceVectors(const unsigned int ) const;
 
     bool readConfig(const dictionary& );
 
@@ -310,6 +317,8 @@ protected:
     void exportDataToKratos();
 
     void importDataFromKratos();
+
+    void debugInfo(const std::string, const std::string );
 
 public:
 

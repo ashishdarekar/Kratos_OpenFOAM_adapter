@@ -42,7 +42,7 @@ Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::~KratosOpenfoamAdapt
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dictionary& dict)
 {
-    Pout << "CoSimulation Adapter's function object : read()" << endl;
+    debugInfo("CoSimulation Adapter's function object : read()", debugLevel);
 
     if(readConfig(dict))
     {
@@ -58,7 +58,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 {
-    Pout << "CoSimulation Adapter's function object : execution()" << endl;
+    debugInfo( runTime_.timeName()  + " : CoSimulation Adapter's function object : execution()", debugLevel);
 
     exportDataToKratos();
 
@@ -69,7 +69,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::end()
 {
-    Pout << "CoSimulation Adapter's function object : end()" << endl;
+    debugInfo("CoSimulation Adapter's function object : end()", debugLevel);
 
     // DisConnection between OpenFOAM and Kratos-CoSimulation using CoSimIO
     disconnectKratos();
@@ -79,6 +79,8 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::end()
 
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::write()
 {
+    debugInfo("CoSimulation Adapter's function object : write()", debugLevel);
+
     return true;
 }
 
@@ -90,16 +92,21 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::readConfig(cons
     // Reading configuration parameters from ControlDict related to function object
     fvMeshFunctionObject::read(dict);
 
+    debugLevel = dict.lookupOrDefault<word>("debugLevel", "info");
+
     dim = dict.lookupOrDefault<int>("dim", 3);
-    Pout << "Dimension of a problem is: " << dim <<endl;
+    debugInfo( "Dimension of a problem is: "  + std::to_string(dim), debugLevel);
 
     thick = dict.lookupOrDefault<double>("thick", 1.0);
-    Pout << "Thickness of a domain is: " << thick <<endl;
+    debugInfo( "Thickness of a domain is: "  + std::to_string(thick), debugLevel);
 
-    if(dict.lookupOrDefault("adjustTimeStep", false))
+    if(runTime_.controlDict().lookupOrDefault("adjustTimeStep", false))
     {
-        Pout << "Cannot support adjustable time step" << endl;
+        debugInfo( "Cannot support adjustable time step", debugLevel);
+
         //EXIT THE SIMULATION
+        connectKratos();
+        end();
     }
 
     // Check the solver type and determine it if needed
@@ -107,28 +114,31 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::readConfig(cons
 
     if (solverType_.compare("compressible") == 0 || solverType_.compare("incompressible") == 0)
     {
-        Pout << "Known solver type: " << solverType_ << endl;
+        debugInfo( "Known solver type: " + solverType_ , debugLevel);
     }
     else if (solverType_.compare("none") == 0)
     {
-        Pout << "Determining the solver type..." << endl;
+        debugInfo("Determining the solver type", debugLevel);
         solverType_ = determineSolverType();
     }
     else
     {
-        Pout << "Unknown solver type. Determining the solver type..." << endl;
+        debugInfo("Unknown solver type. Determining the solver type", debugLevel);
         solverType_ = determineSolverType();
     }
 
     // Every interface is a subdictionary of "interfaces"
     const dictionary * interfaceSubdictPtr = dict.subDictPtr("interfaces");
 
-    Pout << "Interfaces Reading: Start" << endl;
+    debugInfo("Coupling Interfaces Reading: Start", debugLevel);
 
     if(!interfaceSubdictPtr)
     {
-        Pout << "No Interfaces found" << endl;
+        debugInfo("No Coupling Interfaces found", debugLevel);
+
         //EXIT THE SIMULATION
+        connectKratos();
+        end();
     }
     else
     {
@@ -141,7 +151,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::readConfig(cons
                 struct InterfaceData interfacedata;
 
                 interfacedata.nameOfInterface = interfaceSubdict.lookupType<word>("name");
-                Pout << "Name of the interface is = " << interfacedata.nameOfInterface << endl;
+                debugInfo( "Name of the coupling interface is = " + interfacedata.nameOfInterface , debugLevel);
 
                 wordList patches = interfaceSubdict.lookupType<wordList>("patches");
                 for(auto patch : patches)
@@ -184,8 +194,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::readConfig(cons
     // Loop to save the PatchIds associated with each interface for later use
     for(std::size_t j = 0; j < num_interfaces_; j++)
     {
-        Pout << "Name of the interface under progress : " << interfaces_.at(j).nameOfInterface << endl;
-
         // For every patch that participates in the coupling interface. We are keeping one patch for one interface
         for (std::size_t i = 0; i < interfaces_.at(j).patchNames.size(); i++)
         {
@@ -195,7 +203,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::readConfig(cons
             // Throw an error if the patch was not found
             if (patchID == -1)
             {
-                Pout << "ERROR: Patch " << (interfaces_.at(j).patchNames).at(i) << " does not exist." << endl;
+                debugInfo( "ERROR: Patch " + (interfaces_.at(j).patchNames).at(i) + " does not exist.", debugLevel );
             }
 
             // Add the patch in the list
@@ -204,8 +212,8 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::readConfig(cons
 
     }
 
-    Pout << "Interfaces Reading: Done" << endl;
-    Pout << "Number of interfaces found: " << num_interfaces_<< endl;
+    debugInfo("Coupling Interfaces Reading: Done" , debugLevel);
+    debugInfo("Number of coupling interfaces found: " + std::to_string(num_interfaces_) , debugLevel);
 
     return true;
 
@@ -245,10 +253,12 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::disconnectKrato
 
 void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCosim()
 {
-    Pout << "\n" <<"**************** Exporting All InterfaceMeshes to KRATOS using CoSimIO::ModelPart : Start ****************** \n" << endl;
+    debugInfo( "Exporting All InterfaceMeshes to KRATOS using CoSimIO::ModelPart : Start", debugLevel);
 
     for(std::size_t j = 0; j < num_interfaces_; j++)
     {
+        debugInfo( "[OF]Reading mesh data from OF for coupling interface : " + interfaces_.at(j).nameOfInterface, debugLevel );
+
         // Arrays to exchange the number of nodes with all ranks
         scalarListList sendDataNumNodeIndex(Pstream::nProcs());
         scalarListList recvDataNumNodeIndex(Pstream::nProcs());
@@ -259,8 +269,6 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
             interfaces_.at(j).numNodes += mesh_.boundaryMesh()[interfaces_.at(j).patchIDs.at(i)].localPoints().size();
             interfaces_.at(j).numElements += mesh_.boundary()[interfaces_.at(j).patchIDs[i]].size();
         }
-        Pout << "Total Number of Nodes in this interface: " << interfaces_.at(j).numNodes  << endl;
-        Pout << "Total Number of Elements/faces in this interface: " << interfaces_.at(j).numElements << endl;
 
         // Save the Number of data to send to other Ranks
         for(int i=0; i< TotalNumOfProcesses ; i++)
@@ -272,8 +280,6 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
         // Make CoSimIO::ModelPart and push in the array of model_part_interfaces
         model_part_interfaces_.push_back(CoSimIO::make_unique<CoSimIO::ModelPart>(interfaces_.at(j).nameOfInterface));
 
-        Pout << "Creating Model Part (Nodes and Elements) for CoSimIO : start" << endl;
-
         //MPI Exchange to know start Index for Node formation
         Pstream::exchange<scalarList, scalar>(sendDataNumNodeIndex, recvDataNumNodeIndex);
 
@@ -284,7 +290,6 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
         {
             nodeIndex += recvDataNumNodeIndex[i][0];
         }
-        //Pout << "NodeIndex starts from = " << nodeIndex <<endl;
         int globalNodeIndexBegin = nodeIndex; //To presrve its value(use is later)
 
         // Accessing the coordinates of all nodes in the Inteface and collecting nodal and elemental data
@@ -384,9 +389,8 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
                 interfaces_.at(j).Interface_elements.push_back(new_element);
             }
 
-            Pout << "[OF]Name of the interface done : " << interfaces_.at(j).nameOfInterface << endl;
-            Pout << "[OF]Total number of Nodes formed: " << interfaces_.at(j).Interface_nodes.size() <<endl;
-            Pout << "[OF]Total number of Elements formed: " << interfaces_.at(j).Interface_elements.size() <<endl;
+            debugInfo( "[OF]Total number of Nodes in coupling interface "  + interfaces_.at(j).nameOfInterface + " are " +  std::to_string(interfaces_.at(j).Interface_nodes.size()), debugLevel);
+            debugInfo( "[OF]Total number of Elements in coupling interface "  + interfaces_.at(j).nameOfInterface + " are " +  std::to_string(interfaces_.at(j).Interface_elements.size()), debugLevel);
 
         }
 
@@ -414,7 +418,6 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
         for(int i = 0; i < TotalNumOfProcesses ; i++)
         {
             sendNodalData[i].setSize(4 * interfaces_.at(j).neighbour_ids_comm_num_of_nodes.at( 2*i + 1 )); //4 for each node, 1 for node index and 3 points coordinates
-            //Pout << "SendData array size = " << sendNodalData[i].size() << endl;
         }
 
         // Filiing of the send array
@@ -472,10 +475,9 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
             {
                 vector nodePosition  = nodei.getNodePosition();
                 model_part_interfaces_.at(j)->CreateNewNode( nodei.getNodeIndexForCoSim(), nodePosition[0], nodePosition[1], nodePosition[2]);
-                //Pout << "Making Normal Node with LocalIndex = "<<  nodei.getLocalNodeIndex() << " and CoSimNodeIndex = " << nodei.getNodeIndexForCoSim() <<endl;
             }
         }
-        Pout << "[COSIM]Total number of Nodes(local, Ghost, total) = (" << model_part_interfaces_.at(j)->NumberOfLocalNodes() << " , " <<model_part_interfaces_.at(j)->NumberOfGhostNodes() <<  " , "<<model_part_interfaces_.at(j)->NumberOfNodes() << " )"<<endl;
+        debugInfo( "[COSIM]Total number of Nodes formed in coupling interface " + interfaces_.at(j).nameOfInterface +  " (local, Ghost, total) = (" + std::to_string(model_part_interfaces_.at(j)->NumberOfLocalNodes()) + " , " + std::to_string(model_part_interfaces_.at(j)->NumberOfGhostNodes()) +  " , " + std::to_string(model_part_interfaces_.at(j)->NumberOfNodes()) + " )" , debugLevel);
 
         // Make Cosim elements
         std::vector<CoSimIO::IdType> connectivity;
@@ -489,48 +491,24 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
             model_part_interfaces_.at(j)->CreateNewElement( elementi.getLocalElementIndex(), CoSimIO::ElementType::Quadrilateral2D4, connectivity );
             connectivity.clear();
         }
-        Pout << "[COSIM]Total number of Elements = " << model_part_interfaces_.at(j)->NumberOfElements() <<endl;
-
-        //Printing Nodal and Elemental Data using CoSim utilities
-        if(MyRank == 1 && 0)
-        {
-            // Iterate over all the nodes
-            for(auto& node: model_part_interfaces_.at(j)->Nodes())
-            {
-                Pout<< "Node Id = " << node.Id() << " : with Co-ordinates (x,y,z) = ("<< node.X() << " , " << node.Y() << " , " << node.Z() << ")" << endl;
-            }
-
-            // iterate elements (with range based loop)
-            for (auto& element : model_part_interfaces_.at(j)->Elements()) {
-                Pout<< "Element Id = " << element.Id() << " : Made up of following nodes: " <<endl;
-                for (auto node_it=element.NodesBegin(); node_it!=element.NodesEnd(); ++node_it) {
-                    CoSimIO::Node& node = **node_it;
-                    Pout<< "Node Id = " << node.Id() << " : with Co-ordinates (x,y,z) = ("<< node.X() << " , " << node.Y() << " , " << node.Z() << ")" << endl;
-                }
-            }
-
-            // iterate ghost nodes
-            for (auto& ghost_node : model_part_interfaces_.at(j)->GhostNodes()) {
-                // do sth with node, e.g. print the id:
-                Pout<< "Ghost Node Id = " << ghost_node.Id() << " : with Co-ordinates (x,y,z) = ("<< ghost_node.X() << " , " << ghost_node.Y() << " , " << ghost_node.Z() << ")" << endl;
-            }
-        }
+        debugInfo( "[COSIM]Total number of Elements formed in coupling interface " + interfaces_.at(j).nameOfInterface + " = " + std::to_string(model_part_interfaces_.at(j)->NumberOfElements()), debugLevel);
 
         // Export InterfaceMesh/ModelPart to CoSimulation using CoSimIO
-        Pout << "Exporting Mesh as a ModelPart for an interface: " << interfaces_.at(j).nameOfInterface << endl;
         info.Clear();
         info.Set("identifier", interfaces_.at(j).nameOfInterface);
         info.Set("connection_name", connection_name);
         auto export_info = CoSimIO::ExportMesh(info, *model_part_interfaces_.at(j));
+        debugInfo( "Finished Exporting interface Mesh " +  interfaces_.at(j).nameOfInterface + " to Kratos as a ModelPart "  , debugLevel);
 
-        Pout<< "Name of the interface Finished processing : " << interfaces_.at(j).nameOfInterface << endl;
-        array_of_nodes.clear(); //Clear all the entries of array_nodes, so that new empty vector will be available for the comparision
+        // Clear all the entries of temporary arrays for this interface, make it available for nex interface
+        array_of_nodes.clear();
         sendNodalData.clear();
         recvNodalData.clear();
         sendDataNumNodeIndex.clear();
         recvDataNumNodeIndex.clear();
     }
-    Pout << "\n" <<"**************** Exporting All InterfaceMeshes to KRATOS using CoSimIO::ModelPart : End ****************** \n" << endl;
+    debugInfo( "Exporting All InterfaceMeshes to KRATOS using CoSimIO::ModelPart : End", debugLevel);
+
 }
 
 void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::resizeDataVectors()
@@ -557,7 +535,7 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportDataToKra
 {
     for(std::size_t i=0; i < num_interfaces_; i++)
     {
-        Pout << "Force calculation started for the interface : " << interfaces_.at(i).nameOfInterface << endl;
+        debugInfo( "Force calculation started for coupling interface : " + interfaces_.at(i).nameOfInterface , debugLevel);
 
         // For "Write Data" variables which need to send to CoSimulation
         for(std::size_t j=0; j< interfaces_.at(i).exportData.size(); j++)
@@ -569,7 +547,6 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportDataToKra
                 calculateForces(i);
             }
         }
-        Pout << "Force calculation ended for the interface : " << interfaces_.at(i).nameOfInterface << endl;
 
         // Export this force array to CoSimulation //Elemental Force Data
         CoSimIO::Info connect_info;
@@ -578,7 +555,8 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportDataToKra
         connect_info.Set("connection_name", connection_name);
         connect_info = CoSimIO::ExportData(connect_info, interfaces_.at(i).data_to_send);
 
-        Pout << runTime_.timeName() << " : Data has been exported from OpenFOAM to CoSimulation (interface name = " << interfaces_.at(i).nameOfInterface << ") , Force values with array size = " << interfaces_.at(i).data_to_send.size() << endl;
+        //debugInfo("Data has been exported from OpenFOAM to CoSimulation (for coupling interface name = " + interfaces_.at(i).nameOfInterface + ") , Force values with array size = " + std::to_string(interfaces_.at(i).data_to_send.size()), debugLevel);
+        debugInfo("Data has been exported from OpenFOAM to CoSimulation (for coupling interface name = " + interfaces_.at(i).nameOfInterface + ")", debugLevel);
     }
 }
 
@@ -594,14 +572,9 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::importDataFromK
         connect_info = CoSimIO::ImportData(connect_info, interfaces_.at(i).data_to_recv);
         COSIMIO_CHECK_EQUAL(interfaces_.at(i).data_to_recv.size() , (interfaces_.at(i).numNodes) * dim ); //Check size of Receive data = Number of nodes*dim Is it require??
 
-        Pout << runTime_.timeName() << " : Data has been imported from CoSimulation to OpenFOAM: (interface name = " << interfaces_.at(i).nameOfInterface << ") , Disp values with array size = " << interfaces_.at(i).data_to_recv.size() << endl;
+        //debugInfo( "Data has been imported from CoSimulation to OpenFOAM: (for coupling interface name = " + interfaces_.at(i).nameOfInterface + ") , Disp values with array size = " + std::to_string(interfaces_.at(i).data_to_recv.size()) , debugLevel);
+        debugInfo( "Data has been imported from CoSimulation to OpenFOAM: (for coupling interface name = " + interfaces_.at(i).nameOfInterface + ")" , debugLevel);
 
-        /* for(std::size_t p=0; p<interfaces_.at(i).data_to_recv.size(); p++)
-        {
-            Pout<<"disp intput : " <<interfaces_.at(i).data_to_recv.at(p)<<endl;
-        } */
-
-        Pout << "Displacement replacement started for the interface : " << interfaces_.at(i).nameOfInterface << endl;
 
         // Get the displacement on the patch(for every patch in the interface) and assign it those values received from CoSimulation
         for (std::size_t j = 0; j < interfaces_.at(i).patchNames.size(); j++)
@@ -622,7 +595,7 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::importDataFromK
             }
         }
 
-        Pout << "Displacement replacement ended for the interface : " << interfaces_.at(i).nameOfInterface << endl;
+        debugInfo( "Displacement replacement ended for coupling interface : " + interfaces_.at(i).nameOfInterface, debugLevel);
     }
 }
 
@@ -642,18 +615,18 @@ std::string Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::determin
         if (p_.dimensions() == pressureDimensionsCompressible)
         {
             solverType_ = "compressible";
-            Pout << "Solver Type : Compressible " << endl;
+            debugInfo("Solver Type : Compressible ", debugLevel);
         }
         else if (p_.dimensions() == pressureDimensionsIncompressible)
         {
             solverType_ = "incompressible";
-            Pout << "Solver Type : InCompressible " << endl;
+            debugInfo("Solver Type : InCompressible ", debugLevel);
         }
     }
 
     if(solverType_  == "unknown")
     {
-        Pout << "Solver Type: Neither Compressible nor Incompresible" << endl;
+        debugInfo("Solver Type: Neither Compressible nor Incompresible", debugLevel);
     }
 
     return solverType_;
@@ -894,6 +867,18 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
     return true;
 }
 
+// *********************************************** Utilities **************************************************//
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::debugInfo(const std::string message, const std::string level )
+{
+    if(level.compare("debug") == 0)
+    {
+        Pout << "[AdapterInfo] " << message.c_str() << endl;
+    }
+    else // by default "info"
+    {
+        Info << "[AdapterInfo] " << message.c_str() << nl;
+    }
+}
 }//namespace Foam
 
 // ************************************************************************* //
