@@ -92,17 +92,6 @@ functions
         writeControl        writeTime;
     }
 
-    forces
-    {
-        type                forces;
-        libs                ( "libforces.so" );
-        patches             (flap);
-        rho                 rhoInf;
-        log                 true;
-        rhoInf              1.18;//0.00118//1000
-        CofR                (0 0 0);
-    }
-
     //- To see the residual plots
     //foamMonitor -l ./postProcessing/residuals/0/residuals.dat
     #includeFunc residuals

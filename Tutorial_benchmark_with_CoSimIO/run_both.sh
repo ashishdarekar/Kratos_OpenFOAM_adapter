@@ -8,9 +8,11 @@ solver=$(getApplication)
 ${solver} > logopenfoam &
 
 # To Run KRATOS
+export KRATOS_SOURCE=~/Documents/MS/Kratos/Kratos
+alias startkratos="setupkratosenv /home/ashish/Documents/MS/Kratos/Kratos"
 #startkratos = /home/ashish/Documents/MS/Kratos/Kratos
-#$startkratos
+startkratos
 
-python3 MainKratosCoSim.py > logkratos &
+runkratosmpi MainKratosCoSim.py 1 > logkratos &
 
 

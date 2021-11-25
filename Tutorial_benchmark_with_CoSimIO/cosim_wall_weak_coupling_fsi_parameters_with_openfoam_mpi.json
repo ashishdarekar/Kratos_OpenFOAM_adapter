@@ -3,20 +3,20 @@
     {
         "start_time" : 0.0,
         "end_time" : 50.0,
-        "echo_level" : 4,
+        "echo_level" : 1,
         "print_colors" : true,
         "parallel_type" : "MPI"
     },
     "solver_settings" :
     {
         "type" : "coupled_solvers.gauss_seidel_weak",
-        "echo_level" : 4,
+        "echo_level" : 1,
         "predictors" : [
             {
                 "type" : "average_value_based",
                 "solver"         : "Openfoam_Kratos_Wrapper",
                 "data_name"      : "load_cells_interface_flap",
-                "echo_level" : 4
+                "echo_level" : 1
             }
         ],
         "data_transfer_operators" : {
@@ -24,7 +24,7 @@
                 "type" : "kratos_mapping",
                 "mapper_settings" : {
                     "mapper_type" : "nearest_neighbor",
-                    "echo_level" : 2,
+                    "echo_level" : 1,
                     "search_settings" : {
                         "search_radius" : 2
                     }
@@ -67,14 +67,14 @@
                 "solver"         : "structure",
                 "data_name"      : "load_interface_flap",
                 "scaling_factor" : "(sin(((t)/0.01)/1500*pi/2))**2 ",
-                "echo_level"     : 4,
+                "echo_level"     : 1,
                 "interval"       : [0.0, 15.0]
             },
             "mapping_element_node_interface_flap" : {
                 "type"           : "elemental_data_to_nodal_data",
                 "solver"         : "Openfoam_Kratos_Wrapper",
                 "data_name"      : "load_cells_interface_flap",
-                "echo_level"     : 4
+                "echo_level"     : 1
             },
             "coupling_output_1" : {
                 "type"          : "coupling_output",
@@ -104,7 +104,7 @@
                 },
                 "io_settings" : {
                     "type"       : "kratos_co_sim_io",
-                    "echo_level" : 4,
+                    "echo_level" : 1,
                     //"communication_format" : "pipe",
                     "connect_to" : "Openfoam_Adapter"
                 },
