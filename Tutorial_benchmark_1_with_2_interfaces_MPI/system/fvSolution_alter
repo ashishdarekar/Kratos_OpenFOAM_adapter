@@ -1,0 +1,173 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+/*
+    p
+    {
+        solver           GAMG;
+        tolerance        1e-6;
+        relTol           1e-5;
+        //nCellsInCoarsestLevel 252; //square root of ur ncells
+        //relTol           1e-2;
+        smoother         DICGaussSeidel;
+    }
+*/
+    p
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-8;
+        relTol          1.0e-3;;
+    }
+
+    pFinal
+    {
+        $p;
+        tolerance       1e-07;
+        relTol          0;
+    }
+
+    pcorr
+    {
+        solver           GAMG;
+        tolerance        1e-5;
+        relTol           1e-4;
+        smoother         GaussSeidel;
+    }
+
+    pcorrFinal
+    {
+        $pcorr;
+        relTol          0;
+    }
+
+    Phi
+    {
+        $p;
+    }
+
+    /*
+    "(U|cellDisplacement)"
+    {
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-6;
+        relTol          1e-4;
+        minIter         2;
+    }
+
+    "(U|cellDisplacement)Final"
+    {
+        $U;
+        relTol          0;
+    }*/
+
+    U
+    {
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-6;
+        relTol          1e-4;
+        minIter         2;
+    }
+
+    UFinal
+    {
+        $U;
+        relTol          0;
+    }
+
+    cellDisplacement
+    {
+        solver          PCG;
+        preconditioner  DIC;
+        tolerance       1e-08;
+        relTol          0;
+    }
+
+}
+
+PIMPLE
+{
+
+    consistent          true;
+
+    //Outer loops (Pressure-Momentum Corrections)
+    nOuterCorrectors    200;//50,200
+
+    //Innner loops (Pressure corrections)
+    nCorrectors         4;
+
+    /*
+    residualControl
+    {
+        p
+        {
+            relTol      0;
+            tolerance   5e-5;
+        }
+
+        U
+        {
+            relTol      0;
+            tolerance   1e-4;
+        }
+    }
+    */
+    residualControl
+    {
+        U 1e-5;
+        p 1e-5;
+        pcorr 1e-5;
+    }
+
+    //relTol              0;
+    //tolerance           1.0e-12;
+    //pisoTol 1e-6;
+
+    nNonOrthogonalCorrectors 10;//10
+    correctPhi          yes;
+
+}
+
+//Under relaxationFactors ensure change of solutions from one step to other dont change much and make simulation stable, low factor means less changes in the solution
+// They modify the solution matrix /modify the field , not more than 0.9 and less than 0.2
+relaxationFactors
+{
+    fields
+    {
+        p       0.4;//0.3
+        pFinal  0.4;//0.4
+        pcorr       0.4;//0.3
+        pcorrFinal  0.4;//0.4
+    }
+    equations
+    {
+        U       0.6;//0.6
+        UFinal  0.6;//0.6
+    }
+}
+
+//PISO solver
+PISO
+{
+    nNonOrthogonalCorrectors 5;//10
+}
+
+//Solver to solve velocity potential (i.e phi)
+potentialFlow
+{
+    nNonOrthogonalCorrectors 5;//10
+}
+
+
+// ************************************************************************* //
