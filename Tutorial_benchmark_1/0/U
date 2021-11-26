@@ -1,0 +1,71 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+//internalField   uniform (51.3 0 0);
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+
+    squareblock
+    {
+        type            noSlip;
+    }
+
+    flap
+    {
+        type            movingWallVelocity;
+        value           uniform (0 0 0);
+    }
+
+    top
+    {
+        //type            noSlip;
+        //type            symmetryPlane;
+        type            slip;
+
+    }
+
+    bottom
+    {
+        //type            noSlip;
+        //type            symmetryPlane;
+        type            slip;
+    }
+
+    inlet
+    {
+        //type            fixedValue;
+        //value           uniform (51.3 0 0);
+
+        //value         $internalField;
+
+        type            uniformFixedValue;
+        uniformValue    constant (51.3 0 0);// try with (20 0 0)
+
+    }
+
+    outlet
+    {
+        type            zeroGradient;
+    }
+
+    front
+    {
+        type            empty;
+    }
+    back
+    {
+        type            empty;
+    }
+}
+
+// ************************************************************************* //
