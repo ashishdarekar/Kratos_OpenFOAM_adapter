@@ -56,7 +56,7 @@ functions
     KratosOpenfoamAdapterFunctionObject1
     {
         type KratosOpenfoamAdapterFunctionObject;
-        libs ("libKratosOpenfoamAdapterFunctionObjectFunctionObjects.so");
+        libs ("../KratosOpenfoamAdapterFunctionObject/libKratosOpenfoamAdapterFunctionObjectFunctionObjects.so");
 
         participant Fluid;
         dim 3;
