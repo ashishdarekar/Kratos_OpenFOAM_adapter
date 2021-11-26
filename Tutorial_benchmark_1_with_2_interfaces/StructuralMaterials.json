@@ -1,0 +1,37 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Parts_Structure",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticPlaneStress2DLaw"
+            },
+            "Variables"        : {
+                "DENSITY"       : 0.1,
+                "YOUNG_MODULUS" : 2500000.0,//2500000.0
+                "POISSON_RATIO" : 0.35,
+                "THICKNESS"     : 1.0//0.01
+            },
+            "Tables"           : {}
+        }
+    }]
+}
+
+/* {
+    "properties" : [{
+        "model_part_name" : "Structure.Parts_Structure",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticPlaneStress2DLaw"
+            },
+            "Variables"        : {
+                "DENSITY"       : 2.0,
+                "YOUNG_MODULUS" : 2000000.0,//2500000.0
+                "POISSON_RATIO" : 0.35,
+                "THICKNESS"     : 1//0.01
+            },
+            "Tables"           : {}
+        }
+    }]
+} */

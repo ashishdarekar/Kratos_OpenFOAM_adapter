@@ -10,7 +10,6 @@ Description
     This function object tries to access the real time field data
     from OpenFOAM solver and make it available to the COsimIO
     for further coupling in Kratos-CoSimualtion application
-
     NOTE:This function object is created using the template given in the $FOAM_ETC/codeTemplates/ directory.
 
     Example of function object specification:
@@ -18,24 +17,26 @@ Description
     CoSimulation_Adapter
     {
         type KratosOpenfoamAdapterFunctionObject;
-        libs ("libKratosOpenfoamAdapterFunctionObject.so");
+        libs ("<Path_to_KratosOpenfoamAdapterFunctionObject>/libKratosOpenfoamAdapterFunctionObject.so");
     }
     \endverbatim
 
 Usage
     \table
-        Property            | Description                                                                       | Required | Default value
-        type                | type name: KratosOpenfoamAdapterFunctionObject                                    | yes      |
-        my_name             | Name of the participant                                                           | no       | Fluid
-        interfaces          | To save the coupling interfaces(Each interface is a subdirectory)                 | yes      |
-            mesh            | Name of the coupling mesh                                                         | yes      |
-            patches         | WordList of the openFOAM patches which contain the coupling faces                 | yes      |
-            locations       | Name of the location in mesh to get the required data (faceCenter/facenode)       | yes      | faceCenter
-            importData        | WordList of the variables to Read by OpenFOAM                                     | yes      |
-            exportData       | WordList of the variables to write by OpenFOAM                                    | yes      |
-        parameters          | List of Parameters required for FSI: rho, mu                                      | no       |
+        Property                    | Description                                                                       | Required | Default value
+        type                        | type name: KratosOpenfoamAdapterFunctionObject                                    | yes      |
+        libs                        | Excutable: ("libKratosOpenfoamAdapterFunctionObjectFunctionObjects.so")           | yes      |
+        dim                         | Diemension of a problem                                                           | yes      |      3
+        interfaces                  | To save the coupling interfaces(Each interface is a subdirectory)                 | yes      |
+            name                    | Name of the coupling interface                                                    | yes      |
+            patches                 | WordList of the openFOAM patches which contain the coupling faces                 | yes      |
+            importData              | WordList of the variables to Read by OpenFOAM                                     | yes      |
+            importDataIdentifier    | Import DataItendifiers required for communication with Kratos                     | yes      |
+            exportData              | WordList of the variables to write by OpenFOAM                                    | yes      |
+            exportDataIdentifier    | Export DataItendifiers required for communication with Kratos                     | yes      |
+        parameters                  | List of Parameters required for FSI: rho, mu                                      | no       |
+        debugLevel                  | Debug level either "info" or "debug" to see printed information                   | no       |     info
     \endtable
-
 SourceFiles
     KratosOpenfoamAdapterFunctionObject.C
 
@@ -66,11 +67,8 @@ SourceFiles
 #include "turbulentTransportModel.H"
 #include "turbulentFluidThermoModel.H"
 
-// Main adapter header files
-// #include "CoSimulationAdapter.H"
-
 //CoSimIO header file
-#include "co_sim_io.hpp"
+#include "co_sim_io_mpi.hpp"
 
 #define COSIMIO_CHECK_EQUAL(a, b)                                 \
 if (a != b) {                                                     \
@@ -102,99 +100,226 @@ private:
     //- Member variables required for CoSimIO
     std::string connection_name;
 
-    // CoSimIO info object- one is sufficient
+    //- CoSimIO info object- one is sufficient
     CoSimIO::Info info;
 
     //- Member for OpenFOAM
     std::size_t time_step_ = 0 ;
-    std::size_t num_interfaces_ = 0;
 
-    //- Solver type compressible/incompressible
-    std::string solverType_ = "unknown";
+    //- Node and Element class for an Adapter to save Mesh data
+    class Node
+    {
+        private:
+            int localNodeIndex_;
+            int nodeIndexforCoSim_;
+            vector position_;
+            std::vector<bool>commonWithWhichRanks; //With howmany Ranks this node is shared
 
-    int dim = 3; //Dimension of the problem, need to check how we can get this? We will provide this in config file.
-    double thick = 1.0; //Thickness of the problem , Added to make the force value independent of the Thickess for 2D
+        public:
+            Node(vector position, int localNodeIndex, int nodeIndexforCoSim, int commonRankFirstTime) : commonWithWhichRanks(Pstream::nProcs(),0){
+                localNodeIndex_ = localNodeIndex;
+                nodeIndexforCoSim_ = nodeIndexforCoSim;
+                position_ = position;
+                setCommonWithRank(commonRankFirstTime);
+            };
 
-    // Private Member Functions
+            vector getNodePosition(){
+                return position_;
+            };
 
-        //- Disallow default bitwise copy construct
-        KratosOpenfoamAdapterFunctionObject(const KratosOpenfoamAdapterFunctionObject&);
+            uint getNodeIndexForCoSim(){
+                return nodeIndexforCoSim_;
+            };
 
-        //- Disallow default bitwise assignment
-        void operator=(const KratosOpenfoamAdapterFunctionObject&) = delete;
+            void setNodeIndexForCoSim(uint index){
+                nodeIndexforCoSim_ = index;
+            };
 
-        //- Private function for CoSimIO
-        std::vector<double> data_to_send;
-        std::vector<double> data_to_recv;
+            uint getLocalNodeIndex(){
+                return localNodeIndex_;
+            };
 
-        //- For making geometry of a interface Mesh(Model Part)
-        std::vector<vector> array_of_nodes;
+            void setLocalNodeIndex(uint index){
+                localNodeIndex_ = index;
+            };
 
+            void setCommonWithRank(int rank)
+            {
+                if(rank != Pstream::myProcNo()) //As if rank ==MyRank, it means  node is local
+                {
+                    commonWithWhichRanks.at(rank) = 1 ;
+                }
+            };
 
+            std::vector<bool> getCommonWithRank(){
+                return commonWithWhichRanks;
+            };
+
+            int getHighestCommRank()
+            {
+                int highest_Rank = Pstream::nProcs(); //for local number returning highest number
+                for(std::size_t i = 0 ;  i < commonWithWhichRanks.size() ; i++)
+                {
+                    if(commonWithWhichRanks[i] == 1)
+                    {
+                        highest_Rank = i;
+                    }
+                }
+
+                if(highest_Rank > Pstream::myProcNo())
+                {
+                    return highest_Rank;
+                }
+                else
+                {
+                    return Pstream::nProcs(); //Returning highest number
+                }
+            };
+    };
+
+    class Element
+    {
+        private:
+            uint localElementIndex_;
+            std::vector<uint> elementalNodeIndexes_;
+            std::vector<Node> elementalNodes_; //Not useful unless it contains the actual nodes make it Pointer
+            double forceValue;
+
+        public:
+            Element(uint localElementIndex){
+                localElementIndex_ = localElementIndex;
+            };
+
+            uint getLocalElementIndex(){
+                return localElementIndex_;
+            };
+
+            void addNodeIndexInList(uint nodeIndex){
+                elementalNodeIndexes_.push_back(nodeIndex);
+            };
+
+            std::vector<uint> getElementalNodeIndexes(){
+                return elementalNodeIndexes_;
+            };
+
+            void addNodesInList(Node nodei){
+                elementalNodes_.push_back(nodei);
+            };
+
+            std::vector<Node> getElementalNodes(){
+                return elementalNodes_;
+            }
+    };
+
+    //- Disallow default bitwise copy construct
+    KratosOpenfoamAdapterFunctionObject(const KratosOpenfoamAdapterFunctionObject&);
+
+    //- Disallow default bitwise assignment
+    void operator=(const KratosOpenfoamAdapterFunctionObject&) = delete;
+
+    //- For making geometry of a interface Mesh(Model Part)
+    std::vector<vector> array_of_nodes; //Can we replace this?
+
+    // Parallel Related
+    int TotalNumOfProcesses = Pstream::nProcs();
+    int MyRank = Pstream::myProcNo();
 
 protected:
-    //- Protected Data to set the parameters required for coupling
+    //- Dimension of the problem, need to check how we can get this? We will provide this in config file. (default = 3)
+    int dim ;
 
-        //- Parameters for Adapter's configuration
-        Foam::word my_name;
+    //- Thickness of the problem , Added to make the force value independent of the Thickess for 2D (default = 1.0)
+    double thick ;
 
-        //- For Force Field
-        //- Initialize the Force -> Need to check
-        Foam::volVectorField*  Force_ = new volVectorField
+    // - Debug Level for printing the Adapter related information, 2 Levels availale: "debug" and "info"(default)
+    std::string debugLevel ;
+
+    //- Solver type compressible/incompressible
+    std::string solverType_;
+
+    //- Number of Coupling interfaces
+    std::size_t num_interfaces_ = 0;
+
+    //- Create different interface for different FSI coupling interface (or OpenFOAM patches)
+    //- This strucutre is made to save all the data related to an interface
+    struct InterfaceData
+    {
+        std::string nameOfInterface;
+        std::vector<std::string> patchNames;
+        std::vector<int> patchIDs;
+        std::vector<std::string> importData;
+        std::vector<std::string> importDataIdentifier;
+        std::vector<std::string> exportData;
+        std::vector<std::string> exportDataIdentifier;
+        std::vector<double> data_to_send;
+        std::vector<double> data_to_recv;
+        uint numNodes = 0;
+        uint numElements = 0;
+        std::vector<Node> Interface_nodes;              // Contain Node objects
+        std::vector<Element> Interface_elements;        // Contain elemental Objects
+        std::vector<int> neighbour_ids_comm_num_of_nodes; //Max size of a array =  TotalNumOfProcesses * 2
+    };
+
+    //- Array of strctures to store data for all coupling interfaces
+    std::vector<struct InterfaceData> interfaces_;
+
+    //- Array of CoSimIO::Model parts for all coupling interfaces
+    std::vector<std::unique_ptr<CoSimIO::ModelPart>> model_part_interfaces_;
+
+    //- For Force Field
+    //- Initialize the Force -> Need to check
+    Foam::volVectorField*  Force_ = new volVectorField
+    (
+        IOobject
         (
-            IOobject
-            (
-                "Force",
-                mesh_.time().timeName(),
-                mesh_,
-                IOobject::NO_READ,
-                IOobject::AUTO_WRITE
-            ),
+            "Force",
+            mesh_.time().timeName(),
             mesh_,
-            dimensionedVector
-            (
-                "fdim",
-                dimensionSet(1,1,-2,0,0,0,0),
-                Foam::vector::zero
-            )
-        );
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedVector
+        (
+            "fdim",
+            dimensionSet(1,1,-2,0,0,0,0),
+            Foam::vector::zero
+        )
+    );
 
-        //- Create different interface for different FSI coupling interface (or OpenFOAM patches)
-        //- This strucutre is made to save all the data related to an interface
-        struct InterfaceData
-        {
-            std::string nameOfInterface;
-            std::vector<std::string> patchNames;
-            std::vector<std::string> importData;
-            std::vector<std::string> importDataIdentifier;
-            std::vector<std::string> exportData;
-            std::vector<std::string> exportDataIdentifier;
-            std::vector<double> data_to_send;
-            std::vector<double> data_to_recv;
-            uint numNodes = 0;
-            uint numElements = 0;
-        };
+    //- Auxiliar functions
+    bool calculateForces(std::size_t );
 
-        //- Array of strctures to store data for all coupling interfaces
-        std::vector<struct InterfaceData> interfaces_;
+    std::string determineSolverType();
 
-        //- Array of CoSimIO::Model parts for all coupling interfaces
-        std::vector<std::unique_ptr<CoSimIO::ModelPart>> model_part_interfaces_;
+    bool is_same_points(Foam::vector& , Foam::vector& );
 
-        //- Auxiliar functions
-        bool calculateForces(std::size_t interface_index);
-        std::string determineSolverType();
+    int compare_nodes(Foam::vector& );
 
-        int compare_nodes(Foam::vector& pointX);
+    //- Stress tensor (see the OpenFOAM "Forces" function object)
+    Foam::tmp<Foam::volSymmTensorField> devRhoReff() const;
 
-        //- Stress tensor (see the OpenFOAM "Forces" function object)
-        Foam::tmp<Foam::volSymmTensorField> devRhoReff() const;
+    Foam::tmp<Foam::volScalarField> rho() const;
 
-        Foam::tmp<Foam::volScalarField> rho() const;
+    Foam::tmp<Foam::volScalarField> mu() const;
 
-        Foam::tmp<Foam::volScalarField> mu() const;
+    Foam::vectorField getFaceVectors(const unsigned int ) const;
 
-        Foam::vectorField getFaceVectors(const unsigned int patchID) const;
+    bool readConfig(const dictionary& );
+
+    void connectKratos();
+
+    void disconnectKratos();
+
+    void exportMeshToCosim();
+
+    void resizeDataVectors();
+
+    void exportDataToKratos();
+
+    void importDataFromKratos();
+
+    void debugInfo(const std::string, const std::string );
 
 public:
 

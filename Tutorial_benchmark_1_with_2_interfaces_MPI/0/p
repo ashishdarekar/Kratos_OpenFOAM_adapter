@@ -1,0 +1,62 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    object      p;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 2 -2 0 0 0 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+    squareblock
+    {
+        type            zeroGradient;
+    }
+
+    flap
+    {
+        type            zeroGradient;
+    }
+
+    top
+    {
+        type            zeroGradient;
+        //type            symmetryPlane;
+    }
+
+    bottom
+    {
+        type            zeroGradient;
+        //type            symmetryPlane;
+    }
+
+    inlet
+    {
+        type            zeroGradient;
+    }
+
+    outlet
+    {
+        //type            zeroGradient;
+        type            fixedValue;
+        value           uniform 0;
+        //type            pressureInletOutletVelocity;
+        //value           $internalField;
+    }
+
+    front
+    {
+        type            empty;
+    }
+    back
+    {
+        type            empty;
+    }
+}
+
+// ************************************************************************* //

@@ -2,7 +2,6 @@
 
 Master-Thesis Work
 Ashish Darekar
-
 Sourcefile for the KratosOpenfoamAdpterFunctionObject.H
 
 \*-----------------------------------------------------------------------*/
@@ -34,7 +33,6 @@ fvMeshFunctionObject(name, runTime, dict), runTime_(runTime), dict_(dict)//, CoS
     read(dict);
 }
 
-
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
 
 Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::~KratosOpenfoamAdapterFunctionObject()
@@ -42,253 +40,17 @@ Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::~KratosOpenfoamAdapt
 }
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
-
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dictionary& dict)
 {
+    debugInfo("CoSimulation Adapter's function object : read()", debugLevel);
 
-    // Add Try and catch block, Catch all possible error here, because read() is the methods
-    // Which is going to executed before first time step and hence we can exit the simulation
-    // if something is wrong here.
-
-    std::cout << "CoSimulation Adapter's function object : read()" << std::endl;
-
-    try
+    if(readConfig(dict))
     {
-        // Reading configuration parameters from ControlDict related to function object
-        fvMeshFunctionObject::read(dict);
+        connectKratos();
 
-        my_name = dict.lookupOrDefault<word>("participant", "fluid");
-        std::cout<< "Name of the participant is: " << my_name <<std::endl;
+        exportMeshToCosim();
 
-        dim = dict.lookupOrDefault<int>("dim", 3);
-        std::cout<< "Dimension of a problem is: " << dim <<std::endl;
-
-        thick = dict.lookupOrDefault<double>("thick", 1.0);
-        std::cout<< "Thickness of a domain is: " << thick <<std::endl;
-
-        word name_of_interface;
-
-        if(dict.lookupOrDefault("adjustTimeStep", false))
-        {
-            std::cout << "Cannot support adjustable time step" << std::endl;
-            //EXIT THE SIMULATION
-        }
-
-        // Check the solver type and determine it if needed
-        solverType_ = dict.lookupOrDefault<word>("solvertype", "none");
-        if (solverType_.compare("compressible") == 0 || solverType_.compare("incompressible") == 0)
-        {
-            std::cout << "Known solver type: " << solverType_ << std::endl;
-        }
-        else if (solverType_.compare("none") == 0)
-        {
-            std::cout << "Determining the solver type..." << std::endl;
-            solverType_ = determineSolverType();
-        }
-        else
-        {
-            std::cout << "Unknown solver type. Determining the solver type..." << std::endl;
-            solverType_ = determineSolverType();
-        }
-
-        // Every interface is a subdictionary of "interfaces"
-        const dictionary * interfaceSubdictPtr = dict.subDictPtr("interfaces");
-
-        std::cout << "Interfaces Reading: Start" << std::endl;
-
-        if(!interfaceSubdictPtr)
-        {
-            std::cout << "No Interfaces found" << std::endl;
-            //EXIT THE SIMULATION
-        }
-        else
-        {
-            for(const entry& interfaceSubdictEntry : *interfaceSubdictPtr)
-            {
-                if(interfaceSubdictEntry.isDict())
-                {
-                    dictionary interfaceSubdict = interfaceSubdictEntry.dict();
-
-                    struct InterfaceData interfacedata;
-
-                    interfacedata.nameOfInterface = interfaceSubdict.lookupType<word>("name");
-                    std::cout << "Name of the interface is = " << interfacedata.nameOfInterface << std::endl;
-
-                    wordList patches = interfaceSubdict.lookupType<wordList>("patches");
-                    for(auto patch : patches)
-                    {
-                        interfacedata.patchNames.push_back(patch);
-                    }
-
-                    wordList importData = interfaceSubdict.lookupType<wordList>("importData");
-                    for(auto rData : importData)
-                    {
-                        interfacedata.importData.push_back(rData);
-                    }
-
-                    wordList importDataIdentifier = interfaceSubdict.lookupType<wordList>("importDataIdentifier");
-                    for(auto rData : importDataIdentifier)
-                    {
-                        interfacedata.importDataIdentifier.push_back(rData);
-                    }
-
-                    wordList exportData = interfaceSubdict.lookupType<wordList>("exportData");
-                    for(auto wData : exportData)
-                    {
-                        interfacedata.exportData.push_back(wData);
-                    }
-
-                    wordList exportDataIdentifier = interfaceSubdict.lookupType<wordList>("exportDataIdentifier");
-                    for(auto rData : exportDataIdentifier)
-                    {
-                        interfacedata.exportDataIdentifier.push_back(rData);
-                    }
-
-                    //Add this interface in the Array of all interfaces
-                    interfaces_.push_back(interfacedata);
-
-                    num_interfaces_++;
-                }
-            }
-        }
-
-        std::cout << "Interfaces Reading: Done" << std::endl;
-        std::cout << "Number of interfaces found: " << num_interfaces_<< std::endl;
-
-        // Connection between openFOAM and Kratos-CoSimulation using CoSimIO
-        CoSimIO::Info settings;
-        settings.Set("my_name", "Openfoam_Adapter");
-        settings.Set("connect_to", "Openfoam_Kratos_Wrapper");
-        settings.Set("echo_level", 0);
-        settings.Set("version", "1.25");
-
-        auto connect_info = CoSimIO::Connect(settings);
-        COSIMIO_CHECK_EQUAL(connect_info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Connected);
-        connection_name = connect_info.Get<std::string>("connection_name");
-
-        std::cout << "\n" <<"**************** Exporting InterfaceMesh using ModelPart: Start ******************" << "\n" <<std::endl;
-        for(std::size_t j = 0; j < num_interfaces_; j++)
-        {
-            std::cout << "\nName of the interface under progress : " << interfaces_.at(j).nameOfInterface << std::endl;
-
-            // *******************************Create a mesh as a ModelPart************************************ //
-            std::vector<int> patchIDs;
-
-            // For every patch that participates in the coupling interface. We are keeping one patch for one interface
-            for (std::size_t i = 0; i < interfaces_.at(j).patchNames.size(); i++)
-            {
-                // Get the patchID
-                int patchID = mesh_.boundaryMesh().findPatchID((interfaces_.at(j).patchNames).at(i));
-
-                // Throw an error if the patch was not found
-                if (patchID == -1)
-                {
-                    std::cout<< "ERROR: Patch " << (interfaces_.at(j).patchNames).at(i) << " does not exist." << std::endl;
-                }
-
-                // Add the patch in the list
-                patchIDs.push_back(patchID);
-            }
-
-            // Count the Nodes for all the patches in that interface
-            for (std::size_t i = 0; i < patchIDs.size(); i++)
-            {
-                interfaces_.at(j).numNodes += mesh_.boundaryMesh()[patchIDs.at(i)].localPoints().size();
-            }
-            std::cout << "Total Number of Nodes in this interface: " << interfaces_.at(j).numNodes  << std::endl;
-
-            // Count the number of elements/faces for all the patches in that interface
-            for (std::size_t i = 0; i < patchIDs.size(); i++)
-            {
-                interfaces_.at(j).numElements += mesh_.boundary()[patchIDs[i]].size();
-            }
-            std::cout << "Total Number of Elements/faces in this interface: " << interfaces_.at(j).numElements << std::endl;
-
-            // Make CoSimIO::ModelPart and push in the array of model_part_interfaces
-            model_part_interfaces_.push_back(CoSimIO::make_unique<CoSimIO::ModelPart>(interfaces_.at(j).nameOfInterface));
-
-            // For Nodes and Element IDs for CoSimIO
-            std::cout << "Creating Model Part (Nodes and Elements) for CoSimIO : start" << std::endl;
-            std::vector<int> NodeIDs;
-            NodeIDs.resize(interfaces_.at(j).numNodes);
-            int nodeIndex = 1; //As Node indexing starts with 1 in CoSimIO
-
-            std::vector<int> ElemIDs;
-            ElemIDs.resize(interfaces_.at(j).numElements);
-            int elemIndex = 1; //As element indexing starts with 1 in CoSimIO
-
-            // Accessing the coordinates of nodes in the Inteface and making CoSimIO nodes and elements
-            for(std::size_t i = 0; i < patchIDs.size(); i++)
-            {
-                forAll(mesh_.boundary()[patchIDs[i]],facei)
-                {
-                    const label& faceID = mesh_.boundaryMesh()[patchIDs[i]].start() + facei;
-
-                    std::vector<CoSimIO::IdType> connectivity;
-                    forAll(mesh_.faces()[faceID], nodei)
-                    {
-                        const label& nodeID = mesh_.faces()[faceID][nodei]; //for OpenFOAM
-                        auto pointX = mesh_.points()[nodeID];
-
-                        int result = compare_nodes(pointX); // return nodeIndex if node is already present and (-1) if node is not present
-                        if(result == (-1)) // For new node
-                        {
-                            // Make CoSimIO Nodes
-                            NodeIDs.push_back(nodeIndex); // Later used to make CoSimIO::Element
-                            CoSimIO::Node& node = model_part_interfaces_.at(j)->CreateNewNode( nodeIndex, pointX[0], pointX[1], pointX[2]);
-
-                            array_of_nodes.push_back(pointX);// Push new node in the list to compare
-
-                            connectivity.push_back(nodeIndex); // connectivity to make that element
-                            nodeIndex++;
-                        }
-                        else // Old node index just push in connectivity to make new element
-                        {
-                            connectivity.push_back(result); // connectivity to make that element
-                        }
-                    }
-
-                    ElemIDs.push_back(elemIndex); // For future use
-                    CoSimIO::Element& element = model_part_interfaces_.at(j)->CreateNewElement( elemIndex, CoSimIO::ElementType::Quadrilateral2D4, connectivity );
-                    elemIndex++;
-                }
-            }
-            std::cout << "Name of the interface done : " << interfaces_.at(j).nameOfInterface << std::endl;
-
-            // Export InterfaceMesh/ModelPart to CoSimulation using CoSimIO
-            std::cout << "Exporting Mesh as a ModelPart for an interface: " << interfaces_.at(j).nameOfInterface << std::endl;
-            info.Clear();
-            info.Set("identifier", interfaces_.at(j).nameOfInterface);
-            info.Set("connection_name", connection_name);
-            auto export_info = CoSimIO::ExportMesh(info, *model_part_interfaces_.at(j));
-
-            // Resizing the Data Vectors for Import Export operations with CoSimIO
-            // Import Data from CoSimulation (Displacement/Delta) present only on faceNodes/Nodes. No need to resize it
-            for(std::size_t i=0; i < num_interfaces_; i++)
-            {
-                // Export Data to CoSimulation (force/Stress) present only on faceCenters/Elements
-                for(std::size_t j=0; j< interfaces_.at(i).exportData.size(); j++)
-                {
-                    std::string dataName = interfaces_.at(i).exportData.at(j);
-
-                    if(dataName.find("Force") == 0 || dataName.find("Stress") == 0) //If "force" or "stress" string is found it will return 0
-                    {
-                        interfaces_.at(i).data_to_send.resize((interfaces_.at(i).numElements) * dim);
-                    }
-                }
-
-            }
-            std::cout << "Name of the interface Finished processing : " << interfaces_.at(j).nameOfInterface << std::endl;
-            array_of_nodes.clear(); //Clear all the entries of array_nodes, so that new empty vector will be available for the comparision
-
-        }
-        std::cout << "*********************** Exporting InterfaceMesh using ModelPart: End ************************" << "\n" <<std::endl;
-
-    }
-
-    catch(const std::exception& e)
-    {
-        std::cerr << "Exception" << e.what() << '\n';
+        resizeDataVectors();
     }
 
     return true;
@@ -296,12 +58,484 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dict
 
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
 {
-    std::cout << "CoSimulation Adapter's function object : execution()" << std::endl;
+    debugInfo( runTime_.timeName()  + " : CoSimulation Adapter's function object : execution()", debugLevel);
 
-    // *************************************** Force/Load Related ****************************************** //
+    exportDataToKratos();
+
+    importDataFromKratos();
+
+    return true;
+}
+
+bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::end()
+{
+    debugInfo("CoSimulation Adapter's function object : end()", debugLevel);
+
+    // DisConnection between OpenFOAM and Kratos-CoSimulation using CoSimIO
+    disconnectKratos();
+
+    return true;
+}
+
+bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::write()
+{
+    debugInfo("CoSimulation Adapter's function object : write()", debugLevel);
+
+    return true;
+}
+
+
+
+// ****************************************** Auxillary functions Read config *********************************************** //
+bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::readConfig(const dictionary& dict)
+{
+    // Reading configuration parameters from ControlDict related to function object
+    fvMeshFunctionObject::read(dict);
+
+    debugLevel = dict.lookupOrDefault<word>("debugLevel", "info");
+
+    dim = dict.lookupOrDefault<int>("dim", 3);
+    debugInfo( "Dimension of a problem is: "  + std::to_string(dim), debugLevel);
+
+    thick = dict.lookupOrDefault<double>("thick", 1.0);
+    debugInfo( "Thickness of a domain is: "  + std::to_string(thick), debugLevel);
+
+    if(runTime_.controlDict().lookupOrDefault("adjustTimeStep", false))
+    {
+        debugInfo( "Cannot support adjustable time step", debugLevel);
+
+        //EXIT THE SIMULATION
+        connectKratos();
+        end();
+    }
+
+    // Check the solver type and determine it if needed
+    solverType_ = dict.lookupOrDefault<word>("solvertype", "none");
+
+    if (solverType_.compare("compressible") == 0 || solverType_.compare("incompressible") == 0)
+    {
+        debugInfo( "Known solver type: " + solverType_ , debugLevel);
+    }
+    else if (solverType_.compare("none") == 0)
+    {
+        debugInfo("Determining the solver type", debugLevel);
+        solverType_ = determineSolverType();
+    }
+    else
+    {
+        debugInfo("Unknown solver type. Determining the solver type", debugLevel);
+        solverType_ = determineSolverType();
+    }
+
+    // Every interface is a subdictionary of "interfaces"
+    const dictionary * interfaceSubdictPtr = dict.subDictPtr("interfaces");
+
+    debugInfo("Coupling Interfaces Reading: Start", debugLevel);
+
+    if(!interfaceSubdictPtr)
+    {
+        debugInfo("No Coupling Interfaces found", debugLevel);
+
+        //EXIT THE SIMULATION
+        connectKratos();
+        end();
+    }
+    else
+    {
+        for(const entry& interfaceSubdictEntry : *interfaceSubdictPtr)
+        {
+            if(interfaceSubdictEntry.isDict())
+            {
+                dictionary interfaceSubdict = interfaceSubdictEntry.dict();
+
+                struct InterfaceData interfacedata;
+
+                interfacedata.nameOfInterface = interfaceSubdict.lookupType<word>("name");
+                debugInfo( "Name of the coupling interface is = " + interfacedata.nameOfInterface , debugLevel);
+
+                wordList patches = interfaceSubdict.lookupType<wordList>("patches");
+                for(auto patch : patches)
+                {
+                    interfacedata.patchNames.push_back(patch);
+                }
+
+                wordList importData = interfaceSubdict.lookupType<wordList>("importData");
+                for(auto rData : importData)
+                {
+                    interfacedata.importData.push_back(rData);
+                }
+
+                wordList importDataIdentifier = interfaceSubdict.lookupType<wordList>("importDataIdentifier");
+                for(auto rData : importDataIdentifier)
+                {
+                    interfacedata.importDataIdentifier.push_back(rData);
+                }
+
+                wordList exportData = interfaceSubdict.lookupType<wordList>("exportData");
+                for(auto wData : exportData)
+                {
+                    interfacedata.exportData.push_back(wData);
+                }
+
+                wordList exportDataIdentifier = interfaceSubdict.lookupType<wordList>("exportDataIdentifier");
+                for(auto rData : exportDataIdentifier)
+                {
+                    interfacedata.exportDataIdentifier.push_back(rData);
+                }
+
+                //Add this interface in the Array of all interfaces
+                interfaces_.push_back(interfacedata);
+
+                num_interfaces_++;
+            }
+        }
+    }
+
+    // Loop to save the PatchIds associated with each interface for later use
+    for(std::size_t j = 0; j < num_interfaces_; j++)
+    {
+        // For every patch that participates in the coupling interface. We are keeping one patch for one interface
+        for (std::size_t i = 0; i < interfaces_.at(j).patchNames.size(); i++)
+        {
+            // Get the patchID
+            int patchID = mesh_.boundaryMesh().findPatchID((interfaces_.at(j).patchNames).at(i));
+
+            // Throw an error if the patch was not found
+            if (patchID == -1)
+            {
+                debugInfo( "ERROR: Patch " + (interfaces_.at(j).patchNames).at(i) + " does not exist.", debugLevel );
+            }
+
+            // Add the patch in the list
+            interfaces_.at(j).patchIDs.push_back(patchID);
+        }
+
+    }
+
+    debugInfo("Coupling Interfaces Reading: Done" , debugLevel);
+    debugInfo("Number of coupling interfaces found: " + std::to_string(num_interfaces_) , debugLevel);
+
+    return true;
+
+}
+
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::connectKratos()
+{
+    // Connection between openFOAM and Kratos-CoSimulation using CoSimIO (ONLY ONE TIME for multiple interfaces)
+    CoSimIO::Info settings;
+    settings.Set("my_name", "Openfoam_Adapter");
+    settings.Set("connect_to", "Openfoam_Kratos_Wrapper");
+    settings.Set("echo_level", 0);
+    settings.Set("version", "1.25");
+    CoSimIO::Info connect_info;
+
+    if(TotalNumOfProcesses == 1)
+    {
+        connect_info = CoSimIO::Connect(settings);
+    }
+    else{
+        connect_info = CoSimIO::ConnectMPI(settings, MPI_COMM_WORLD);
+    }
+
+    COSIMIO_CHECK_EQUAL(connect_info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Connected);
+    connection_name = connect_info.Get<std::string>("connection_name");
+}
+
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::disconnectKratos()
+{
+    CoSimIO::Info connect_info;
+    CoSimIO::Info disconnect_settings;
+    disconnect_settings.Set("connection_name", connection_name);
+    connect_info = CoSimIO::Disconnect(disconnect_settings);
+    COSIMIO_CHECK_EQUAL(connect_info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Disconnected);
+
+}
+
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCosim()
+{
+    debugInfo( "Exporting All InterfaceMeshes to KRATOS using CoSimIO::ModelPart : Start", debugLevel);
+
+    for(std::size_t j = 0; j < num_interfaces_; j++)
+    {
+        debugInfo( "[OF]Reading mesh data from OF for coupling interface : " + interfaces_.at(j).nameOfInterface, debugLevel );
+
+        // Arrays to exchange the number of nodes with all ranks
+        scalarListList sendDataNumNodeIndex(Pstream::nProcs());
+        scalarListList recvDataNumNodeIndex(Pstream::nProcs());
+
+        // Count the Nodes and Elements for all the patches in that interface
+        for (std::size_t i = 0; i < interfaces_.at(j).patchIDs.size(); i++)
+        {
+            interfaces_.at(j).numNodes += mesh_.boundaryMesh()[interfaces_.at(j).patchIDs.at(i)].localPoints().size();
+            interfaces_.at(j).numElements += mesh_.boundary()[interfaces_.at(j).patchIDs[i]].size();
+        }
+
+        // Save the Number of data to send to other Ranks
+        for(int i=0; i< TotalNumOfProcesses ; i++)
+        {
+            sendDataNumNodeIndex[i].setSize(1);
+            sendDataNumNodeIndex[i][0] = interfaces_.at(j).numNodes ;
+        }
+
+        // Make CoSimIO::ModelPart and push in the array of model_part_interfaces
+        model_part_interfaces_.push_back(CoSimIO::make_unique<CoSimIO::ModelPart>(interfaces_.at(j).nameOfInterface));
+
+        //MPI Exchange to know start Index for Node formation
+        Pstream::exchange<scalarList, scalar>(sendDataNumNodeIndex, recvDataNumNodeIndex);
+
+        int nodeIndex = 1 ; //Default value of Serial run
+        int elemIndex = 1;
+
+        for(int i = 0 ; i < MyRank; i++)
+        {
+            nodeIndex += recvDataNumNodeIndex[i][0];
+        }
+        int globalNodeIndexBegin = nodeIndex; //To presrve its value(use is later)
+
+        // Accessing the coordinates of all nodes in the Inteface and collecting nodal and elemental data
+        for(std::size_t i = 0; i < interfaces_.at(j).patchIDs.size(); i++)
+        {
+            label patchIndex1 = mesh_.boundaryMesh().findPatchID((interfaces_.at(j).patchNames).at(i)); //Patch Id of Interface Flap
+            const UList<label> &bfaceCells1 = mesh_.boundaryMesh()[patchIndex1].faceCells();
+            label patchIndex2 = 0; //Check the default value, What should I provide?
+
+            // Travel through all the nodes in that MPI Rank
+            forAll(bfaceCells1, bfacei1)
+            {
+                const label& faceID1 = mesh_.boundaryMesh()[interfaces_.at(j).patchIDs[i]].start() + bfacei1;
+
+                Element new_element = Element(elemIndex++);//make new element and then increase the elemental index counter
+
+                forAll(mesh_.faces()[faceID1], nodei1)
+                {
+                    const label& nodeID1 = mesh_.faces()[faceID1][nodei1]; //for OpenFOAM
+                    auto pointX = mesh_.points()[nodeID1];
+                    std::vector<bool> is_common_node(TotalNumOfProcesses , 0); //Total number of max neighbours  = NumOfProcesses-1
+
+                    int result = compare_nodes(pointX); // return nodeIndex(starting from 1) if node is already present and (-1) if node is not present
+
+                    if(result == (-1)) // For new node
+                    {
+                        //--------------------------------- FORALL Neighbouring Boundaries -----------------------------------//
+                        forAll(mesh_.boundaryMesh() , ipatch)
+                        {
+                            word BCtype = mesh_.boundaryMesh().types()[ipatch];
+                            if(BCtype == "processor")
+                            {
+                                patchIndex2 = ipatch; //patchIndex 2 can be replace with ipatch
+                                const processorPolyPatch& pp = refCast<const processorPolyPatch>( mesh_.boundaryMesh()[patchIndex2] );
+                                int nighbor_proc_id = pp.neighbProcNo();
+
+                                const UList<label> &bfaceCells2 = mesh_.boundaryMesh()[patchIndex2].faceCells();
+
+                                //While creation of node check if it has to be created in the way of ghost or local, CHECK it in ALL neighbour or sharing boundaries
+                                forAll(bfaceCells2, bfacei2) //compare with all the nodes in the Processor common patch
+                                {
+                                    const label& faceID2 = mesh_.boundaryMesh()[patchIndex2].start() + bfacei2;
+                                    forAll(mesh_.faces()[faceID2], nodei2)
+                                    {
+                                        const label& nodeID2 = mesh_.faces()[faceID2][nodei2]; //for OpenFOAM
+                                        auto pointY = mesh_.points()[nodeID2];
+
+                                        if(is_same_points(pointX,pointY) == 1 )//once this is found Go out from the For loop and create the node
+                                        {
+                                            is_common_node.at(nighbor_proc_id) = 1; //need to create this node as a gghost node
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        bool new_node_created = 0; //ON/OFF
+                        for(int i = 0; i< TotalNumOfProcesses ; i++)
+                        {
+                            if(is_common_node.at(i) == 1)//Any one
+                            {
+                                if(new_node_created == 0)
+                                {
+                                    Node new_node = Node(pointX, nodeIndex, nodeIndex, i);//cosimIndex kept same as local index (by default), later need to change
+                                    new_node_created = 1;
+                                    interfaces_.at(j).Interface_nodes.push_back(new_node);
+                                    new_element.addNodeIndexInList(nodeIndex);// connectivity to make that element
+                                    new_element.addNodesInList(new_node);// Add new node in the element
+                                    nodeIndex++;
+                                    array_of_nodes.push_back(pointX);// Push new node in the list to compare
+                                }
+                                else{
+                                    interfaces_.at(j).Interface_nodes.at(nodeIndex-2).setCommonWithRank(i); //With which Id it is common
+                                }
+                            }
+                        }
+                        is_common_node.clear(); //No need anyways it will be deleted once it goes out of scope
+
+                        if(new_node_created == 0) //if Still node is not created then only create it normally
+                        {
+                            Node new_node = Node(pointX, nodeIndex, nodeIndex, MyRank);//cosimIndex kept same as local index (by default), later need to change
+                            interfaces_.at(j).Interface_nodes.push_back(new_node);
+                            new_element.addNodeIndexInList(nodeIndex);// connectivity to make that element
+                            new_element.addNodesInList(new_node);// Add new node in the element
+                            nodeIndex++;
+                            array_of_nodes.push_back(pointX);// Push new node in the list to compare
+                        }
+
+                    }
+                    else{
+                        //No need to produce new Node
+                        new_element.addNodeIndexInList(result);// connectivity to make that element
+                        new_element.addNodesInList(interfaces_.at(j).Interface_nodes.at(result-1));// Add old node in the List of nodes for that element, result-1 as Vector index starts from 0
+                    }
+                }
+                //Once Element is set push it to the List of Elements
+                interfaces_.at(j).Interface_elements.push_back(new_element);
+            }
+
+            debugInfo( "[OF]Total number of Nodes in coupling interface "  + interfaces_.at(j).nameOfInterface + " are " +  std::to_string(interfaces_.at(j).Interface_nodes.size()), debugLevel);
+            debugInfo( "[OF]Total number of Elements in coupling interface "  + interfaces_.at(j).nameOfInterface + " are " +  std::to_string(interfaces_.at(j).Interface_elements.size()), debugLevel);
+
+        }
+
+        //Save the info about neighbour rank and corresponding number of nodes common with
+        int num_common_nodes = 0;
+        for(int k = 0 ; k<TotalNumOfProcesses ;k++)
+        {
+            for(auto& nodei: interfaces_.at(j).Interface_nodes)
+            {
+                if(nodei.getCommonWithRank().at(k) == 1)
+                {
+                    num_common_nodes++;
+                }
+            }
+            interfaces_.at(j).neighbour_ids_comm_num_of_nodes.push_back(k);
+            interfaces_.at(j).neighbour_ids_comm_num_of_nodes.push_back(num_common_nodes);
+            num_common_nodes = 0 ; //Reset to 0 , to count for next
+        }
+
+        // ------------------Common Nodal Data exchange with all ranks --------------------------------//
+        scalarListList sendNodalData(Pstream::nProcs());
+        scalarListList recvNodalData(Pstream::nProcs());
+
+        // Decide the size of a send array
+        for(int i = 0; i < TotalNumOfProcesses ; i++)
+        {
+            sendNodalData[i].setSize(4 * interfaces_.at(j).neighbour_ids_comm_num_of_nodes.at( 2*i + 1 )); //4 for each node, 1 for node index and 3 points coordinates
+        }
+
+        // Filiing of the send array
+        std::vector<int>counter(TotalNumOfProcesses , 0);
+        for (auto& nodei: interfaces_.at(j).Interface_nodes)
+        {
+            for(std::size_t i = 0 ;  i < nodei.getCommonWithRank().size() ; i++)
+            {
+                if(nodei.getCommonWithRank()[i] == 1)
+                {
+                    sendNodalData[i][(counter.at(i))++] = nodei.getLocalNodeIndex(); //Provide Local Id only
+                    vector nodePosition  = nodei.getNodePosition();
+                    sendNodalData[i][(counter.at(i))++] = nodePosition[0];
+                    sendNodalData[i][(counter.at(i))++] = nodePosition[1];
+                    sendNodalData[i][(counter.at(i))++] = nodePosition[2];
+                }
+            }
+        }
+        counter.clear();
+
+        // MPI_Exchange
+        Pstream::exchange<scalarList, scalar>(sendNodalData, recvNodalData);
+
+        // Update the nodeIndexes for common nodes (before making CoSim nodes)
+        for (auto& nodei: interfaces_.at(j).Interface_nodes)
+        {
+            for(std::size_t i = MyRank ;  i < nodei.getCommonWithRank().size() ; i++)
+            {
+                if(nodei.getCommonWithRank()[i] == 1)
+                {
+                    vector nodePosition  = nodei.getNodePosition();
+
+                    for(int j = 0; j<recvNodalData[i].size()/4 ; j++)
+                    {
+                        vector trial_node(recvNodalData[i][j*4+1], recvNodalData[i][j*4+2], recvNodalData[i][j*4+3]);
+
+                        if(is_same_points(nodePosition,trial_node))
+                        {
+                            nodei.setNodeIndexForCoSim(recvNodalData[i][j*4+0]); //Take node Id of that
+                        }
+                    }
+                }
+            }
+        }
+
+        // Make CoSim nodes
+        for(auto& nodei : interfaces_.at(j).Interface_nodes)
+        {
+            if(nodei.getLocalNodeIndex() != nodei.getNodeIndexForCoSim() && (nodei.getHighestCommRank()<TotalNumOfProcesses)) //If both the ids are not same then they are ghost
+            {
+                vector nodePosition  = nodei.getNodePosition();
+                model_part_interfaces_.at(j)->CreateNewGhostNode( nodei.getNodeIndexForCoSim(), nodePosition[0], nodePosition[1], nodePosition[2], nodei.getHighestCommRank());
+            }
+            else //Local nodes
+            {
+                vector nodePosition  = nodei.getNodePosition();
+                model_part_interfaces_.at(j)->CreateNewNode( nodei.getNodeIndexForCoSim(), nodePosition[0], nodePosition[1], nodePosition[2]);
+            }
+        }
+        debugInfo( "[COSIM]Total number of Nodes formed in coupling interface " + interfaces_.at(j).nameOfInterface +  " (local, Ghost, total) = (" + std::to_string(model_part_interfaces_.at(j)->NumberOfLocalNodes()) + " , " + std::to_string(model_part_interfaces_.at(j)->NumberOfGhostNodes()) +  " , " + std::to_string(model_part_interfaces_.at(j)->NumberOfNodes()) + " )" , debugLevel);
+
+        // Make Cosim elements
+        std::vector<CoSimIO::IdType> connectivity;
+        for(auto& elementi : interfaces_.at(j).Interface_elements)
+        {
+            for(auto& elementalNodeIndexi : elementi.getElementalNodes())
+            {
+                connectivity.push_back(interfaces_.at(j).Interface_nodes.at(elementalNodeIndexi.getLocalNodeIndex()-globalNodeIndexBegin).getNodeIndexForCoSim());
+            }
+
+            model_part_interfaces_.at(j)->CreateNewElement( elementi.getLocalElementIndex(), CoSimIO::ElementType::Quadrilateral2D4, connectivity );
+            connectivity.clear();
+        }
+        debugInfo( "[COSIM]Total number of Elements formed in coupling interface " + interfaces_.at(j).nameOfInterface + " = " + std::to_string(model_part_interfaces_.at(j)->NumberOfElements()), debugLevel);
+
+        // Export InterfaceMesh/ModelPart to CoSimulation using CoSimIO
+        info.Clear();
+        info.Set("identifier", interfaces_.at(j).nameOfInterface);
+        info.Set("connection_name", connection_name);
+        auto export_info = CoSimIO::ExportMesh(info, *model_part_interfaces_.at(j));
+        debugInfo( "Finished Exporting interface Mesh " +  interfaces_.at(j).nameOfInterface + " to Kratos as a ModelPart "  , debugLevel);
+
+        // Clear all the entries of temporary arrays for this interface, make it available for nex interface
+        array_of_nodes.clear();
+        sendNodalData.clear();
+        recvNodalData.clear();
+        sendDataNumNodeIndex.clear();
+        recvDataNumNodeIndex.clear();
+    }
+    debugInfo( "Exporting All InterfaceMeshes to KRATOS using CoSimIO::ModelPart : End", debugLevel);
+
+}
+
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::resizeDataVectors()
+{
+    // Resizing the Data Vectors for Import Export operations with CoSimIO
+    // Import Data from CoSimulation (Displacement/Delta) present only on faceNodes/Nodes. No need to resize it
     for(std::size_t i=0; i < num_interfaces_; i++)
     {
-        std::cout<< "Force calculation started for the interface : " << interfaces_.at(i).nameOfInterface << std::endl;
+        // Export Data to CoSimulation (force/Stress) present only on faceCenters/Elements
+        for(std::size_t j=0; j< interfaces_.at(i).exportData.size(); j++)
+        {
+            std::string dataName = interfaces_.at(i).exportData.at(j);
+
+            if(dataName.find("Force") == 0 || dataName.find("Stress") == 0) //If "force" or "stress" string is found it will return 0
+            {
+                interfaces_.at(i).data_to_send.resize((interfaces_.at(i).numElements) * dim);
+            }
+        }
+
+    }
+}
+
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportDataToKratos()
+{
+    for(std::size_t i=0; i < num_interfaces_; i++)
+    {
+        debugInfo( "Force calculation started for coupling interface : " + interfaces_.at(i).nameOfInterface , debugLevel);
 
         // For "Write Data" variables which need to send to CoSimulation
         for(std::size_t j=0; j< interfaces_.at(i).exportData.size(); j++)
@@ -313,7 +547,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
                 calculateForces(i);
             }
         }
-        std::cout << "Force calculation ended for the interface : " << interfaces_.at(i).nameOfInterface << std::endl;
 
         // Export this force array to CoSimulation //Elemental Force Data
         CoSimIO::Info connect_info;
@@ -322,10 +555,13 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         connect_info.Set("connection_name", connection_name);
         connect_info = CoSimIO::ExportData(connect_info, interfaces_.at(i).data_to_send);
 
-        std::cout<< runTime_.timeName() << " : Data has been exported from OpenFOAM to CoSimulation (interface name = " << interfaces_.at(i).nameOfInterface << ") , Force values with array size = " << interfaces_.at(i).data_to_send.size() << std::endl;
+        //debugInfo("Data has been exported from OpenFOAM to CoSimulation (for coupling interface name = " + interfaces_.at(i).nameOfInterface + ") , Force values with array size = " + std::to_string(interfaces_.at(i).data_to_send.size()), debugLevel);
+        debugInfo("Data has been exported from OpenFOAM to CoSimulation (for coupling interface name = " + interfaces_.at(i).nameOfInterface + ")", debugLevel);
     }
+}
 
-    // *************************************** Displcement Related ****************************************** //
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::importDataFromKratos()
+{
     for (std::size_t i = 0; i < interfaces_.size(); i++)
     {
         // Import the displacement array from the CoSimulation
@@ -336,21 +572,21 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
         connect_info = CoSimIO::ImportData(connect_info, interfaces_.at(i).data_to_recv);
         COSIMIO_CHECK_EQUAL(interfaces_.at(i).data_to_recv.size() , (interfaces_.at(i).numNodes) * dim ); //Check size of Receive data = Number of nodes*dim Is it require??
 
-        std::cout<< runTime_.timeName() << " : Data has been imported from CoSimulation to OpenFOAM: (interface name = " << interfaces_.at(i).nameOfInterface << ") , Disp values with array size = " << interfaces_.at(i).data_to_recv.size() << std::endl;
-
-        std::cout<< "Displacement replacement started for the interface : " << interfaces_.at(i).nameOfInterface << std::endl;
+        //debugInfo( "Data has been imported from CoSimulation to OpenFOAM: (for coupling interface name = " + interfaces_.at(i).nameOfInterface + ") , Disp values with array size = " + std::to_string(interfaces_.at(i).data_to_recv.size()) , debugLevel);
+        debugInfo( "Data has been imported from CoSimulation to OpenFOAM: (for coupling interface name = " + interfaces_.at(i).nameOfInterface + ")" , debugLevel);
 
         // Get the displacement on the patch(for every patch in the interface) and assign it those values received from CoSimulation
         for (std::size_t j = 0; j < interfaces_.at(i).patchNames.size(); j++)
         {
             Foam::pointVectorField* point_disp;
             point_disp = const_cast<pointVectorField*>( &mesh_.lookupObject<pointVectorField>("pointDisplacement") );
-            label patchIndex = mesh_.boundaryMesh().findPatchID(interfaces_.at(i).patchNames[j]);//Remove hardcoded part for finding patchIndex
+            label patchIndex = mesh_.boundaryMesh().findPatchID((interfaces_.at(i).patchNames).at(j));//Remove hardcoded part for finding patchIndex
             fixedValuePointPatchVectorField& pointDisplacementFluidPatch = refCast<fixedValuePointPatchVectorField>(point_disp->boundaryFieldRef()[patchIndex]);
 
             int iterator = 0;
             forAll(point_disp->boundaryFieldRef()[patchIndex] ,k)
             {
+                //Pout<< "Displ node number = " << k <<endl;
                 pointDisplacementFluidPatch[k][0] = interfaces_.at(i).data_to_recv[iterator++];
                 pointDisplacementFluidPatch[k][1] = interfaces_.at(i).data_to_recv[iterator++];
                 if (dim ==3)
@@ -358,33 +594,11 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::execute()
             }
         }
 
-        std::cout<< "Displacement replacement ended for the interface : " << interfaces_.at(i).nameOfInterface << std::endl;
+        debugInfo( "Displacement replacement ended for coupling interface : " + interfaces_.at(i).nameOfInterface, debugLevel);
     }
-
-    return true;
 }
 
-bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::end()
-{
-    // Dicsonect from CoSimIO
-    std::cout << "\n" << "CoSimulation Adapter's function object : end()" << std::endl;
 
-    // DisConnection between OpenFOAM and Kratos-CoSimulation using CoSimIO
-    CoSimIO::Info connect_info;
-    CoSimIO::Info disconnect_settings;
-    disconnect_settings.Set("connection_name", connection_name);
-    connect_info = CoSimIO::Disconnect(disconnect_settings);
-    COSIMIO_CHECK_EQUAL(connect_info.Get<int>("connection_status"), CoSimIO::ConnectionStatus::Disconnected);
-
-    return true;
-}
-
-bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::write()
-{
-    std::cout << "\n" << "CoSimulation Adapter's function object : write()" << std::endl;
-
-    return true;
-}
 
 // *********************************************** Some Auxillary Functions **************************************************//
 // Calculate the Solver Type - according to the pressure dimension
@@ -400,25 +614,25 @@ std::string Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::determin
         if (p_.dimensions() == pressureDimensionsCompressible)
         {
             solverType_ = "compressible";
-            std::cout << "Solver Type : Compressible " << std::endl;
+            debugInfo("Solver Type : Compressible ", debugLevel);
         }
         else if (p_.dimensions() == pressureDimensionsIncompressible)
         {
             solverType_ = "incompressible";
-            std::cout << "Solver Type : InCompressible " << std::endl;
+            debugInfo("Solver Type : InCompressible ", debugLevel);
         }
     }
 
     if(solverType_  == "unknown")
     {
-        std::cout << "Solver Type: Neither Compressible nor Incompresible" << std::endl;
+        debugInfo("Solver Type: Neither Compressible nor Incompresible", debugLevel);
     }
 
     return solverType_;
 }
 
 // To compare the Foam::Vector. Check whether it is really required?
-bool is_same_points(Foam::vector& pointX, Foam::vector& pointY)
+bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::is_same_points(Foam::vector& pointX, Foam::vector& pointY)
 {
     if(pointX[0] == pointY[0] && pointX[1] == pointY[1] && pointX[2] == pointY[2])
         return true;
@@ -585,22 +799,6 @@ Foam::vectorField Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::ge
 // Calculate Total Force
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces(std::size_t interface_index)
 {
-    std::vector<int> patchIDs;
-    // For every patch that participates in the coupling interface
-    for (std::size_t i = 0; i < interfaces_.at(interface_index).patchNames.size(); i++)
-    {
-        // Get the patchID
-        int patchID = mesh_.boundaryMesh().findPatchID((interfaces_.at(interface_index).patchNames).at(i));
-
-        // Throw an error if the patch was not found
-        if (patchID == -1){
-            std::cout<< "ERROR: Patch " << (interfaces_.at(interface_index).patchNames).at(i) << " does not exist." << std::endl;
-        }
-
-    // Add the patch in the list
-    patchIDs.push_back(patchID);
-    }
-
     // Get different force fields from OpenFOAM, Refering Force Function Object (OpenFOAM User guide)
     // 1.Stress tensor boundary field
     tmp<volSymmTensorField> tdevRhoReff(devRhoReff());
@@ -621,9 +819,9 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
     );
 
     // For every boundary patch of the interface
-    for(std::size_t j=0; j< patchIDs.size(); j++)
+    for(std::size_t j=0; j< interfaces_.at(interface_index).patchIDs.size(); j++)
     {
-        int patchID = patchIDs.at(j);
+        int patchID = interfaces_.at(interface_index).patchIDs.at(j);
 
         const auto& surface = getFaceVectors(patchID);
 
@@ -668,6 +866,18 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
     return true;
 }
 
+// *********************************************** Utilities **************************************************//
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::debugInfo(const std::string message, const std::string level )
+{
+    if(level.compare("debug") == 0)
+    {
+        Pout << "[AdapterInfo] " << message.c_str() << endl;
+    }
+    else // by default "info"
+    {
+        Info << "[AdapterInfo] " << message.c_str() << nl;
+    }
+}
 }//namespace Foam
 
 // ************************************************************************* //

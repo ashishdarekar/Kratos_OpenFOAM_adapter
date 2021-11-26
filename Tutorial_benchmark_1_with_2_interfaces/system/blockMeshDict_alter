@@ -1,0 +1,311 @@
+FoamFile
+{
+    version         2.0;
+    format          ascii;
+    class           dictionary;
+    object          blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+convertToMeters 1;
+
+// Geometry parameters
+f -0.005;   // z-front
+b 0.005;    // z-back
+
+// Grid refinement parameters
+/*
+H0 70;      // Nx for 0th,7th,9th,8th and Ny for 1st,2nd,3rd,6th
+H1 30;      // Nx for 1st, 2nd (55)
+H2 60;      // Nx for 3rd, 6th (110)
+H3 30;      // Nx for 10th, 11th, 12th
+
+V0 35;      // Ny for 0th
+V1 25;     // Ny for 4th, 5th (just above & below flap == V2)
+V2 25;     // Ny for 7th and 9th
+V3 3;       // Ny for 8th
+
+GP 4;       // Positive direction
+GN 0.25;    // Negative direction
+GO 2.5;     // Outlet grading
+*/
+
+vertices
+(
+    // Block 0
+    (0.0  0.0  $f)        // vertex 0
+    (4.5  5.5  $f)        // vertex 1
+    (4.5  6.5  $f)        // vertex 2
+    (0.0 12.0  $f)        // vertex 3
+
+    (0.0  0.0  $b)        // vertex 4
+    (4.5  5.5  $b)        // vertex 5
+    (4.5  6.5  $b)        // vertex 6
+    (0.0 12.0  $b)        // vertex 7
+
+    // Block 1
+    (5.5 0.0 $f)        // vertex 8
+    (5.5 5.5 $f)        // vertex 9
+
+    (5.5 0.0 $b)        // vertex 10
+    (5.5 5.5 $b)        // vertex 11
+
+    // Block 2
+    (5.5  6.5 $f)        // vertex 12
+    (5.5 12.0 $f)        // vertex 13
+
+    (5.5  6.5 $b)        // vertex 14
+    (5.5 12.0 $b)        // vertex 15
+
+    // Block 3
+    (16.5 0.0 $f)       // vertex 16
+    ( 9.5 5.5 $f)       // vertex 17
+
+    (16.5 0.0 $b)       // vertex 18
+    ( 9.5 5.5 $b)       // vertex 19
+
+    // Block 4
+    (9.5 5.97 $f)        // vertex 20
+    (5.5 5.97 $f)        // vertex 21
+
+    (9.5 5.97 $b)        // vertex 22
+    (5.5 5.97 $b)        // vertex 23
+
+    // Block 5
+    (5.5 6.03 $f)        // vertex 24
+    (9.5 6.03 $f)        // vertex 25
+    (9.5 6.50 $f)        // vertex 26
+
+    (5.5 6.03 $b)        // vertex 27
+    (9.5 6.03 $b)        // vertex 28
+    (9.5 6.50 $b)        // vertex 29
+
+    // Block 6
+    (16.5 12.0 $f)        // vertex 30
+
+    (16.5 12.0 $b)        // vertex 31
+
+    // Block 7
+    (16.5 5.97 $f)        // vertex 32
+
+    (16.5 5.97 $b)        // vertex 33
+
+    // Block 8
+    (16.5 6.03 $f)        // vertex 34
+
+    (16.5 6.03 $b)        // vertex 35
+
+    // Block 9
+
+    // Block 10
+    (19.5 0.0  $f)       // vertex 36
+    (19.5 5.97 $f)       // vertex 37
+
+    (19.5 0.0  $b)       // vertex 38
+    (19.5 5.97 $b)       // vertex 39
+
+    // Block 11
+    (19.5 6.03 $f)       // vertex 40
+    (19.5 6.03 $b)       // vertex 41
+
+    // Block 12
+    (19.5 12.0 $f)       // vertex 42
+    (19.5 12.0 $b)       // vertex 43
+
+);
+/*
+blocks
+(
+    hex ( 0  1  2  3  4  5  6  7) ($H0 $V0 1) simpleGrading ($GN 1 1) // Block 0
+    hex ( 0  8  9  1  4 10 11  5) ($H1 $H0 1) simpleGrading (1 $GN 1) // Block 1
+    hex ( 2 12 13  3  6 14 15  7) ($H1 $H0 1) simpleGrading (1 $GP 1) // Block 2
+    hex ( 8 16 17  9 10 18 19 11) ($H2 $H0 1) simpleGrading (1 $GN 1) // Block 3
+    hex ( 9 17 20 21 11 19 22 23) ($H2 $V1 1) simpleGrading (1 1 1) // Block 4
+    hex (24 25 26 12 27 28 29 14) ($H2 $V1 1) simpleGrading (1 1 1) // Block 5
+    hex (12 26 30 13 14 29 31 15) ($H2 $H0 1) simpleGrading (1 $GP 1) // Block 6
+    hex (17 16 32 20 19 18 33 22) ($H0 $V2 1) simpleGrading ($GP 1 1) // Block 7
+    hex (20 32 34 25 22 33 35 28) ($H0 $V3 1) simpleGrading ($GP 1 1) // Block 8
+    hex (25 34 30 26 28 35 31 29) ($H0 $V2 1) simpleGrading ($GP 1 1) // Block 9
+    hex (16 36 37 32 18 38 39 33) ($H3 $V2 1) simpleGrading ($GO 1 1) // Block 10
+    hex (32 37 40 34 33 39 41 35) ($H3 $V3 1) simpleGrading ($GO 1 1) // Block 11
+    hex (34 40 42 30 35 41 43 31) ($H3 $V2 1) simpleGrading ($GO 1 1) // Block 12
+);
+*/
+
+//Medium mesh
+H0 60;      // Nx for 0th,7th,9th,8th and Ny for 1st,2nd,3rd,6th
+H1 20;      // Nx for 1st, 2nd (55)
+H2 50;      // Nx for 3rd, 6th (110)
+H3 20;      // Nx for 10th, 11th, 12th
+
+V0 25;      // Ny for 0th
+V1 25;     // Ny for 4th, 5th (just above & below flap == V2)
+V2 25;     // Ny for 7th and 9th
+V3 3;       // Ny for 8th
+
+GP1 4;       // Positive direction
+GN1 0.25;    // Negative direction
+GP2 16;       // Positive direction
+GN2 0.0625;    // Negative direction
+
+GO 2.5;     // Outlet grading
+
+/*
+//Coarse mesh
+H0 30;      // Nx for 0th,7th,9th,8th and Ny for 1st,2nd,3rd,6th
+H1 10;      // Nx for 1st, 2nd (55)
+H2 20;      // Nx for 3rd, 6th (110)
+H3 10;      // Nx for 10th, 11th, 12th
+
+V0 15;      // Ny for 0th
+V1 10;     // Ny for 4th, 5th (just above & below flap == V2)
+V2 10;     // Ny for 7th and 9th
+V3 1;       // Ny for 8th
+
+GP1 1;       // Positive direction
+GN1 1;    // Negative direction
+GP2 1;       // Positive direction
+GN2 1;    // Negative direction
+
+GO 2.5;     // Outlet grading
+*/
+
+blocks
+(
+    hex ( 0  1  2  3  4  5  6  7) ($H0 $V0 1) simpleGrading ($GN2 1 1) // Block 0
+    hex ( 0  8  9  1  4 10 11  5) ($H1 $H0 1) simpleGrading (1 $GN2 1) // Block 1
+    hex ( 2 12 13  3  6 14 15  7) ($H1 $H0 1) simpleGrading (1 $GP2 1) // Block 2
+    hex ( 8 16 17  9 10 18 19 11) ($H2 $H0 1) simpleGrading (1 $GN2 1) // Block 3
+    hex ( 9 17 20 21 11 19 22 23) ($H2 $V1 1) simpleGrading (1 $GN1 1) // Block 4
+    hex (24 25 26 12 27 28 29 14) ($H2 $V1 1) simpleGrading (1 $GP1 1) // Block 5
+    hex (12 26 30 13 14 29 31 15) ($H2 $H0 1) simpleGrading (1 $GP2 1) // Block 6
+    hex (17 16 32 20 19 18 33 22) ($H0 $V2 1) simpleGrading ($GP2 $GN1 1) // Block 7
+    hex (20 32 34 25 22 33 35 28) ($H0 $V3 1) simpleGrading ($GP2 1 1) // Block 8
+    hex (25 34 30 26 28 35 31 29) ($H0 $V2 1) simpleGrading ($GP2 $GP1 1) // Block 9
+    hex (16 36 37 32 18 38 39 33) ($H3 $V2 1) simpleGrading ($GO $GN1 1) // Block 10
+    hex (32 37 40 34 33 39 41 35) ($H3 $V3 1) simpleGrading ($GO 1 1) // Block 11
+    hex (34 40 42 30 35 41 43 31) ($H3 $V2 1) simpleGrading ($GO $GP1 1) // Block 12
+);
+
+
+edges
+(
+);
+
+boundary
+(
+    front
+    {
+        type empty;
+        faces
+        (
+            (0 1 2 3)
+            (0 8 9 1)
+            (2 12 13 3)
+            (8 16 17 9)
+            (9 17 20 21)
+            (24 25 26 12)
+            (12 26 30 13)
+            (17 16 32 20)
+            (20 32 34 25)
+            (25 34 30 26)
+            (16 36 37 32)
+            (32 37 40 34)
+            (34 40 42 30)
+        );
+    }
+
+    back
+    {
+        type empty;
+        faces
+        (
+            (4 5 6 7)
+            (4 10 11 5)
+            (6 14 15 7)
+            (10 18 19 11)
+            (11 19 22 23)
+            (27 28 29 14)
+            (14 29 31 15)
+            (19 18 33 22)
+            (22 33 35 28)
+            (28 35 31 29)
+            (18 38 39 33)
+            (33 39 41 35)
+            (35 41 43 31)
+        );
+    }
+
+    inlet
+    {
+        type patch;
+        faces
+        (
+            ( 0  4  7  3)
+        );
+    }
+
+    outlet
+    {
+        type patch;
+        faces
+        (
+            (36 38 39 37)
+            (37 39 41 40)
+            (40 41 43 42)
+        );
+    }
+
+    top
+    {
+        type wall;
+        faces
+        (
+            (3 13 15 7)
+            (13 30 31 15)
+            (30 42 43 31)
+        );
+    }
+
+    bottom
+    {
+        type wall;
+        faces
+        (
+            (0 8 10 4)
+            (8 16 18 10)
+            (16 36 38 18)
+        );
+    }
+
+    flap
+    {
+        type wall;
+        faces
+        (
+            (21 20 22 23)
+            (20 22 28 25)
+            (24 25 28 27)
+        );
+    }
+
+    squareblock
+    {
+        type wall;
+        faces
+        (
+            (1 9 11 5)
+            (9 21 23 11)
+            (24 12 14 27)
+            (12 2 6 14)
+            (2 1 5 6)
+        );
+    }
+);
+
+mergePatchPairs
+(
+);
+
+
+// ************************************************************************* //

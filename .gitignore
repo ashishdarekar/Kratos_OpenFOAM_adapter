@@ -1,1 +1,11 @@
 .vscode/settings.json
+
+*.so
+*.vtk
+*.o
+*Tutorial_benchmark_1/
+*Tutorial_benchmark_1_with_2_interfaces/
+*Tutorial_benchmark_1_with_2_interfaces_MPI/
+*Tutorial_benchmark_1_with_MPI/
+*KratosOpenfoamAdapterFunctionObject/lnInclude/
+*KratosOpenfoamAdapterFunctionObject/Make/
