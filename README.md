@@ -3,7 +3,7 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
 
 # Requirements:
 1. [OpenFOAM-7](https://openfoam.org/download/7-ubuntu/)
-2. [KRATOS](https://github.com/KratosMultiphysics/Kratos)
+2. [KRATOS](https://github.com/KratosMultiphysics/Kratos) **Enter**
     2.1 [Scripts](https://github.com/philbucher/bash_scripts) - Bash scripts for consistent & convenient use of Kratos
 2. [CoSimIO](https://github.com/KratosMultiphysics/CoSimIO)
 
@@ -13,9 +13,9 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
     2. Make linker related modifications in file KratosOpenfoamAdapterfunctionObject/Make/options
         1.
             ```
-                -I$<Path_to_directory_CoSimIO>/co_sim_io \
-                -I$<Path_to_directory_CoSimIO> \
-                -L$<Path_to_directory_CoSimIO>/bin
+                -I$<Path_to_directory_CoSimIO>/co_sim_io \ **Enter**
+                -I$<Path_to_directory_CoSimIO> \ **Enter**
+                -L$<Path_to_directory_CoSimIO>/bin **Enter**
             ```
 
         2. If MPI related error occurs: MPI_ROOT should direct to *openmpi/include* in your system
