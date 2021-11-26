@@ -11,9 +11,12 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
 1. **To Build the KratosOpenfomaAdapterFunctionObject:**
     1. Go to the folder ../KratosOpenfoamAdapterfunctionObject (https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/tree/main/KratosOpenfoamAdapterFunctionObject)
     2. Make linker related modifications in file KratosOpenfoamAdapterfunctionObject/Make/options
-        1.  ```-I$<Path_to_directory_CoSimIO>/co_sim_io \```
-            ```-I$<Path_to_directory_CoSimIO> \```
-            ```-L$<Path_to_directory_CoSimIO>/bin```
+        1.
+            ```
+                -I$<Path_to_directory_CoSimIO>/co_sim_io \
+                -I$<Path_to_directory_CoSimIO> \
+                -L$<Path_to_directory_CoSimIO>/bin
+            ```
 
         2. If MPI related error occurs: MPI_ROOT should direct to *openmpi/include* in your system
            e.g. using following commad (its better if you add this in *bashrc*)
@@ -23,7 +26,7 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
     4. *wmake*
 
 2. **To run the FSI-Benchmarking case without MPI:**
-    1. Go to the folder .../Tutorial_benchmark_with_CoSimIO (https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/tree/main/Tutorial_benchmark_with_CoSimIO)
+    1. Go to the folder ../Tutorial_benchmark_with_CoSimIO (https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/tree/main/Tutorial_benchmark_with_CoSimIO)
     2. In one terminal run the OpneFOAM commands:
         1. *blockMesh*
         2. *pimpleFoam*
