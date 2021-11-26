@@ -19,10 +19,16 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
 
         2. If MPI related error occurs: *MPI_ROOT *should direct to *openmpi/include* in your system
            e.g. using following commad (its better if you add this in *bashrc*)
-           ``` export MPI_ROOT=/usr/lib/x86_64-linux-gnu/openmpi/include ```
+           ```
+           export MPI_ROOT=/usr/lib/x86_64-linux-gnu/openmpi/include
+           ```
 
-    3. ```wclean```
-    4. ```wmake```
+    3.  ```
+        wclean
+        ```
+    4.  ```
+        wmake
+        ```
 
 2. **To run the FSI-Benchmarking case without MPI:**
     1. Go to the folder ../Tutorial_benchmark_with_CoSimIO
