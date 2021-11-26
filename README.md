@@ -3,20 +3,19 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
 
 # Requirements:
 1. [OpenFOAM-7](https://openfoam.org/download/7-ubuntu/)
-2. [KRATOS](https://github.com/KratosMultiphysics/Kratos) **Enter**
-    2.1 [Scripts](https://github.com/philbucher/bash_scripts) - Bash scripts for consistent & convenient use of Kratos
-2. [CoSimIO](https://github.com/KratosMultiphysics/CoSimIO)
+2. [KRATOS](https://github.com/KratosMultiphysics/Kratos)
+3. [Scripts](https://github.com/philbucher/bash_scripts) - Bash scripts for consistent & convenient use of Kratos
+4. [CoSimIO](https://github.com/KratosMultiphysics/CoSimIO)
 
 # How to run the first tutorial: Cavity
 1. **To Build the KratosOpenfomaAdapterFunctionObject:**
     1. Go to the folder ../KratosOpenfoamAdapterfunctionObject (https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/tree/main/KratosOpenfoamAdapterFunctionObject)
     2. Make linker related modifications in file KratosOpenfoamAdapterfunctionObject/Make/options
-        1.
-            ```
-                -I$<Path_to_directory_CoSimIO>/co_sim_io \ **Enter**
-                -I$<Path_to_directory_CoSimIO> \ **Enter**
-                -L$<Path_to_directory_CoSimIO>/bin **Enter**
-            ```
+        1. ```
+            -I$<Path_to_directory_CoSimIO>/co_sim_io \
+            -I$<Path_to_directory_CoSimIO> \
+            -L$<Path_to_directory_CoSimIO>/bin
+           ```
 
         2. If MPI related error occurs: MPI_ROOT should direct to *openmpi/include* in your system
            e.g. using following commad (its better if you add this in *bashrc*)
