@@ -30,7 +30,7 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
         ```
 
 2. **To run the FSI-Benchmarking case without MPI:**
-    1. Go to the folder > Tutorial_benchmark_with_CoSimIO
+    1. Go to the folder > Tutorial_benchmark_1
     2. In one terminal run the OpneFOAM commands:
         ```
         blockMesh
@@ -45,7 +45,7 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
         1.  ```
             paraFoam -case .&
             ```
-        2. Load the KRATOS results from the folder > vtk_structure_output
+        2. Load the KRATOS results from the folder > vtk_output_structure
     5. Displacement of the tip can be seen using:
         ```
         python plot_displacement.py
@@ -55,7 +55,7 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
         ./clean.sh
         ```
 2. **To run the FSI-Benchmarking case with MPI:**
-    1. Go to the folder > Tutorial_benchmark_with_CoSimIO
+    1. Go to the folder > Tutorial_benchmark_1_with_MPI
     2. In one terminal run the OpneFOAM commands:
         ```
         blockMesh
@@ -71,7 +71,7 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
         1.  ```
             paraFoam -case .&
             ```
-        2. Load the KRATOS results from the folder > vtk_structure_output
+        2. Load the KRATOS results from the folder > vtk_output_structure
     5. Displacement of the tip can be seen using:
         ```
         python plot_displacement.py
