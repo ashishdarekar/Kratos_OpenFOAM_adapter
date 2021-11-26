@@ -3,8 +3,8 @@
 *.so
 *.vtk
 *.o
-*Tutorial_benchmark_with_CoSimIO/
-*Tutorial_benchmark_with_CoSimIO_2_interfaces/
+*Tutorial_benchmark_1/
+*Tutorial_benchmark_1_with_2_interfaces/
 *Tutorial_benchmark_1_with_2_interfaces_MPI/
 *Tutorial_benchmark_1_with_MPI/
 *KratosOpenfoamAdapterFunctionObject/lnInclude/
