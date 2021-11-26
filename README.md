@@ -17,8 +17,8 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
             -L$<Path_to_directory_CoSimIO>/bin
            ```
 
-        2. If MPI related error occurs: *MPI_ROOT *should direct to *openmpi/include* in your system
-           e.g. using following commad (its better if you add this in *bashrc*)
+        2. To MPI related error *MPI_ROOT* should direct to *openmpi/include* in your system:
+        e.g. using following commad (For future use its better to add this in *bashrc*)
            ```
            export MPI_ROOT=/usr/lib/x86_64-linux-gnu/openmpi/include
            ```
@@ -46,11 +46,11 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
             paraFoam -case .&
             ```
         2. Load the KRATOS results from the folder > vtk_structure_output
-    5. Displacement of the tip can be seen using
+    5. Displacement of the tip can be seen using:
         ```
         python plot_displacement.py
         ```
-    6. To clean all generated files during simulation
+    6. To clean all generated files during simulation:
         ```
         ./clean.sh
         ```
@@ -72,11 +72,11 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
             paraFoam -case .&
             ```
         2. Load the KRATOS results from the folder > vtk_structure_output
-    5. Displacement of the tip can be seen using
+    5. Displacement of the tip can be seen using:
         ```
         python plot_displacement.py
         ```
-    6. To clean all generated files during simulation
+    6. To clean all generated files during simulation:
         ```
         ./clean.sh
         ```
