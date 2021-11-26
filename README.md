@@ -9,7 +9,7 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
 
 # How to run the first tutorial: Cavity
 1. **To Build the KratosOpenfomaAdapterFunctionObject:**
-    1. Go to the folder ../KratosOpenfoamAdapterfunctionObject
+    1. Go to the folder > KratosOpenfoamAdapterfunctionObject
     2. Make linker related modifications in the file KratosOpenfoamAdapterfunctionObject/Make/options
         1. ```
             -I$<Path_to_directory_CoSimIO>/co_sim_io \
@@ -23,27 +23,62 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
            export MPI_ROOT=/usr/lib/x86_64-linux-gnu/openmpi/include
            ```
 
-    3.  ```
-        wclean
+    3.  Give following Commands to compile:
         ```
-    4.  ```
+        wclean
         wmake
         ```
 
 2. **To run the FSI-Benchmarking case without MPI:**
-    1. Go to the folder ../Tutorial_benchmark_with_CoSimIO
+    1. Go to the folder > Tutorial_benchmark_with_CoSimIO
     2. In one terminal run the OpneFOAM commands:
-        1. *blockMesh*
-        2. *pimpleFoam*
+        ```
+        blockMesh
+        pimpleFoam
+        ```
     3. Simultaneously, open another terminal to run KRATOS:
-        1. *startkratos*
-        2. *runkratos MainKratosCoSim.py*
+        ```
+        startkratos
+        runkratos MainKratosCoSim.py
+        ```
     4. To see the results in ParaView:
-        1. *paraFoam -case .*
-        2. Load the KRATOS results from the folder ../vtk_output
+        1.  ```
+            paraFoam -case .&
+            ```
+        2. Load the KRATOS results from the folder > vtk_structure_output
     5. Displacement of the tip can be seen using
-        1. *./plot_displacement.py*
+        ```
+        python plot_displacement.py
+        ```
     6. To clean all generated files during simulation
-        1. *./clean.sh*
+        ```
+        ./clean.sh
+        ```
+2. **To run the FSI-Benchmarking case with MPI:**
+    1. Go to the folder > Tutorial_benchmark_with_CoSimIO
+    2. In one terminal run the OpneFOAM commands:
+        ```
+        blockMesh
+        decomposePar
+        mpirun -np <number_of_processes> pimpleFoam -parallel
+        ```
+    3. Simultaneously, open another terminal to run KRATOS:
+        ```
+        startkratos
+        runkratosmpi MainKratosCoSim.py <number_of_processes>
+        ```
+    4. To see the results in ParaView:
+        1.  ```
+            paraFoam -case .&
+            ```
+        2. Load the KRATOS results from the folder > vtk_structure_output
+    5. Displacement of the tip can be seen using
+        ```
+        python plot_displacement.py
+        ```
+    6. To clean all generated files during simulation
+        ```
+        ./clean.sh
+        ```
 
 **Note:** To compile the export and import data files, Dont forget to add Path of the **co_sim_io.hpp** ($HOME/CoSimIO) into your include path.
