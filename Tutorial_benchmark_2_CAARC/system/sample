@@ -1,0 +1,42 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.2                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version         2.0;
+    format          ascii;
+    class           dictionary;
+    location        "system";
+    object          sample;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+type            sets;
+libs            ("libsampling.so");
+writeControl    writeTime;
+
+interpolationScheme cellPoint;
+
+setFormat raw;
+
+// Locations to be probed. runTime modifiable!
+// Reference Height H_ref = 32.25 m 
+sets
+(
+    l01
+    {
+        type            uniform;
+        axis            xyz;
+        start           (-700 0 160);
+        end             (0 0 160);
+        nPoints         150;
+    }
+);
+
+fields          (U UMean);
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
