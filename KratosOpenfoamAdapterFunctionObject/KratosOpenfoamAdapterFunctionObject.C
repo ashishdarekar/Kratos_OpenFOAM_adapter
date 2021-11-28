@@ -481,6 +481,10 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
 
         // Make Cosim elements
         std::vector<CoSimIO::IdType> connectivity;
+        int quad_count = 0;
+        int pyramid_count= 0;
+        int prism_count = 0;
+
         for(auto& elementi : interfaces_.at(j).Interface_elements)
         {
             for(auto& elementalNodeIndexi : elementi.getElementalNodes())
@@ -488,9 +492,31 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
                 connectivity.push_back(interfaces_.at(j).Interface_nodes.at(elementalNodeIndexi.getLocalNodeIndex()-globalNodeIndexBegin).getNodeIndexForCoSim());
             }
 
-            model_part_interfaces_.at(j)->CreateNewElement( elementi.getLocalElementIndex(), CoSimIO::ElementType::Quadrilateral2D4, connectivity );
+            // To select the Element from the available list of elements in the CoSimIO
+            switch (connectivity.size())
+            {
+            case 4:
+                model_part_interfaces_.at(j)->CreateNewElement( elementi.getLocalElementIndex(), CoSimIO::ElementType::Quadrilateral2D4, connectivity );
+                quad_count++;
+                break;
+            case 5: // When not written, CoSimIO error
+                model_part_interfaces_.at(j)->CreateNewElement( elementi.getLocalElementIndex(), CoSimIO::ElementType::Pyramid3D5, connectivity );
+                pyramid_count++;
+                break;
+            case 6: // When not written, these elements got skipped, No CoSimIO error
+                model_part_interfaces_.at(j)->CreateNewElement( elementi.getLocalElementIndex(), CoSimIO::ElementType::Prism3D6, connectivity );
+                prism_count++;
+                break;
+            default: // Add more cases for more elements
+                break;
+            }
+
             connectivity.clear();
         }
+        debugInfo( "[COSIM]Total number of Quad Elements formed in coupling interface " + interfaces_.at(j).nameOfInterface + " = " + std::to_string(quad_count), debugLevel);
+        debugInfo( "[COSIM]Total number of Pyramid Elements formed in coupling interface " + interfaces_.at(j).nameOfInterface + " = " + std::to_string(pyramid_count), debugLevel);
+        debugInfo( "[COSIM]Total number of Prism Elements formed in coupling interface " + interfaces_.at(j).nameOfInterface + " = " + std::to_string(prism_count), debugLevel);
+
         debugInfo( "[COSIM]Total number of Elements formed in coupling interface " + interfaces_.at(j).nameOfInterface + " = " + std::to_string(model_part_interfaces_.at(j)->NumberOfElements()), debugLevel);
 
         // Export InterfaceMesh/ModelPart to CoSimulation using CoSimIO
