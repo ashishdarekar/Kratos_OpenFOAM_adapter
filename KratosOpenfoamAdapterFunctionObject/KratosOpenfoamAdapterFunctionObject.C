@@ -535,6 +535,9 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
     }
     debugInfo( "Exporting All InterfaceMeshes to KRATOS using CoSimIO::ModelPart : End", debugLevel);
 
+    Foam::wordList Objectnames_ = mesh_.names(); // calling names() method
+    forAll(Objectnames_,i){
+        std::cout << Objectnames_[i] << ", ";}
 }
 
 void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::resizeDataVectors()
@@ -605,14 +608,14 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::importDataFromK
         for (std::size_t j = 0; j < interfaces_.at(i).patchNames.size(); j++)
         {
             Foam::pointVectorField* point_disp;
+
             point_disp = const_cast<pointVectorField*>( &mesh_.lookupObject<pointVectorField>("pointDisplacement") );
-            label patchIndex = mesh_.boundaryMesh().findPatchID((interfaces_.at(i).patchNames).at(j));//Remove hardcoded part for finding patchIndex
+            label patchIndex = mesh_.boundaryMesh().findPatchID((interfaces_.at(i).patchNames).at(j));
             fixedValuePointPatchVectorField& pointDisplacementFluidPatch = refCast<fixedValuePointPatchVectorField>(point_disp->boundaryFieldRef()[patchIndex]);
 
             int iterator = 0;
             forAll(point_disp->boundaryFieldRef()[patchIndex] ,k)
             {
-                //Pout<< "Displ node number = " << k <<endl;
                 pointDisplacementFluidPatch[k][0] = interfaces_.at(i).data_to_recv[iterator++];
                 pointDisplacementFluidPatch[k][1] = interfaces_.at(i).data_to_recv[iterator++];
                 if (dim ==3)
