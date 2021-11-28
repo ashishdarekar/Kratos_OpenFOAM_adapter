@@ -7,6 +7,13 @@ rm -rfv vtk_output/
 rm -rfv vtk_output_coupling/
 rm -rfv Wall_Structure_partitioned/
 rm -rfv vtk_output_structure/
+rm -rfv __pycache__/
+rm -rfv output_csd/
+rm -rfv postProcessing/
+rm -rfv restart/
+rm -rfv vtk_output_coupling/
+rm -rfv hdf5_output/
+
 
 echo "--- Cleaning OpenFOAM result files in $(pwd)"
 if [ -n "${WM_PROJECT:-}" ] || error "No OpenFOAM environment is active."; then
