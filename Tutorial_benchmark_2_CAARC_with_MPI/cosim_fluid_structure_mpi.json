@@ -3,14 +3,14 @@
     {
         "start_time" : 0.0,
         "end_time" : 120,
-        "echo_level" : 1,
+        "echo_level" : 4,
         "print_colors" : true,
         "parallel_type" : "MPI"
     },
     "solver_settings" :
     {
         "type" : "coupled_solvers.gauss_seidel_weak",
-        "echo_level" : 1,
+        "echo_level" : 4,
         "predictors" : [
             {
                 "type" : "average_value_based",
