@@ -1,0 +1,26 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      dynamicMeshDict;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dynamicFvMesh dynamicMotionSolverFvMesh; //Specially for FSI problems
+
+motionSolverLibs ("libfvMotionSolvers.so");
+
+solver      displacementLaplacian;
+//solver      displacementInterpolation;
+//solver      laplaceFaceDecomposition;
+
+displacementLaplacianCoeffs {
+    //diffusivity     directional ( 1 1 1 );
+    diffusivity quadratic inverseDistance (tubesfs);
+    //diffusivity inverseDistance (tubesfs);
+    //diffusivity uniform (tubesfs);
+    //diffusivity quadratic inverseVolume (tubesfs);
+}

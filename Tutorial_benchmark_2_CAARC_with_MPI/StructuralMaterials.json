@@ -1,0 +1,336 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Parts_Shell_Outrigger_1",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticPlaneStress2DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"     : 0.3,
+                "DENSITY"       : 2500.0,
+                "YOUNG_MODULUS" : 32000000000.0,
+                "POISSON_RATIO" : 0.2
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Shell_Outrigger_2",
+        "properties_id"   : 2,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticPlaneStress2DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"     : 0.3,
+                "DENSITY"       : 2500.0,
+                "YOUNG_MODULUS" : 32000000000.0,
+                "POISSON_RATIO" : 0.2
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Shell_Outrigger_3",
+        "properties_id"   : 3,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticPlaneStress2DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"     : 0.3,
+                "DENSITY"       : 2500.0,
+                "YOUNG_MODULUS" : 32000000000.0,
+                "POISSON_RATIO" : 0.2
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Shell_Outrigger_4",
+        "properties_id"   : 4,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticPlaneStress2DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"     : 0.2,
+                "DENSITY"       : 2500.0,
+                "YOUNG_MODULUS" : 80000000000.0,
+                "POISSON_RATIO" : 0.2
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Shell_Core_walls_1",
+        "properties_id"   : 5,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticPlaneStress2DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"     : 0.25,
+                "DENSITY"       : 2500.0,
+                "YOUNG_MODULUS" : 35000000000.0,
+                "POISSON_RATIO" : 0.2
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Shell_Core_walls_2",
+        "properties_id"   : 6,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticPlaneStress2DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"     : 0.25,
+                "DENSITY"       : 2500.0,
+                "YOUNG_MODULUS" : 35000000000.0,
+                "POISSON_RATIO" : 0.2
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Shell_Core_walls_3",
+        "properties_id"   : 7,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticPlaneStress2DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"     : 0.25,
+                "DENSITY"       : 2500.0,
+                "YOUNG_MODULUS" : 35000000000.0,
+                "POISSON_RATIO" : 0.2
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Shell_Core_walls_4",
+        "properties_id"   : 8,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticPlaneStress2DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"     : 0.25,
+                "DENSITY"       : 2500.0,
+                "YOUNG_MODULUS" : 35000000000.0,
+                "POISSON_RATIO" : 0.2
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Shell_Plates_1",
+        "properties_id"   : 9,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticPlaneStress2DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"     : 0.16,
+                "DENSITY"       : 2500.0,
+                "YOUNG_MODULUS" : 32000000000.0,
+                "POISSON_RATIO" : 0.2
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Shell_Plates_2",
+        "properties_id"   : 10,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticPlaneStress2DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"     : 0.16,
+                "DENSITY"       : 2500.0,
+                "YOUNG_MODULUS" : 32000000000.0,
+                "POISSON_RATIO" : 0.2
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Shell_Plates_3",
+        "properties_id"   : 11,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticPlaneStress2DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"     : 0.16,
+                "DENSITY"       : 2500.0,
+                "YOUNG_MODULUS" : 32000000000.0,
+                "POISSON_RATIO" : 0.2
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Shell_Plates_4",
+        "properties_id"   : 12,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticPlaneStress2DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"     : 0.16,
+                "DENSITY"       : 2500.0,
+                "YOUNG_MODULUS" : 32000000000.0,
+                "POISSON_RATIO" : 0.2
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Shell_Facade",
+        "properties_id"   : 13,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "LinearElasticPlaneStress2DLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"     : 0.1,
+                "DENSITY"       : 500.0,
+                "YOUNG_MODULUS" : 4500000.0,
+                "POISSON_RATIO" : 0.2
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Beam_Beams",
+        "properties_id"   : 14,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "BeamConstitutiveLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"         : 0.1,
+                "DENSITY"           : 2500.0,
+                "YOUNG_MODULUS"     : 32000000000.0,
+                "POISSON_RATIO"     : 0.2,
+                "CROSS_AREA"        : 0.567450173054656,
+                "TORSIONAL_INERTIA" : 0.051247843753999,
+                "I22"               : 0.00815634765625,
+                "I33"               : 0.00815634765625
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Beam_fix",
+        "properties_id"   : 15,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "BeamConstitutiveLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"         : 0.1,
+                "DENSITY"           : 1.0,
+                "YOUNG_MODULUS"     : 32000000000.0,
+                "POISSON_RATIO"     : 0.2,
+                "CROSS_AREA"        : 0.01,
+                "TORSIONAL_INERTIA" : 0.1,
+                "I22"               : 0.1,
+                "I33"               : 0.1
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Truss_Columns_1",
+        "properties_id"   : 16,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "TrussConstitutiveLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"           : 0.1,
+                "DENSITY"             : 2500.0,
+                "YOUNG_MODULUS"       : 32000000000.0,
+                "POISSON_RATIO"       : 0.2,
+                "CROSS_AREA"          : 0.567450173054656,
+                "TORSIONAL_INERTIA"   : 0.1,
+                "I22"                 : 0.1,
+                "I33"                 : 0.1,
+                "TRUSS_PRESTRESS_PK2" : 0.0
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Truss_Columns_2",
+        "properties_id"   : 17,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "TrussConstitutiveLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"           : 0.1,
+                "DENSITY"             : 2500.0,
+                "YOUNG_MODULUS"       : 32000000000.0,
+                "POISSON_RATIO"       : 0.2,
+                "CROSS_AREA"          : 0.441786466911065,
+                "TORSIONAL_INERTIA"   : 0.1,
+                "I22"                 : 0.1,
+                "I33"                 : 0.1,
+                "TRUSS_PRESTRESS_PK2" : 0.0
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Truss_Columns_3",
+        "properties_id"   : 18,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "TrussConstitutiveLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"           : 0.1,
+                "DENSITY"             : 2500.0,
+                "YOUNG_MODULUS"       : 32000000000.0,
+                "POISSON_RATIO"       : 0.2,
+                "CROSS_AREA"          : 0.282743338823081,
+                "TORSIONAL_INERTIA"   : 0.1,
+                "I22"                 : 0.1,
+                "I33"                 : 0.1,
+                "TRUSS_PRESTRESS_PK2" : 0.0
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Truss_Columns_4",
+        "properties_id"   : 19,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "TrussConstitutiveLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"           : 0.1,
+                "DENSITY"             : 2500.0,
+                "YOUNG_MODULUS"       : 32000000000.0,
+                "POISSON_RATIO"       : 0.2,
+                "CROSS_AREA"          : 0.159043128087983,
+                "TORSIONAL_INERTIA"   : 0.1,
+                "I22"                 : 0.1,
+                "I33"                 : 0.1,
+                "TRUSS_PRESTRESS_PK2" : 0.0
+            },
+            "Tables"           : {}
+        }
+    },{
+        "model_part_name" : "Structure.Parts_Truss_truss",
+        "properties_id"   : 20,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "TrussConstitutiveLaw"
+            },
+            "Variables"        : {
+                "THICKNESS"           : 0.1,
+                "DENSITY"             : 2500.0,
+                "YOUNG_MODULUS"       : 320.0,
+                "POISSON_RATIO"       : 0.2,
+                "CROSS_AREA"          : 1.0,
+                "TORSIONAL_INERTIA"   : 0.1,
+                "I22"                 : 0.1,
+                "I33"                 : 0.1,
+                "TRUSS_PRESTRESS_PK2" : 0.0
+            },
+            "Tables"           : {}
+        }
+    }]
+}

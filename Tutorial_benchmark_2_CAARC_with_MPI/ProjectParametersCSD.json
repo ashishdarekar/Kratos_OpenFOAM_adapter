@@ -1,0 +1,833 @@
+{
+    "problem_data"    : {
+        "problem_name"  : "mesh_CSD",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 4,
+        "start_time"    : 0.0,
+        "end_time"      : 60.0
+    },
+    "solver_settings"  : {
+        "solver_type"                        : "Dynamic",
+        "model_part_name"                    : "Structure",
+        "domain_size"                        : 3,
+        "echo_level"                         : 0,
+        "analysis_type"                      : "non_linear",
+        "time_integration_method"            : "implicit",
+        "scheme_type"                        : "bdf2",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "mesh_CSD",
+            "perform_partitioning" : true
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "StructuralMaterials.json"
+        },
+        "time_stepping"                      : {
+            "time_step" : 0.01
+        },
+        "linear_solver_settings"     : {
+            "solver_type"                  :"amgcl",
+            "preconditioner_type"            : "amg",
+            "max_iteration"                  : 500,
+            "tolerance"                      : 1e-6,
+            "provide_coordinates"            : false,
+            "smoother_type"                  : "ilut",
+            "krylov_type"                    : "bicgstab_with_gmres_fallback",
+            "gmres_krylov_space_dimension"   : 100,
+            "use_block_matrices_if_possible" : false,
+            "coarsening_type"                : "smoothed_aggregation",
+            "scaling"                        : false,
+            "verbosity"                      : 1,
+            "coarse_enough"                  : 100,
+            "max_levels"                     : -1
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "displacement_criterion",
+        "displacement_relative_tolerance"    : 1e-6,
+        "displacement_absolute_tolerance"    : 1e-8,
+        "residual_relative_tolerance"        : 1e-6,
+        "residual_absolute_tolerance"        : 1e-8,
+        "max_iteration"                      : 10,
+        "problem_domain_sub_model_part_list" : ["Parts_Outrigger_1","Parts_Outrigger_2","Parts_Outrigger_3","Parts_Outrigger_4","Parts_Core_walls_1","Parts_Core_walls_2","Parts_Core_walls_3","Parts_Core_walls_4","Parts_Plates_1","Parts_Plates_2","Parts_Plates_3","Parts_Plates_4","Parts_Columns_1","Parts_Columns_2","Parts_Columns_3","Parts_Columns_4","Parts_Beams","Parts_Facade","Parts_fix","Parts_truss"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_Dirichlet_line","DISPLACEMENT_Dirichlet_point","ROTATION_Dirichlet_point","PointLoad3D_Interface_Plates"],
+        "rotation_dofs"                      : true
+    },
+    "processes"       : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Dirichlet_line",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Dirichlet_point",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.ROTATION_Dirichlet_point",
+                "variable_name"   : "ROTATION",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }
+
+    ],
+        "loads_process_list"       : [
+            // RAMPUP
+            {
+                "python_module" : "assign_vector_by_direction_process",
+                "kratos_module" : "KratosMultiphysics",
+                "check"         : "DirectorVectorNonZero direction",
+                "process_name"  : "AssignVectorByDirectionProcess",
+                "Parameters"    : {
+                    "model_part_name" : "Structure.SelfWeight3D_Beams",
+                    "variable_name"   : "VOLUME_ACCELERATION",
+                    "interval"        : [0.0,20],
+                    "constrained"     : false,
+                    "modulus"         : "9.81*t/20",
+                    "direction"       : [0.0,0.0,-1.0]
+                }
+            },{
+                "python_module" : "assign_vector_by_direction_process",
+                "kratos_module" : "KratosMultiphysics",
+                "check"         : "DirectorVectorNonZero direction",
+                "process_name"  : "AssignVectorByDirectionProcess",
+                "Parameters"    : {
+                    "model_part_name" : "Structure.SelfWeight3D_Columns_1",
+                    "variable_name"   : "VOLUME_ACCELERATION",
+                    "interval"        : [0.0,20],
+                    "constrained"     : false,
+                    "modulus"         : "9.81*t/20",
+                    "direction"       : [0.0,0.0,-1.0]
+                }
+            },{
+                "python_module" : "assign_vector_by_direction_process",
+                "kratos_module" : "KratosMultiphysics",
+                "check"         : "DirectorVectorNonZero direction",
+                "process_name"  : "AssignVectorByDirectionProcess",
+                "Parameters"    : {
+                    "model_part_name" : "Structure.SelfWeight3D_Columns_2",
+                    "variable_name"   : "VOLUME_ACCELERATION",
+                    "interval"        : [0.0,20],
+                    "constrained"     : false,
+                    "modulus"         : "9.81*t/20",
+                    "direction"       : [0.0,0.0,-1.0]
+                }
+            },{
+                "python_module" : "assign_vector_by_direction_process",
+                "kratos_module" : "KratosMultiphysics",
+                "check"         : "DirectorVectorNonZero direction",
+                "process_name"  : "AssignVectorByDirectionProcess",
+                "Parameters"    : {
+                    "model_part_name" : "Structure.SelfWeight3D_Columns_3",
+                    "variable_name"   : "VOLUME_ACCELERATION",
+                    "interval"        : [0.0,20],
+                    "constrained"     : false,
+                    "modulus"         : "9.81*t/20",
+                    "direction"       : [0.0,0.0,-1.0]
+                }
+            },{
+                "python_module" : "assign_vector_by_direction_process",
+                "kratos_module" : "KratosMultiphysics",
+                "check"         : "DirectorVectorNonZero direction",
+                "process_name"  : "AssignVectorByDirectionProcess",
+                "Parameters"    : {
+                    "model_part_name" : "Structure.SelfWeight3D_Columns_4",
+                    "variable_name"   : "VOLUME_ACCELERATION",
+                    "interval"        : [0.0,20],
+                    "constrained"     : false,
+                    "modulus"         : "9.81*t/20",
+                    "direction"       : [0.0,0.0,-1.0]
+                }
+            },{
+                "python_module" : "assign_vector_by_direction_process",
+                "kratos_module" : "KratosMultiphysics",
+                "check"         : "DirectorVectorNonZero direction",
+                "process_name"  : "AssignVectorByDirectionProcess",
+                "Parameters"    : {
+                    "model_part_name" : "Structure.SelfWeight3D_truss",
+                    "variable_name"   : "VOLUME_ACCELERATION",
+                    "interval"        : [0.0,20],
+                    "constrained"     : false,
+                    "modulus"         : "9.81*t/20",
+                    "direction"       : [0.0,0.0,-1.0]
+                }
+            },{
+                "python_module" : "assign_vector_by_direction_process",
+                "kratos_module" : "KratosMultiphysics",
+                "check"         : "DirectorVectorNonZero direction",
+                "process_name"  : "AssignVectorByDirectionProcess",
+                "Parameters"    : {
+                    "model_part_name" : "Structure.SelfWeight3D_Core_walls_1",
+                    "variable_name"   : "VOLUME_ACCELERATION",
+                    "interval"        : [0.0,20],
+                    "constrained"     : false,
+                    "modulus"         : "9.81*t/20",
+                    "direction"       : [0.0,0.0,-1.0]
+                }
+            },{
+                "python_module" : "assign_vector_by_direction_process",
+                "kratos_module" : "KratosMultiphysics",
+                "check"         : "DirectorVectorNonZero direction",
+                "process_name"  : "AssignVectorByDirectionProcess",
+                "Parameters"    : {
+                    "model_part_name" : "Structure.SelfWeight3D_Core_walls_2",
+                    "variable_name"   : "VOLUME_ACCELERATION",
+                    "interval"        : [0.0,20],
+                    "constrained"     : false,
+                    "modulus"         : "9.81*t/20",
+                    "direction"       : [0.0,0.0,-1.0]
+                }
+            },{
+                "python_module" : "assign_vector_by_direction_process",
+                "kratos_module" : "KratosMultiphysics",
+                "check"         : "DirectorVectorNonZero direction",
+                "process_name"  : "AssignVectorByDirectionProcess",
+                "Parameters"    : {
+                    "model_part_name" : "Structure.SelfWeight3D_Core_walls_3",
+                    "variable_name"   : "VOLUME_ACCELERATION",
+                    "interval"        : [0.0,20],
+                    "constrained"     : false,
+                    "modulus"         : "9.81*t/20",
+                    "direction"       : [0.0,0.0,-1.0]
+                }
+            },{
+                "python_module" : "assign_vector_by_direction_process",
+                "kratos_module" : "KratosMultiphysics",
+                "check"         : "DirectorVectorNonZero direction",
+                "process_name"  : "AssignVectorByDirectionProcess",
+                "Parameters"    : {
+                    "model_part_name" : "Structure.SelfWeight3D_Core_walls_4",
+                    "variable_name"   : "VOLUME_ACCELERATION",
+                    "interval"        : [0.0,20],
+                    "constrained"     : false,
+                    "modulus"         : "9.81*t/20",
+                    "direction"       : [0.0,0.0,-1.0]
+                }
+            },{
+                "python_module" : "assign_vector_by_direction_process",
+                "kratos_module" : "KratosMultiphysics",
+                "check"         : "DirectorVectorNonZero direction",
+                "process_name"  : "AssignVectorByDirectionProcess",
+                "Parameters"    : {
+                    "model_part_name" : "Structure.SelfWeight3D_Outrigger_1",
+                    "variable_name"   : "VOLUME_ACCELERATION",
+                    "interval"        : [0.0,20],
+                    "constrained"     : false,
+                    "modulus"         : "9.81*t/20",
+                    "direction"       : [0.0,0.0,-1.0]
+                }
+            },{
+                "python_module" : "assign_vector_by_direction_process",
+                "kratos_module" : "KratosMultiphysics",
+                "check"         : "DirectorVectorNonZero direction",
+                "process_name"  : "AssignVectorByDirectionProcess",
+                "Parameters"    : {
+                    "model_part_name" : "Structure.SelfWeight3D_Outrigger_2",
+                    "variable_name"   : "VOLUME_ACCELERATION",
+                    "interval"        : [0.0,20],
+                    "constrained"     : false,
+                    "modulus"         : "9.81*t/20",
+                    "direction"       : [0.0,0.0,-1.0]
+                }
+            },{
+                "python_module" : "assign_vector_by_direction_process",
+                "kratos_module" : "KratosMultiphysics",
+                "check"         : "DirectorVectorNonZero direction",
+                "process_name"  : "AssignVectorByDirectionProcess",
+                "Parameters"    : {
+                    "model_part_name" : "Structure.SelfWeight3D_Outrigger_3",
+                    "variable_name"   : "VOLUME_ACCELERATION",
+                    "interval"        : [0.0,20],
+                    "constrained"     : false,
+                    "modulus"         : "9.81*t/20",
+                    "direction"       : [0.0,0.0,-1.0]
+                }
+            },{
+                "python_module" : "assign_vector_by_direction_process",
+                "kratos_module" : "KratosMultiphysics",
+                "check"         : "DirectorVectorNonZero direction",
+                "process_name"  : "AssignVectorByDirectionProcess",
+                "Parameters"    : {
+                    "model_part_name" : "Structure.SelfWeight3D_Outrigger_4",
+                    "variable_name"   : "VOLUME_ACCELERATION",
+                    "interval"        : [0.0,20],
+                    "constrained"     : false,
+                    "modulus"         : "9.81*t/20",
+                    "direction"       : [0.0,0.0,-1.0]
+                }
+            },{
+                "python_module" : "assign_vector_by_direction_process",
+                "kratos_module" : "KratosMultiphysics",
+                "check"         : "DirectorVectorNonZero direction",
+                "process_name"  : "AssignVectorByDirectionProcess",
+                "Parameters"    : {
+                    "model_part_name" : "Structure.SelfWeight3D_Plates_1",
+                    "variable_name"   : "VOLUME_ACCELERATION",
+                    "interval"        : [0.0,20],
+                    "constrained"     : false,
+                    "modulus"         : "9.81*t/20",
+                    "direction"       : [0.0,0.0,-1.0]
+                }
+            },{
+                "python_module" : "assign_vector_by_direction_process",
+                "kratos_module" : "KratosMultiphysics",
+                "check"         : "DirectorVectorNonZero direction",
+                "process_name"  : "AssignVectorByDirectionProcess",
+                "Parameters"    : {
+                    "model_part_name" : "Structure.SelfWeight3D_Plates_2",
+                    "variable_name"   : "VOLUME_ACCELERATION",
+                    "interval"        : [0.0,20],
+                    "constrained"     : false,
+                    "modulus"         : "9.81*t/20",
+                    "direction"       : [0.0,0.0,-1.0]
+                }
+            },{
+                "python_module" : "assign_vector_by_direction_process",
+                "kratos_module" : "KratosMultiphysics",
+                "check"         : "DirectorVectorNonZero direction",
+                "process_name"  : "AssignVectorByDirectionProcess",
+                "Parameters"    : {
+                    "model_part_name" : "Structure.SelfWeight3D_Plates_3",
+                    "variable_name"   : "VOLUME_ACCELERATION",
+                    "interval"        : [0.0,20],
+                    "constrained"     : false,
+                    "modulus"         : "9.81*t/20",
+                    "direction"       : [0.0,0.0,-1.0]
+                }
+            },{
+                "python_module" : "assign_vector_by_direction_process",
+                "kratos_module" : "KratosMultiphysics",
+                "check"         : "DirectorVectorNonZero direction",
+                "process_name"  : "AssignVectorByDirectionProcess",
+                "Parameters"    : {
+                    "model_part_name" : "Structure.SelfWeight3D_Plates_4",
+                    "variable_name"   : "VOLUME_ACCELERATION",
+                    "interval"        : [0.0,20],
+                    "constrained"     : false,
+                    "modulus"         : "9.81*t/20",
+                    "direction"       : [0.0,0.0,-1.0]
+                }
+            },{
+                "python_module" : "assign_vector_by_direction_process",
+                "kratos_module" : "KratosMultiphysics",
+                "check"         : "DirectorVectorNonZero direction",
+                "process_name"  : "AssignVectorByDirectionProcess",
+                "Parameters"    : {
+                    "model_part_name" : "Structure.SelfWeight3D_Facade",
+                    "variable_name"   : "VOLUME_ACCELERATION",
+                    "interval"        : [0.0,20],
+                    "constrained"     : false,
+                    "modulus"         : "9.81*t/20",
+                    "direction"       : [0.0,0.0,-1.0]
+                }
+            },
+         // MAIN
+         {
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight3D_Beams",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "interval"        : [20.0,"End"],
+                "constrained"     : false,
+                "modulus"         : 9.81,
+                "direction"       : [0.0,0.0,-1.0]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight3D_Columns_1",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "interval"        : [20.0,"End"],
+                "constrained"     : false,
+                "modulus"         : 9.81,
+                "direction"       : [0.0,0.0,-1.0]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight3D_Columns_2",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "interval"        : [20.0,"End"],
+                "constrained"     : false,
+                "modulus"         : 9.81,
+                "direction"       : [0.0,0.0,-1.0]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight3D_Columns_3",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "interval"        : [20.0,"End"],
+                "constrained"     : false,
+                "modulus"         : 9.81,
+                "direction"       : [0.0,0.0,-1.0]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight3D_Columns_4",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "interval"        : [20.0,"End"],
+                "constrained"     : false,
+                "modulus"         : 9.81,
+                "direction"       : [0.0,0.0,-1.0]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight3D_truss",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "interval"        : [20.0,"End"],
+                "constrained"     : false,
+                "modulus"         : 9.81,
+                "direction"       : [0.0,0.0,-1.0]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight3D_Core_walls_1",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "interval"        : [20.0,"End"],
+                "constrained"     : false,
+                "modulus"         : 9.81,
+                "direction"       : [0.0,0.0,-1.0]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight3D_Core_walls_2",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "interval"        : [20.0,"End"],
+                "constrained"     : false,
+                "modulus"         : 9.81,
+                "direction"       : [0.0,0.0,-1.0]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight3D_Core_walls_3",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "interval"        : [20.0,"End"],
+                "constrained"     : false,
+                "modulus"         : 9.81,
+                "direction"       : [0.0,0.0,-1.0]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight3D_Core_walls_4",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "interval"        : [20.0,"End"],
+                "constrained"     : false,
+                "modulus"         : 9.81,
+                "direction"       : [0.0,0.0,-1.0]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight3D_Outrigger_1",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "interval"        : [20.0,"End"],
+                "constrained"     : false,
+                "modulus"         : 9.81,
+                "direction"       : [0.0,0.0,-1.0]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight3D_Outrigger_2",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "interval"        : [20.0,"End"],
+                "constrained"     : false,
+                "modulus"         : 9.81,
+                "direction"       : [0.0,0.0,-1.0]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight3D_Outrigger_3",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "interval"        : [20.0,"End"],
+                "constrained"     : false,
+                "modulus"         : 9.81,
+                "direction"       : [0.0,0.0,-1.0]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight3D_Outrigger_4",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "interval"        : [20.0,"End"],
+                "constrained"     : false,
+                "modulus"         : 9.81,
+                "direction"       : [0.0,0.0,-1.0]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight3D_Plates_1",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "interval"        : [20.0,"End"],
+                "constrained"     : false,
+                "modulus"         : 9.81,
+                "direction"       : [0.0,0.0,-1.0]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight3D_Plates_2",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "interval"        : [20.0,"End"],
+                "constrained"     : false,
+                "modulus"         : 9.81,
+                "direction"       : [0.0,0.0,-1.0]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight3D_Plates_3",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "interval"        : [20.0,"End"],
+                "constrained"     : false,
+                "modulus"         : 9.81,
+                "direction"       : [0.0,0.0,-1.0]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight3D_Plates_4",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "interval"        : [20.0,"End"],
+                "constrained"     : false,
+                "modulus"         : 9.81,
+                "direction"       : [0.0,0.0,-1.0]
+            }
+        },{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight3D_Facade",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "interval"        : [20.0,"End"],
+                "constrained"     : false,
+                "modulus"         : 9.81,
+                "direction"       : [0.0,0.0,-1.0]
+            }
+        } ],
+        "list_other_processes"     : [
+            {
+                "python_module"  : "point_output_process",
+                "kratos_module"  : "KratosMultiphysics",
+                "process_name"   : "PointOutputProcess",
+                "Parameters"            : {
+                    "position"         : [0.0, 0.0, 0.0],
+                    "model_part_name"  : "Structure",
+                    "output_file_settings": {
+                        "file_name"   : "point_0",
+                        "output_path" : "output_csd/",
+                        "write_buffer_size" : 1
+                    },
+                    "output_variables" : ["DISPLACEMENT", "VELOCITY", "ACCELERATION", "ROTATION"],
+                    "entity_type"      : "element"
+                }
+            },
+            {
+            "python_module"  : "point_output_process",
+            "kratos_module"  : "KratosMultiphysics",
+            "process_name"   : "PointOutputProcess",
+            "Parameters"            : {
+                "position"         : [0.0, 0.0, 48],
+                "model_part_name"  : "Structure",
+                "output_file_settings": {
+                    "file_name"   : "point_1",
+                    "output_path" : "output_csd/",
+                    "write_buffer_size" : 1
+                },
+                "output_variables" : ["DISPLACEMENT"],
+                "entity_type"      : "element"
+            }
+        },{
+            "python_module"  : "point_output_process",
+            "kratos_module"  : "KratosMultiphysics",
+            "process_name"   : "PointOutputProcess",
+            "Parameters"            : {
+                "position"         : [0.0, 0.0, 92],
+                "model_part_name"  : "Structure",
+                "output_file_settings": {
+                    "file_name"   : "point_2",
+                    "output_path" : "output_csd/",
+                    "write_buffer_size" : 1
+                },
+                "output_variables" : ["DISPLACEMENT"],
+                "entity_type"      : "element"
+            }
+        },{
+            "python_module"  : "point_output_process",
+            "kratos_module"  : "KratosMultiphysics",
+            "process_name"   : "PointOutputProcess",
+            "Parameters"            : {
+                "position"         : [0.0, 0.0, 136],
+                "model_part_name"  : "Structure",
+                "output_file_settings": {
+                    "file_name"   : "point_3",
+                    "output_path" : "output_csd/",
+                    "write_buffer_size" : 1
+                },
+                "output_variables" : ["DISPLACEMENT"],
+                "entity_type"      : "element"
+            }
+        },{
+            "python_module"  : "point_output_process",
+            "kratos_module"  : "KratosMultiphysics",
+            "process_name"   : "PointOutputProcess",
+            "Parameters"            : {
+                "position"         : [0.0, 0.0, 180],
+                "model_part_name"  : "Structure",
+                "output_file_settings": {
+                    "file_name"   : "point_4",
+                    "output_path" : "output_csd/",
+                    "write_buffer_size" : 1
+                },
+                "output_variables" : ["DISPLACEMENT","VELOCITY","ACCELERATION","ROTATION"],
+                "entity_type"      : "element"
+            }
+        },
+        {
+            "python_module"  : "point_output_process",
+            "kratos_module"  : "KratosMultiphysics",
+            "process_name"   : "PointOutputProcess",
+            "Parameters"            : {
+                "position"         : [0.0, 0.0, 172],
+                "model_part_name"  : "Structure",
+                "output_file_settings": {
+                    "file_name"   : "point_172",
+                    "output_path" : "output_csd/",
+                    "write_buffer_size" : 1
+                },
+                "output_variables" : ["DISPLACEMENT","VELOCITY","ACCELERATION","ROTATION"],
+                "entity_type"      : "element"
+            }
+        },
+        {
+            "python_module" : "output_sum_forces_process",
+            "process_name"  : "OutputSumForcesProcess",
+            "Parameters"    : {
+                "model_part_name"        : "Structure.PointLoad3D_core_walls_170",
+                "write_output_file" : true,
+                "print_to_screen"   : false,
+                "interval"               : [0.0,"End"],
+                "output_file_settings": {
+                    "output_path": "output_csd",
+                    "file_name": "forces_csd",
+                    "write_buffer_size" : 1
+                }
+            }
+        },
+        {
+            "python_module" : "output_sum_forces_process",
+            "process_name"  : "OutputSumForcesProcess",
+            "Parameters"    : {
+                "model_part_name"        : "Structure.PointLoad3D_hull_points",
+                "write_output_file" : true,
+                "print_to_screen"   : false,
+                "interval"               : [0.0,"End"],
+                "output_file_settings": {
+                    "output_path": "output_csd",
+                    "file_name": "load_hull",
+                    "write_buffer_size" : 1
+                }
+            }
+        },
+
+
+        {
+            "python_module"  : "compute_base_reaction_process",
+            "process_name"   : "ComputeBaseReactionProcess",
+            "Parameters"            :  {
+                "model_part_name_list"  : ["Structure.DISPLACEMENT_Dirichlet_line", "Structure.DISPLACEMENT_Dirichlet_point"],
+                "interval"              : [0.0, "End"],
+                "reference_point"       : [0.0,0.0,0.0],
+                "z_rotation_angle"      : 0.0,
+                "print_to_screen"       : false,
+                "print_format"          : ".8f",
+                "write_output_file"     : true,
+                "output_file_settings"  : {
+                    "output_path": "output_csd",
+                    "file_name": "base_forces",
+                    "write_buffer_size" : 1
+                }
+            }
+        }
+
+        ,{
+                "python_module": "single_mesh_temporal_output_process",
+                "kratos_module": "KratosMultiphysics.HDF5Application",
+                "Parameters": {
+                    "model_part_name": "Structure",
+                    "file_settings": {
+                        "file_access_mode": "truncate",
+                        "echo_level": 0,
+                        "file_name": "hdf5_output/hdf5_output_csd/<model_part_name>-<time>.h5",
+                        "time_format": "0.3f"
+                    },
+                    "nodal_solution_step_data_settings": {
+                        "list_of_variables": [
+                            "DISPLACEMENT","REACTION","VELOCITY","ACCELERATION","ROTATION","REACTION_MOMENT","ANGULAR_VELOCITY","ANGULAR_ACCELERATION", "POINT_LOAD"
+                        ]
+                    },
+                    "output_time_settings": {
+                        "step_frequency": 100,
+                        "time_frequency": 1.0
+                    }
+                }
+            }
+
+    ]
+    }
+    ,
+    "output_processes" : {
+        "gid_output" : [],
+        "vtk_output" : [{
+                "python_module" : "vtk_output_process",
+                "kratos_module" : "KratosMultiphysics",
+                "process_name"  : "VtkOutputProcess",
+                "help"          : "This process writes postprocessing files for Paraview",
+                "Parameters"    : {
+                    "model_part_name"                             : "Structure",
+                    "output_control_type"                         : "step",
+                    "output_frequency"                            : 1,
+                    "file_format"                                 : "ascii",
+                    "output_precision"                            : 7,
+                    "output_sub_model_parts"                      : false,
+                    "folder_name"                                 : "vtk_output_structure",
+                    "save_output_files_in_folder"                 : true,
+                    "nodal_solution_step_data_variables"          : ["DISPLACEMENT","REACTION", "POINT_LOAD"]
+                }
+            }
+        ],
+        "my_processes" : [
+            {
+            "python_module"   : "save_restart_process",
+            "kratos_module"   : "KratosMultiphysics",
+            "process_name"    : "SaveRestartProcess",
+            "Parameters"            : {
+                "model_part_name"              : "Structure",
+                "echo_level"                   : 0,
+                "serializer_trace"             : "no_trace",
+                "restart_save_frequency"       : 5.0,
+                "restart_control_type"         : "time",
+                "save_restart_files_in_folder" : true,
+                "output_path"                  : "restart/structure/",
+                "max_files_to_keep"            : 2
+            }
+        }]
+    }
+    // ,
+    // "output_processes" : {
+    //     "gid_output" : [
+    //         {
+    //         "python_module" : "gid_output_process",
+    //         "kratos_module" : "KratosMultiphysics",
+    //         "process_name"  : "GiDOutputProcess",
+    //         "help"          : "This process writes postprocessing files for GiD",
+    //         "Parameters"    : {
+    //             "model_part_name"        : "Structure",
+    //             "output_name"            : "mesh_CSD",
+    //             "postprocess_parameters" : {
+    //                 "result_file_configuration" : {
+    //                     "gidpost_flags"       : {
+    //                         "GiDPostMode"           : "GiD_PostBinary",
+    //                         "WriteDeformedMeshFlag" : "WriteDeformed",
+    //                         "WriteConditionsFlag"   : "WriteConditions",
+    //                         "MultiFileFlag"         : "SingleFile"
+    //                     },
+    //                     "file_label"          : "step",
+    //                     "output_control_type" : "step",
+    //                     "output_frequency"    : 50,
+    //                     "body_output"         : true,
+    //                     "node_output"         : false,
+    //                     "skin_output"         : false,
+    //                     "plane_output"        : [],
+    //                     "nodal_results"       : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION","ROTATION","REACTION_MOMENT","ANGULAR_VELOCITY","ANGULAR_ACCELERATION","POINT_LOAD"],
+    //                     "gauss_point_results" : ["VON_MISES_STRESS"]
+    //                 },
+    //                 "point_data_configuration"  : []
+    //             }
+    //         }
+    //     }
+    // ],
+    //     "vtk_output" : []
+    // }
+}
+
