@@ -92,8 +92,8 @@
                     "output_sub_model_parts"                      : false,
                     "output_path"                                 : "vtk_output_coupling",
                     "save_output_files_in_folder"                 : true,
-                    "nodal_solution_step_data_variables"          : ["REACTION"],
-                    "element_data_value_variables"                : ["REACTION"]
+                    "nodal_solution_step_data_variables"          : ["REACTION"]//,
+                    //"element_data_value_variables"                : ["REACTION"]
                 }
             }
         },
