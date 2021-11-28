@@ -78,7 +78,7 @@
                 "solver"         : "Openfoam_Kratos_Wrapper",
                 "data_name"      : "load_cells_interface_3D_structure",
                 "echo_level"     : 1
-            },
+            }/* ,
             "coupling_output_1" : {
                 "type"          : "coupling_output",
                 "solver"        : "Openfoam_Kratos_Wrapper",
@@ -95,7 +95,7 @@
                     "nodal_solution_step_data_variables"          : ["REACTION"]//,
                     //"element_data_value_variables"                : ["REACTION"]
                 }
-            }
+            } */
         },
         "solvers" :
         {
