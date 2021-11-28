@@ -71,26 +71,26 @@ solvers
 
     U
     {
-        solver           PBiCGStab;
-        preconditioner   DIC;
-        tolerance        1e-08;
-        relTol           0;
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-8;
+        relTol          1e-6;
     }
 
     UFinal
     {
-        solver           PBiCGStab;
-        preconditioner   DIC;
-        tolerance        1e-08;
-        relTol           0;
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-8;
+        relTol          1e-6;
     }
 
     k
     {
-        solver           PBiCGStab;
-        preconditioner   DIC;
-        tolerance        1e-07;
-        relTol           0;
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-8;
+        relTol          1e-6;
     }
 
     kFinal
@@ -101,10 +101,10 @@ solvers
 
     B
     {
-        solver           PBiCGStab;
-        preconditioner   DIC;
-        tolerance        1e-07;
-        relTol           0;
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-8;
+        relTol          1e-6;
     }
 
     BFinal
@@ -116,10 +116,10 @@ solvers
 
     nuTilda
     {
-        solver           PBiCGStab;
-        preconditioner   DIC;
-        tolerance        1e-07;
-        relTol           0;
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-8;
+        relTol          1e-6;
     }
 
     nuTildaFinal

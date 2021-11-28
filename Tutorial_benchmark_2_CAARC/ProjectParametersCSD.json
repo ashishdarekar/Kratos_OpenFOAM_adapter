@@ -2,7 +2,7 @@
     "problem_data"    : {
         "problem_name"  : "mesh_CSD",
         "parallel_type" : "OpenMP",
-        "echo_level"    : 1,
+        "echo_level"    : 4,
         "start_time"    : 0.0,
         "end_time"      : 60.0
     },
