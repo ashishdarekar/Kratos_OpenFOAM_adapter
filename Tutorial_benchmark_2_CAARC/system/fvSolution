@@ -72,7 +72,7 @@ solvers
     U
     {
         solver           PBiCGStab;
-        preconditioner   DILU;
+        preconditioner   DIC;
         tolerance        1e-08;
         relTol           0;
     }
@@ -80,7 +80,7 @@ solvers
     UFinal
     {
         solver           PBiCGStab;
-        preconditioner   DILU;
+        preconditioner   DIC;
         tolerance        1e-08;
         relTol           0;
     }
@@ -88,7 +88,7 @@ solvers
     k
     {
         solver           PBiCGStab;
-        preconditioner   DILU;
+        preconditioner   DIC;
         tolerance        1e-07;
         relTol           0;
     }
@@ -102,7 +102,7 @@ solvers
     B
     {
         solver           PBiCGStab;
-        preconditioner   DILU;
+        preconditioner   DIC;
         tolerance        1e-07;
         relTol           0;
     }
@@ -117,7 +117,7 @@ solvers
     nuTilda
     {
         solver           PBiCGStab;
-        preconditioner   DILU;
+        preconditioner   DIC;
         tolerance        1e-07;
         relTol           0;
     }
