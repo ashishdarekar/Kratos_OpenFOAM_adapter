@@ -5,7 +5,7 @@ set -e -u
 blockMesh
 decomposePar
 # change name of 0 folder, make 0 dummy folder
-mpirun -np 2 snappyHexMesh -overwrite -parallelrwrite -parallel
+mpirun -np 2 snappyHexMesh -overwrite -parallel
 reconstructParMesh -constant
 # delete 0 folder and reane the o folder to old
 
