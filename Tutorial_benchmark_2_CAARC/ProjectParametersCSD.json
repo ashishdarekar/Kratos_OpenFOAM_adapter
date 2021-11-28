@@ -758,7 +758,7 @@
     ,
     "output_processes" : {
         "gid_output" : [],
-        "vtk_output" : [/* {
+        "vtk_output" : [{
                 "python_module" : "vtk_output_process",
                 "kratos_module" : "KratosMultiphysics",
                 "process_name"  : "VtkOutputProcess",
@@ -770,11 +770,11 @@
                     "file_format"                                 : "ascii",
                     "output_precision"                            : 7,
                     "output_sub_model_parts"                      : false,
-                    "folder_name"                                 : "vtk_output",
+                    "folder_name"                                 : "vtk_output_structure",
                     "save_output_files_in_folder"                 : true,
-                    "nodal_solution_step_data_variables"          : ["DISPLACEMENT","REACTION", "MESH_DISPLACEMENT"]
+                    "nodal_solution_step_data_variables"          : ["DISPLACEMENT","REACTION", "POINT_LOAD"]
                 }
-            } */
+            }
         ],
         "my_processes" : [
             {

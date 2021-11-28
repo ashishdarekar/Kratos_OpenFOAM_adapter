@@ -78,7 +78,7 @@
                 "solver"         : "Openfoam_Kratos_Wrapper",
                 "data_name"      : "load_cells_interface_3D_structure",
                 "echo_level"     : 1
-            }/* ,
+            } /* ,
             "coupling_output_1" : {
                 "type"          : "coupling_output",
                 "solver"        : "Openfoam_Kratos_Wrapper",
@@ -87,8 +87,6 @@
                     "model_part_name"                             : "interface_3D_structure",
                     "output_control_type"                         : "step",
                     "output_interval"                             : 1,
-                    "file_format"                                 : "ascii",
-                    "output_precision"                            : 7,
                     "output_sub_model_parts"                      : false,
                     "output_path"                                 : "vtk_output_coupling",
                     "save_output_files_in_folder"                 : true,
