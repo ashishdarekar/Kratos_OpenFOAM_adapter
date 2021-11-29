@@ -101,7 +101,7 @@ functions
     #includeFunc probes
 
 
-   probes1
+   /* probes1
     {
         type	probes;
         functionObjectLibs	( "libsampling.so" );
@@ -196,7 +196,7 @@ functions
         );
 
         fields (U);
-    }
+    } */
 }
 
 
