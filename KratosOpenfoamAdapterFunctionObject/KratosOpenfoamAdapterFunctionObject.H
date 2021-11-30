@@ -113,7 +113,8 @@ private:
             int localNodeIndex_;
             int nodeIndexforCoSim_;
             vector position_;
-            std::vector<bool>commonWithWhichRanks; //With howmany Ranks this node is shared
+            std::vector<bool>commonWithWhichRanks; //With how many Ranks this node is shared
+            vector force_value;
 
         public:
             Node(vector position, int localNodeIndex, int nodeIndexforCoSim, int commonRankFirstTime) : commonWithWhichRanks(Pstream::nProcs(),0){
@@ -121,6 +122,9 @@ private:
                 nodeIndexforCoSim_ = nodeIndexforCoSim;
                 position_ = position;
                 setCommonWithRank(commonRankFirstTime);
+                force_value[0] = 0.0;
+                force_value[1] = 0.0;
+                force_value[2] = 0.0;
             };
 
             vector getNodePosition(){
@@ -175,6 +179,14 @@ private:
                     return Pstream::nProcs(); //Returning highest number
                 }
             };
+
+            void setLoadValues(vector value){
+                force_value = value;
+            };
+
+            vector getLoadValues(){
+                return force_value;
+            }
     };
 
     class Element
@@ -288,7 +300,9 @@ protected:
     );
 
     //- Auxiliar functions
-    bool calculateForces(std::size_t );
+    bool calculateForces(std::size_t);
+
+    void conversionElementalToNodalValues(std::size_t);
 
     std::string determineSolverType();
 

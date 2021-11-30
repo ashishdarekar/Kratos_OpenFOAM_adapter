@@ -575,6 +575,9 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportDataToKra
             {
                 calculateForces(i);
             }
+
+            // Conversion Utilities for converting Elemental Load values to Nodal values (Variable is load/Force/Reaction now)
+            conversionElementalToNodalValues(i);
         }
 
         // Export this force array to CoSimulation //Elemental Force Data
@@ -893,6 +896,38 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
     }
 
     return true;
+}
+
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::conversionElementalToNodalValues(std::size_t interface_index)
+{
+    int bufferIndex = 0;
+
+    // Travel all Elements and Distribute the forces on the nodes
+    for(auto& elementi : interfaces_.at(interface_index).Interface_elements)
+    {
+        for(auto& elementalNodeIndexi : elementi.getElementalNodes())
+        {
+            elementalNodeIndexi.getLoadValues()[0] +=  interfaces_.at(interface_index).data_to_send[bufferIndex++];
+            elementalNodeIndexi.getLoadValues()[1] +=  interfaces_.at(interface_index).data_to_send[bufferIndex++];
+            elementalNodeIndexi.getLoadValues()[2] +=  interfaces_.at(interface_index).data_to_send[bufferIndex++];
+        }
+    }
+
+    // Clear all the entried of data_to_send array
+    interfaces_.at(interface_index).data_to_send.clear();
+
+    // Resize the data_to_send to keep nodal data
+    interfaces_.at(interface_index).data_to_send.resize( (interfaces_.at(interface_index).numNodes) * dim);
+
+    // Fill the data_to_send to keep nodal data
+    // Data_send will be in the OF order
+    bufferIndex = 0;
+    for(auto& nodei : interfaces_.at(interface_index).Interface_nodes)
+    {
+        interfaces_.at(interface_index).data_to_send[bufferIndex++] = nodei.getLoadValues()[0];
+        interfaces_.at(interface_index).data_to_send[bufferIndex++] = nodei.getLoadValues()[1];
+        interfaces_.at(interface_index).data_to_send[bufferIndex++] = nodei.getLoadValues()[2];
+    }
 }
 
 // *********************************************** Utilities **************************************************//
