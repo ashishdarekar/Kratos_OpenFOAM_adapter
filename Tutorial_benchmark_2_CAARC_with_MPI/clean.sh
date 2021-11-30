@@ -11,8 +11,9 @@ rm -rfv __pycache__/
 rm -rfv output_csd/
 rm -rfv postProcessing/
 rm -rfv restart/
-rm -rfv vtk_output_coupling/
+rm -rfv vtk_output_coupling/mesh_CSD_partitioned
 rm -rfv hdf5_output/
+rm -rfv mesh_CSD_partitioned/
 
 
 echo "--- Cleaning OpenFOAM result files in $(pwd)"

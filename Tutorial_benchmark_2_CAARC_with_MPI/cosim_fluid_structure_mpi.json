@@ -68,9 +68,9 @@
                 "type"           : "scaling",
                 "solver"         : "structure",
                 "data_name"      : "load_interface_3D_structure",
-                "scaling_factor" : "(sin(((t)/0.01)/1500*pi/2))**2 ",
+                "scaling_factor" : "(sin(((t)/0.01)/100*pi/2))**2 ",
                 "echo_level"     : 1,
-                "interval"       : [0.0, 15.0]
+                "interval"       : [0.0, 1.0]
             },
             "mapping_element_node_interface_3D_structure" : {
                 "type"           : "elemental_data_to_nodal_data",
