@@ -41,7 +41,7 @@
                     "from_solver"       : "Openfoam_Kratos_Wrapper",
                     "from_solver_data"  : "load_interface_flap",
                     "data_transfer_operator" : "mapper",
-                    "before_data_transfer_operations" : ["mapping_element_node_interface_flap"],
+                    //"before_data_transfer_operations" : ["mapping_element_node_interface_flap"],
                     "after_data_transfer_operations" : ["scaling_loads_interface_flap"],
                     "data_transfer_operator_options" : ["use_transpose"]
                 }
@@ -100,7 +100,8 @@
                 "solver_wrapper_settings" : {
                     "import_meshes"    : ["interface_flap"],
                     "export_data"      : ["disp_interface_flap_ordered"],
-                    "import_data"      : ["load_cells_interface_flap_ordered"]
+                    //"import_data"      : ["load_cells_interface_flap_ordered"]
+                    "import_data"      : ["load_interface_flap_ordered"]
                 },
                 "io_settings" : {
                     "type"       : "kratos_co_sim_io",
@@ -133,6 +134,11 @@
                     },
                     "load_interface_flap" : { // same as load_cells but has data on nodes => required for the mapper!
                         "model_part_name"   : "interface_flap",
+                        "dimension" : 3,
+                        "variable_name" : "FORCE"
+                    },
+                    "load_interface_flap_ordered" : { // same as load_cells but has data on nodes => required for the mapper!
+                        "model_part_name"   : "interface_flap.original_order",
                         "dimension" : 3,
                         "variable_name" : "FORCE"
                     }

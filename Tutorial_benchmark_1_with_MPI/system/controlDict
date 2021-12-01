@@ -70,7 +70,8 @@ functions
                 importData              (Displacement0);
                 importDataIdentifier    (disp_interface_flap_ordered);
                 exportData              (Force0);
-                exportDataIdentifier    (load_cells_interface_flap_ordered);
+                //exportDataIdentifier    (load_cells_interface_flap_ordered);
+                exportDataIdentifier    (load_interface_flap_ordered);
             }
         }
 
@@ -80,7 +81,7 @@ functions
             nu nu [0 2 -1 0 0 0 0 ] 0.1542;
         }
 
-        debugLevel info;
+        debugLevel debug;
     }
 
     Co1
