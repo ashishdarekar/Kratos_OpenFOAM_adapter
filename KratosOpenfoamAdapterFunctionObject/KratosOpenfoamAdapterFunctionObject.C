@@ -901,15 +901,18 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
 void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::conversionElementalToNodalValues(std::size_t interface_index)
 {
     int bufferIndex = 0;
+    int number_of_nodes_in_element = 0;
 
     // Travel all Elements and Distribute the forces on the nodes
     for(auto& elementi : interfaces_.at(interface_index).Interface_elements)
     {
+        number_of_nodes_in_element = elementi.getNumberOfNodes();
+
         for(auto& elementalNodeIndexi : elementi.getElementalNodes())
         {
-            elementalNodeIndexi.getLoadValues()[0] +=  interfaces_.at(interface_index).data_to_send[bufferIndex++];
-            elementalNodeIndexi.getLoadValues()[1] +=  interfaces_.at(interface_index).data_to_send[bufferIndex++];
-            elementalNodeIndexi.getLoadValues()[2] +=  interfaces_.at(interface_index).data_to_send[bufferIndex++];
+            elementalNodeIndexi.getLoadValues()[0] +=  ( (interfaces_.at(interface_index).data_to_send[bufferIndex++]) / double(number_of_nodes_in_element) );
+            elementalNodeIndexi.getLoadValues()[1] +=  ( (interfaces_.at(interface_index).data_to_send[bufferIndex++]) / double(number_of_nodes_in_element) );
+            elementalNodeIndexi.getLoadValues()[2] +=  ( (interfaces_.at(interface_index).data_to_send[bufferIndex++]) / double(number_of_nodes_in_element) );
         }
     }
 

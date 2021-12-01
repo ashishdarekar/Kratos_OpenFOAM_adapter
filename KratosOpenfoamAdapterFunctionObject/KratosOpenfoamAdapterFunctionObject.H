@@ -220,7 +220,11 @@ private:
 
             std::vector<Node> getElementalNodes(){
                 return elementalNodes_;
-            }
+            };
+
+            int getNumberOfNodes(){
+                return elementalNodeIndexes_.size();
+            };
     };
 
     //- Disallow default bitwise copy construct
