@@ -114,7 +114,7 @@ private:
             int nodeIndexforCoSim_;
             vector position_;
             std::vector<bool>commonWithWhichRanks; //With how many Ranks this node is shared
-            vector force_value;
+            std::vector<double>force_value;
 
         public:
             Node(vector position, int localNodeIndex, int nodeIndexforCoSim, int commonRankFirstTime) : commonWithWhichRanks(Pstream::nProcs(),0){
@@ -122,6 +122,7 @@ private:
                 nodeIndexforCoSim_ = nodeIndexforCoSim;
                 position_ = position;
                 setCommonWithRank(commonRankFirstTime);
+                force_value.resize(3);
                 force_value[0] = 0.0;
                 force_value[1] = 0.0;
                 force_value[2] = 0.0;
@@ -180,13 +181,15 @@ private:
                 }
             };
 
-            void setLoadValues(vector value){
-                force_value = value;
+            void setLoadValues(std::vector<double>& value){
+                force_value[0] = value[0];
+                force_value[1] = value[1];
+                force_value[2] = value[2];
             };
 
-            vector getLoadValues(){
+            std::vector<double>& getLoadValues(){
                 return force_value;
-            }
+            };
     };
 
     class Element
@@ -210,7 +213,7 @@ private:
                 elementalNodeIndexes_.push_back(nodeIndex);
             };
 
-            std::vector<uint> getElementalNodeIndexes(){
+            std::vector<uint>& getElementalNodeIndexes(){
                 return elementalNodeIndexes_;
             };
 

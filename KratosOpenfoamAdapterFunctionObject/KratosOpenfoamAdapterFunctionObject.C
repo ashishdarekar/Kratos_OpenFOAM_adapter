@@ -571,14 +571,124 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportDataToKra
         {
             std::string dataName = interfaces_.at(i).exportData.at(j);
 
-            if(dataName.find("Force") == 0 )
-            {
+            if(dataName.find("Force") == 0){
                 calculateForces(i);
             }
 
+            /* for(std::size_t m =0; m< interfaces_.at(i).data_to_send.size() ; m++)
+            {
+                std::cout << "Elemental Value = " << interfaces_.at(i).data_to_send.at(m) << std::endl;
+            } */
+
+
+/*
+            debugInfo("Elemental Force Values with index " + std::to_string(interfaces_.at(0).Interface_elements.at(55).getLocalElementIndex()) +  " is = "+ std::to_string(interfaces_.at(i).data_to_send[55*3 + 0]), debugLevel);
+            debugInfo("Elemental Force Values with index " + std::to_string(interfaces_.at(0).Interface_elements.at(55).getLocalElementIndex()) +  " is = "+ std::to_string(interfaces_.at(i).data_to_send[55*3 + 1]), debugLevel);
+            debugInfo("Elemental Force Values with index " + std::to_string(interfaces_.at(0).Interface_elements.at(55).getLocalElementIndex()) +  " is = "+ std::to_string(interfaces_.at(i).data_to_send[55*3 + 2]), debugLevel);
+
+            auto& elementi = interfaces_.at(0).Interface_elements.at(55);
+            std::vector<double> force_value(3 , 0.0);
+
+            force_value[0] = (interfaces_.at(i).data_to_send[55*3 + 0]) / double(4);
+            force_value[1] = (interfaces_.at(i).data_to_send[55*3 + 1]) / double(4);
+            force_value[2] = (interfaces_.at(i).data_to_send[55*3 + 2]) / double(4);
+
+            for(auto& elementalNodeIndexi : elementi.getElementalNodeIndexes())
+            {
+                Node& temp_node = interfaces_.at(0).Interface_nodes.at(elementalNodeIndexi - 1 );
+                std::vector<double>& temp_force = temp_node.getLoadValues();
+                std::cout << "Local Node index of this element is = "<< temp_node.getLocalNodeIndex() << " with force value = " <<  std::endl;
+
+                std::cout << "BEFORE"<<std::endl;
+
+                for (auto const& c : temp_force)
+                    std::cout << c << ' ';
+
+                std::cout << "\n" ;
+
+                std::transform (temp_force.begin(), temp_force.end(), force_value.begin(), temp_force.begin(), std::plus<double>());
+
+                //temp_force += force_value;
+
+                //temp_node.setLoadValues(force_value);
+
+                std::cout << "AFTER"<<std::endl;
+
+                for (auto const& c : temp_force)
+                    std::cout << c << ' ';
+                std::cout << "\n" ;
+
+
+                std::cout << "AFTER_2"<<std::endl;
+                std::vector<double>& temp_force_2 = temp_node.getLoadValues();
+
+                for (auto const& c : temp_force_2)
+                    std::cout << c << ' ';
+                std::cout << "\n" ;
+            }
+
+            std::cout << "Force value is = "<< interfaces_.at(0).Interface_nodes.at(113).getLoadValues()[0] << " with force value = " << interfaces_.at(0).Interface_nodes.at(113).getLoadValues()[1] << std::endl;
+
+            debugInfo("Elemental Force Values with index " + std::to_string(interfaces_.at(0).Interface_elements.at(56).getLocalElementIndex()) +  " is = "+ std::to_string(interfaces_.at(i).data_to_send[55*3 + 0]), debugLevel);
+            debugInfo("Elemental Force Values with index " + std::to_string(interfaces_.at(0).Interface_elements.at(56).getLocalElementIndex()) +  " is = "+ std::to_string(interfaces_.at(i).data_to_send[55*3 + 1]), debugLevel);
+            debugInfo("Elemental Force Values with index " + std::to_string(interfaces_.at(0).Interface_elements.at(56).getLocalElementIndex()) +  " is = "+ std::to_string(interfaces_.at(i).data_to_send[55*3 + 2]), debugLevel);
+
+            elementi = interfaces_.at(0).Interface_elements.at(56);
+
+            for(auto& elementalNodeIndexi : elementi.getElementalNodeIndexes())
+            {
+                Node& temp_node = interfaces_.at(0).Interface_nodes.at(elementalNodeIndexi - 1 );
+                std::vector<double>& temp_force = temp_node.getLoadValues();
+                std::cout << "Local Node index of this element is = "<< temp_node.getLocalNodeIndex() << " with force value = " <<  std::endl;
+
+                std::cout << "BEFORE"<<std::endl;
+
+                for (auto const& c : temp_force)
+                    std::cout << c << ' ';
+
+                std::cout << "\n" ;
+
+                temp_force[0] += 1.2;
+                temp_force[1] += 2.8;
+                temp_force[2] += 3.2;
+
+                //temp_node.setLoadValues(force_value + temp_force);
+
+                std::cout << "AFTER"<<std::endl;
+
+                for (auto const& c : temp_force)
+                    std::cout << c << ' ';
+                std::cout << "\n" ;
+
+                std::cout << "AFTER_2"<<std::endl;
+                std::vector<double>& temp_force_2 = temp_node.getLoadValues();
+
+                for (auto const& c : temp_force_2)
+                    std::cout << c << ' ';
+                std::cout << "\n" ;
+
+                temp_force.clear();
+
+                std::cout << "AFTER_3"<<std::endl;
+                temp_force_2 = temp_node.getLoadValues();
+
+                for (auto const& c : temp_force_2)
+                    std::cout << c << ' ';
+                std::cout << "\n" ;
+
+            } */
+
+            //std::cout << "Force value is = "<< interfaces_.at(0).Interface_nodes.at(113).getLoadValues()[0] << " with force value = " << interfaces_.at(0).Interface_nodes.at(113).getLoadValues()[1] << std::endl;
+
             // Conversion Utilities for converting Elemental Load values to Nodal values (Variable is load/Force/Reaction now)
             conversionElementalToNodalValues(i);
+
+            /* for(std::size_t m =0; m< interfaces_.at(i).data_to_send.size() ; m++)
+            {
+                std::cout << "Nodal Value = " << interfaces_.at(i).data_to_send.at(m) << std::endl;
+            } */
         }
+
 
         // Export this force array to CoSimulation //Elemental Force Data
         CoSimIO::Info connect_info;
@@ -587,7 +697,7 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportDataToKra
         connect_info.Set("connection_name", connection_name);
         connect_info = CoSimIO::ExportData(connect_info, interfaces_.at(i).data_to_send);
 
-        //debugInfo("Data has been exported from OpenFOAM to CoSimulation (for coupling interface name = " + interfaces_.at(i).nameOfInterface + ") , Force values with array size = " + std::to_string(interfaces_.at(i).data_to_send.size()), debugLevel);
+        debugInfo("Data has been exported from OpenFOAM to CoSimulation (for coupling interface name = " + interfaces_.at(i).nameOfInterface + ") , Force values with array size = " + std::to_string(interfaces_.at(i).data_to_send.size()), debugLevel);
         debugInfo("Data has been exported from OpenFOAM to CoSimulation (for coupling interface name = " + interfaces_.at(i).nameOfInterface + ")", debugLevel);
     }
 }
@@ -900,7 +1010,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
 
 void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::conversionElementalToNodalValues(std::size_t interface_index)
 {
-    int bufferIndex = 0;
     int number_of_nodes_in_element = 0;
 
     // Travel all Elements and Distribute the forces on the nodes
@@ -908,12 +1017,17 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::conversionEleme
     {
         number_of_nodes_in_element = elementi.getNumberOfNodes();
 
-        for(auto& elementalNodeIndexi : elementi.getElementalNodes())
+        for(auto& elementalNodeIndexi : elementi.getElementalNodeIndexes())
         {
-            elementalNodeIndexi.getLoadValues()[0] +=  ( (interfaces_.at(interface_index).data_to_send[bufferIndex++]) / double(number_of_nodes_in_element) );
-            elementalNodeIndexi.getLoadValues()[1] +=  ( (interfaces_.at(interface_index).data_to_send[bufferIndex++]) / double(number_of_nodes_in_element) );
-            elementalNodeIndexi.getLoadValues()[2] +=  ( (interfaces_.at(interface_index).data_to_send[bufferIndex++]) / double(number_of_nodes_in_element) );
+            Node& temp_node = interfaces_.at(interface_index).Interface_nodes.at(elementalNodeIndexi - 1 ); //array index 1 less to access
+            std::vector<double>& temp_force = temp_node.getLoadValues();
+
+            temp_force[0] += ( (interfaces_.at(interface_index).data_to_send[(elementi.getLocalElementIndex()) * 3 + 0]) / double(number_of_nodes_in_element) );
+            temp_force[1] += ( (interfaces_.at(interface_index).data_to_send[(elementi.getLocalElementIndex()) * 3 + 1]) / double(number_of_nodes_in_element) );
+            temp_force[2] += ( (interfaces_.at(interface_index).data_to_send[(elementi.getLocalElementIndex()) * 3 + 2]) / double(number_of_nodes_in_element) );
+
         }
+
     }
 
     // Clear all the entried of data_to_send array
@@ -924,13 +1038,14 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::conversionEleme
 
     // Fill the data_to_send to keep nodal data
     // Data_send will be in the OF order
-    bufferIndex = 0;
+    int bufferIndex = 0;
     for(auto& nodei : interfaces_.at(interface_index).Interface_nodes)
     {
         interfaces_.at(interface_index).data_to_send[bufferIndex++] = nodei.getLoadValues()[0];
         interfaces_.at(interface_index).data_to_send[bufferIndex++] = nodei.getLoadValues()[1];
         interfaces_.at(interface_index).data_to_send[bufferIndex++] = nodei.getLoadValues()[2];
     }
+
 }
 
 // *********************************************** Utilities **************************************************//
