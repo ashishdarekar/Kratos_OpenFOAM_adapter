@@ -190,6 +190,12 @@ private:
             std::vector<double>& getLoadValues(){
                 return force_value;
             };
+
+            void setLoadValuesToZeros(){
+                force_value[0] = 0.0;
+                force_value[1] = 0.0;
+                force_value[2] = 0.0;
+            };
     };
 
     class Element
