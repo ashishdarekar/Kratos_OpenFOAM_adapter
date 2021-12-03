@@ -15,7 +15,8 @@
             {
                 "type" : "average_value_based",
                 "solver"         : "Openfoam_Kratos_Wrapper",
-                "data_name"      : "load_cells_interface_flap",
+                //"data_name"      : "load_cells_interface_flap",
+                "data_name"        : "load_interface_flap",
                 "echo_level" : 1
             }
         ],
@@ -70,12 +71,12 @@
                 "echo_level"     : 1,
                 "interval"       : [0.0, 15.0]
             },
-            "mapping_element_node_interface_flap" : {
+            /* "mapping_element_node_interface_flap" : {
                 "type"           : "elemental_data_to_nodal_data",
                 "solver"         : "Openfoam_Kratos_Wrapper",
                 "data_name"      : "load_cells_interface_flap",
                 "echo_level"     : 1
-            },
+            }, */
             "coupling_output_1" : {
                 "type"          : "coupling_output",
                 "solver"        : "Openfoam_Kratos_Wrapper",
