@@ -283,6 +283,8 @@ protected:
         std::vector<Node> Interface_nodes;              // Contain Node objects
         std::vector<Element> Interface_elements;        // Contain elemental Objects
         std::vector<int> neighbour_ids_comm_num_of_nodes; //Max size of a array =  TotalNumOfProcesses * 2
+        int globalNodeIndexBegin = 0;
+        int globalElementIndexBegin = 0;
     };
 
     //- Array of strctures to store data for all coupling interfaces

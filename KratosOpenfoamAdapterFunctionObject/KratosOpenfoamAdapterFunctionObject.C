@@ -259,9 +259,12 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
     {
         debugInfo( "[OF]Reading mesh data from OF for coupling interface : " + interfaces_.at(j).nameOfInterface, debugLevel );
 
-        // Arrays to exchange the number of nodes with all ranks
+        // Arrays to exchange the number of nodes and Elements with all ranks
         scalarListList sendDataNumNodeIndex(Pstream::nProcs());
         scalarListList recvDataNumNodeIndex(Pstream::nProcs());
+        scalarListList sendDataNumElementIndex(Pstream::nProcs());
+        scalarListList recvDataNumElementIndex(Pstream::nProcs());
+
 
         // Count the Nodes and Elements for all the patches in that interface
         for (std::size_t i = 0; i < interfaces_.at(j).patchIDs.size(); i++)
@@ -275,6 +278,8 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
         {
             sendDataNumNodeIndex[i].setSize(1);
             sendDataNumNodeIndex[i][0] = interfaces_.at(j).numNodes ;
+            sendDataNumElementIndex[i].setSize(1);
+            sendDataNumElementIndex[i][0] = interfaces_.at(j).numElements ;
         }
 
         // Make CoSimIO::ModelPart and push in the array of model_part_interfaces
@@ -282,6 +287,7 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
 
         //MPI Exchange to know start Index for Node formation
         Pstream::exchange<scalarList, scalar>(sendDataNumNodeIndex, recvDataNumNodeIndex);
+        Pstream::exchange<scalarList, scalar>(sendDataNumElementIndex, recvDataNumElementIndex);
 
         int nodeIndex = 1 ; //Default value of Serial run
         int elemIndex = 1;
@@ -289,8 +295,10 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
         for(int i = 0 ; i < MyRank; i++)
         {
             nodeIndex += recvDataNumNodeIndex[i][0];
+            elemIndex += recvDataNumElementIndex[i][0];
         }
-        int globalNodeIndexBegin = nodeIndex; //To presrve its value(use is later)
+        interfaces_.at(j).globalNodeIndexBegin = nodeIndex; //To presrve its value(use is later)
+        interfaces_.at(j).globalElementIndexBegin = elemIndex; //To presrve its value(use is later)
 
         // Accessing the coordinates of all nodes in the Inteface and collecting nodal and elemental data
         for(std::size_t i = 0; i < interfaces_.at(j).patchIDs.size(); i++)
@@ -389,8 +397,8 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
                 interfaces_.at(j).Interface_elements.push_back(new_element);
             }
 
-            debugInfo( "[OF]Total number of Nodes in coupling interface "  + interfaces_.at(j).nameOfInterface + " are " +  std::to_string(interfaces_.at(j).Interface_nodes.size()), debugLevel);
-            debugInfo( "[OF]Total number of Elements in coupling interface "  + interfaces_.at(j).nameOfInterface + " are " +  std::to_string(interfaces_.at(j).Interface_elements.size()), debugLevel);
+            debugInfo( "[OF]Total number of Nodes in coupling interface "  + interfaces_.at(j).nameOfInterface + " are " +  std::to_string(interfaces_.at(j).numNodes), debugLevel);
+            debugInfo( "[OF]Total number of Elements in coupling interface "  + interfaces_.at(j).nameOfInterface + " are " +  std::to_string(interfaces_.at(j).numElements), debugLevel);
 
         }
 
@@ -489,7 +497,7 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
         {
             for(auto& elementalNodeIndexi : elementi.getElementalNodes())
             {
-                connectivity.push_back(interfaces_.at(j).Interface_nodes.at(elementalNodeIndexi.getLocalNodeIndex()-globalNodeIndexBegin).getNodeIndexForCoSim());
+                connectivity.push_back(interfaces_.at(j).Interface_nodes.at(elementalNodeIndexi.getLocalNodeIndex()- interfaces_.at(j).globalNodeIndexBegin).getNodeIndexForCoSim());
             }
 
             // To select the Element from the available list of elements in the CoSimIO
@@ -538,9 +546,9 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
     }
     debugInfo( "Exporting All InterfaceMeshes to KRATOS using CoSimIO::ModelPart : End", debugLevel);
 
-    Foam::wordList Objectnames_ = mesh_.names(); // calling names() method
+    /* Foam::wordList Objectnames_ = mesh_.names(); // calling names() method
     forAll(Objectnames_,i){
-        std::cout << Objectnames_[i] << ", ";}
+        std::cout << Objectnames_[i] << ", ";} */
 }
 
 void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::resizeDataVectors()
@@ -591,6 +599,8 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportDataToKra
             } */
 
             // Conversion Utilities for converting Elemental Load values to Nodal values (Variable is load/Force/Reaction now)
+            debugInfo( "Conversion of Elemental Force to Nodal Foce : " + interfaces_.at(i).nameOfInterface , debugLevel);
+
             conversionElementalToNodalValues(i);
 
             /* Pout << "Size of the send Array After " << interfaces_.at(i).data_to_send.size() << endl;
@@ -933,22 +943,44 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::conversionEleme
 
         for(auto& elementalNodeIndexi : elementi.getElementalNodeIndexes())
         {
-            Node& temp_node = interfaces_.at(interface_index).Interface_nodes.at(elementalNodeIndexi - 1 ); //array index 1 less to access
+            Node& temp_node = interfaces_.at(interface_index).Interface_nodes.at( elementalNodeIndexi - interfaces_.at(interface_index).globalNodeIndexBegin ); //array index 1 less to access //In MPI, Begin Index should deduct
             std::vector<double>& temp_force = temp_node.getLoadValues();
+            /* if(elementalNodeIndexi == 55)
+            {
+                std::cout << elementi.getLocalElementIndex() << " : Before Load Value = "<<  interfaces_.at(interface_index).Interface_nodes.at(54).getLoadValues()[0] << " , " << interfaces_.at(interface_index).Interface_nodes.at(54).getLoadValues()[1] << " , " << interfaces_.at(interface_index).Interface_nodes.at(54).getLoadValues()[2] << " ] " << std::endl;
+            } */
 
-            temp_force[0] += ( (interfaces_.at(interface_index).data_to_send[ ((elementi.getLocalElementIndex())-1 ) * 3 + 0]) / double(number_of_nodes_in_element) );
-            temp_force[1] += ( (interfaces_.at(interface_index).data_to_send[ ((elementi.getLocalElementIndex())-1 ) * 3 + 1]) / double(number_of_nodes_in_element) );
-            temp_force[2] += ( (interfaces_.at(interface_index).data_to_send[ ((elementi.getLocalElementIndex())-1 ) * 3 + 2]) / double(number_of_nodes_in_element) );
+            temp_force[0] += ( (interfaces_.at(interface_index).data_to_send[ (( elementi.getLocalElementIndex())- interfaces_.at(interface_index).globalElementIndexBegin ) * 3 + 0]) / double(number_of_nodes_in_element) );
+            temp_force[1] += ( (interfaces_.at(interface_index).data_to_send[ (( elementi.getLocalElementIndex())- interfaces_.at(interface_index).globalElementIndexBegin ) * 3 + 1]) / double(number_of_nodes_in_element) );
+            temp_force[2] += ( (interfaces_.at(interface_index).data_to_send[ (( elementi.getLocalElementIndex())- interfaces_.at(interface_index).globalElementIndexBegin ) * 3 + 2]) / double(number_of_nodes_in_element) );
+
+            /* if(elementalNodeIndexi == 55)
+            {
+                std::cout << elementi.getLocalElementIndex() <<" : After Load Value = "<<  interfaces_.at(interface_index).Interface_nodes.at(54).getLoadValues()[0] << " , " << interfaces_.at(interface_index).Interface_nodes.at(54).getLoadValues()[1] << " , " << interfaces_.at(interface_index).Interface_nodes.at(54).getLoadValues()[2] << " ] " <<std::endl;
+            } */
 
         }
+        /* if(elementi.getLocalElementIndex() == 55)
+        {
+            std::cout <<" : After2 Load Value = "<<  interfaces_.at(interface_index).Interface_nodes.at(54).getLoadValues()[0] << " , " << interfaces_.at(interface_index).Interface_nodes.at(54).getLoadValues()[1] << " , " << interfaces_.at(interface_index).Interface_nodes.at(54).getLoadValues()[2] << " ] " <<std::endl;
+        } */
 
     }
+
+    //std::cout << " : After3 Load Value = "<<  interfaces_.at(interface_index).Interface_nodes.at(54).getLoadValues()[0] << " , " << interfaces_.at(interface_index).Interface_nodes.at(54).getLoadValues()[1] << " , " << interfaces_.at(interface_index).Interface_nodes.at(54).getLoadValues()[2] << " ] " <<std::endl;
+
+
+    //debugInfo( "Size of data_send() : " + std::to_string(interfaces_.at(interface_index).data_to_send.size()) , debugLevel);
 
     // Clear all the entried of data_to_send array
     interfaces_.at(interface_index).data_to_send.clear();
 
+    //debugInfo( "Size of data_send() : " + std::to_string(interfaces_.at(interface_index).data_to_send.size()), debugLevel);
+
     // Resize the data_to_send to keep nodal data
-    interfaces_.at(interface_index).data_to_send.resize( (interfaces_.at(interface_index).numNodes) * dim);
+    interfaces_.at(interface_index).data_to_send.resize( ((interfaces_.at(interface_index).numNodes) * dim ), 0.0);
+
+    //debugInfo( "Size of data_send() : " + std::to_string(interfaces_.at(interface_index).data_to_send.size()) , debugLevel);
 
     // Fill the data_to_send to keep nodal data
     // Data_send will be in the OF order
@@ -961,21 +993,36 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::conversionEleme
     } */
 
     // Fill the data_to_send in CoSim order
-    for(std::size_t m = 0 ; m <  interfaces_.at(interface_index).numNodes ; m++)
+    //for(std::size_t m = 0 ; m <  interfaces_.at(interface_index).numNodes ; m++)
+
+    //std::cout << " : After4 Load Value = "<<  interfaces_.at(interface_index).data_to_send.at(162) << " , " << interfaces_.at(interface_index).data_to_send.at(163) << " , " << interfaces_.at(interface_index).data_to_send.at(164) << " ] " <<std::endl;
+
+    std::cout <<"Node index = " << interfaces_.at(interface_index).globalNodeIndexBegin << std::endl;
+    for(auto& nodei : interfaces_.at(interface_index).Interface_nodes)
     {
-        auto& nodei = interfaces_.at(interface_index).Interface_nodes.at(m);
+        //auto& nodei = interfaces_.at(interface_index).Interface_nodes.at(m);
 
         //Pout<< "Local index = " << interfaces_.at(interface_index).Interface_nodes[m].getLocalNodeIndex() << " and CoSim Index = " << interfaces_.at(interface_index).Interface_nodes[m].getNodeIndexForCoSim() << endl;
-        interfaces_.at(interface_index).data_to_send[( (nodei.getNodeIndexForCoSim()-1) * 3) + 0] = (nodei.getLoadValues()[0]) / double(10.0); // Load scaling in OF
-        interfaces_.at(interface_index).data_to_send[( (nodei.getNodeIndexForCoSim()-1) * 3) + 1] = (nodei.getLoadValues()[1]) / double(10.0);
-        interfaces_.at(interface_index).data_to_send[( (nodei.getNodeIndexForCoSim()-1) * 3) + 2] = (nodei.getLoadValues()[2]) / double(10.0);
+        interfaces_.at(interface_index).data_to_send[( ( nodei.getNodeIndexForCoSim() - interfaces_.at(interface_index).globalNodeIndexBegin ) * 3) + 0] = (nodei.getLoadValues()[0]) / double(1.0); // Load scaling in OF
+        //std::cout << " : INdex Done = "<< ( ( nodei.getNodeIndexForCoSim() - interfaces_.at(interface_index).globalNodeIndexBegin ) * 3) + 0 <<std::endl;
+        interfaces_.at(interface_index).data_to_send[( ( nodei.getNodeIndexForCoSim() - interfaces_.at(interface_index).globalNodeIndexBegin ) * 3) + 1] = (nodei.getLoadValues()[1]) / double(1.0);
+        //std::cout << " : INdex Done = "<< ( ( nodei.getNodeIndexForCoSim() - interfaces_.at(interface_index).globalNodeIndexBegin ) * 3) + 1 <<std::endl;
+        interfaces_.at(interface_index).data_to_send[( ( nodei.getNodeIndexForCoSim() - interfaces_.at(interface_index).globalNodeIndexBegin ) * 3) + 2] = (nodei.getLoadValues()[2]) / double(1.0);
+        //std::cout << " : INdex Done = "<< ( ( nodei.getNodeIndexForCoSim() - interfaces_.at(interface_index).globalNodeIndexBegin ) * 3) + 2 <<std::endl;
     }
+
+    //std::cout << " : After5 Load Value = "<<  interfaces_.at(interface_index).data_to_send.at(162) << " , " << interfaces_.at(interface_index).data_to_send.at(163) << " , " << interfaces_.at(interface_index).data_to_send.at(164) << " ] " <<std::endl;
+
+
+    //debugInfo( "Size of data_send() : " + std::to_string(interfaces_.at(interface_index).data_to_send.size()) , debugLevel);
 
     //Set load value of all the nodes to zero else it will keep on accumulating
     for(auto& nodei : interfaces_.at(interface_index).Interface_nodes)
     {
         nodei.setLoadValuesToZeros();
     }
+
+    //debugInfo( "Size of data_send() : " + std::to_string(interfaces_.at(interface_index).data_to_send.size()) , debugLevel);
 
 }
 
