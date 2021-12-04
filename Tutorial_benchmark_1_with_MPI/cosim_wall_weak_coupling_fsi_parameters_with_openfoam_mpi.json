@@ -16,7 +16,7 @@
                 "type" : "average_value_based",
                 "solver"         : "Openfoam_Kratos_Wrapper",
                 //"data_name"      : "load_cells_interface_flap",
-                "data_name"        : "load_interface_flap",
+                "data_name"        : "load_interface_flap_ordered",
                 "echo_level" : 1
             }
         ],
