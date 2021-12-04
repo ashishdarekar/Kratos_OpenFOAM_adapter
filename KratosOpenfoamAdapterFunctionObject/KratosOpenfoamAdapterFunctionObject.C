@@ -966,9 +966,9 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::conversionEleme
         auto& nodei = interfaces_.at(interface_index).Interface_nodes.at(m);
 
         //Pout<< "Local index = " << interfaces_.at(interface_index).Interface_nodes[m].getLocalNodeIndex() << " and CoSim Index = " << interfaces_.at(interface_index).Interface_nodes[m].getNodeIndexForCoSim() << endl;
-        interfaces_.at(interface_index).data_to_send[( (nodei.getNodeIndexForCoSim()-1) * 3) + 0] = (nodei.getLoadValues()[0]) / double(1.0); // Load scaling in OF
-        interfaces_.at(interface_index).data_to_send[( (nodei.getNodeIndexForCoSim()-1) * 3) + 1] = (nodei.getLoadValues()[1]) / double(1.0);
-        interfaces_.at(interface_index).data_to_send[( (nodei.getNodeIndexForCoSim()-1) * 3) + 2] = (nodei.getLoadValues()[2]) / double(1.0);
+        interfaces_.at(interface_index).data_to_send[( (nodei.getNodeIndexForCoSim()-1) * 3) + 0] = (nodei.getLoadValues()[0]) / double(10.0); // Load scaling in OF
+        interfaces_.at(interface_index).data_to_send[( (nodei.getNodeIndexForCoSim()-1) * 3) + 1] = (nodei.getLoadValues()[1]) / double(10.0);
+        interfaces_.at(interface_index).data_to_send[( (nodei.getNodeIndexForCoSim()-1) * 3) + 2] = (nodei.getLoadValues()[2]) / double(10.0);
     }
 
     //Set load value of all the nodes to zero else it will keep on accumulating
