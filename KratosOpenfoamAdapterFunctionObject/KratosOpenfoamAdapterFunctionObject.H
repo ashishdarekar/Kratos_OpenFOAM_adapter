@@ -323,7 +323,7 @@ protected:
 
     bool is_same_points(Foam::vector& , Foam::vector& );
 
-    int compare_nodes(Foam::vector& );
+    int compare_nodes(Foam::vector& , std::size_t );
 
     //- Stress tensor (see the OpenFOAM "Forces" function object)
     Foam::tmp<Foam::volSymmTensorField> devRhoReff() const;
