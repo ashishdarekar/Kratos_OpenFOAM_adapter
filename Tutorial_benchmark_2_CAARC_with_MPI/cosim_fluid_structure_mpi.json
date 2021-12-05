@@ -2,8 +2,8 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time" : 120,
-        "echo_level" : 4,
+        "end_time" : 50,
+        "echo_level" : 1,
         "print_colors" : true,
         "parallel_type" : "MPI"
     },
@@ -15,20 +15,27 @@
             {
                 "type" : "average_value_based",
                 "solver"         : "Openfoam_Kratos_Wrapper",
-                "data_name"      : "load_cells_interface_3D_structure"
+                //"data_name"      : "load_cells_interface_3D_structure",
+                "data_name"      : "load_interface_3D_structure_ordered"
             }
         ],
         "data_transfer_operators" : {
             "transfer_forces" : {
                 "type" : "kratos_mapping",
                 "mapper_settings" : {
-                    "mapper_type" : "nearest_neighbor"
+                    "mapper_type" : "nearest_neighbor",
+                    "search_settings" : {
+                        "search_radius" : 2
+                    }
                 }
             },
             "transfer_disp" : {
                 "type" : "kratos_mapping",
                 "mapper_settings" : {
-                    "mapper_type" : "nearest_neighbor"
+                    "mapper_type" : "nearest_neighbor",
+                    "search_settings" : {
+                        "search_radius" : 2
+                    }
                 }
 
             }
@@ -43,9 +50,9 @@
                     "from_solver"       : "Openfoam_Kratos_Wrapper",
                     "from_solver_data"  : "load_interface_3D_structure",
                     "data_transfer_operator" : "transfer_forces",
-                    "before_data_transfer_operations" : ["mapping_element_node_interface_3D_structure"],
+                    //"before_data_transfer_operations" : ["mapping_element_node_interface_3D_structure"],
                     "after_data_transfer_operations" : ["scaling_loads_interface_3D_structure"],
-                    "data_transfer_operator_options" : ["swap_sign","use_transpose"]
+                    "data_transfer_operator_options" : ["use_transpose"]
                 }
             ],
             "output_data_list": [
@@ -68,16 +75,16 @@
                 "type"           : "scaling",
                 "solver"         : "structure",
                 "data_name"      : "load_interface_3D_structure",
-                "scaling_factor" : "(sin(((t)/0.01)/100*pi/2))**2 ",
+                "scaling_factor" : "(sin(((t)/0.01)/200*pi/2))**2 ",
                 "echo_level"     : 1,
-                "interval"       : [0.0, 1.0]
-            },
+                "interval"       : [0.0, 2.0]
+            }/* ,
             "mapping_element_node_interface_3D_structure" : {
                 "type"           : "elemental_data_to_nodal_data",
                 "solver"         : "Openfoam_Kratos_Wrapper",
                 "data_name"      : "load_cells_interface_3D_structure",
                 "echo_level"     : 1
-            }/* ,
+            } *//* ,
             "coupling_output_1" : {
                 "type"          : "coupling_output",
                 "solver"        : "Openfoam_Kratos_Wrapper",
@@ -102,7 +109,8 @@
                 "solver_wrapper_settings" : {
                     "import_meshes"    : ["interface_3D_structure"],
                     "export_data"      : ["disp_interface_3D_structure_ordered"],
-                    "import_data"      : ["load_cells_interface_3D_structure_ordered"]
+                    //"import_data"      : ["load_cells_interface_3D_structure_ordered"]
+                    "import_data"      : ["load_interface_3D_structure_ordered"]
                 },
                 "io_settings" : {
                     "type"       : "kratos_co_sim_io",
@@ -137,6 +145,11 @@
                         "location" : "element",
                         "variable_name" : "REACTION",
                         "dimension"     : 3
+                    },
+                    "load_interface_3D_structure_ordered" : { // same as load_cells but has data on nodes => required for the mapper!
+                        "model_part_name"   : "interface_3D_structure.original_order",
+                        "dimension" : 3,
+                        "variable_name" : "REACTION"
                     }
                 }
             },
