@@ -26,7 +26,7 @@ Usage
         Property                    | Description                                                                       | Required | Default value
         type                        | type name: KratosOpenfoamAdapterFunctionObject                                    | yes      |
         libs                        | Excutable: ("libKratosOpenfoamAdapterFunctionObjectFunctionObjects.so")           | yes      |
-        dim                         | Diemension of a problem                                                           | yes      |      3
+        dim                         | Dimension of a problem                                                            | yes      |      3
         interfaces                  | To save the coupling interfaces(Each interface is a subdirectory)                 | yes      |
             name                    | Name of the coupling interface                                                    | yes      |
             patches                 | WordList of the openFOAM patches which contain the coupling faces                 | yes      |
@@ -114,7 +114,7 @@ private:
             int nodeIndexforCoSim_;
             vector position_;
             std::vector<bool>commonWithWhichRanks; //With how many Ranks this node is shared
-            std::vector<double>force_value;
+            std::vector<double>force_value; //To Store Nodal force Values
 
         public:
             Node(vector position, int localNodeIndex, int nodeIndexforCoSim, int commonRankFirstTime) : commonWithWhichRanks(Pstream::nProcs(),0){
@@ -280,9 +280,9 @@ protected:
         std::vector<double> data_to_recv;
         uint numNodes = 0;
         uint numElements = 0;
-        std::vector<Node> Interface_nodes;              // Contain Node objects
-        std::vector<Element> Interface_elements;        // Contain elemental Objects
-        std::vector<int> neighbour_ids_comm_num_of_nodes; //Max size of a array =  TotalNumOfProcesses * 2
+        std::vector<Node> Interface_nodes;                  // Contain Node objects
+        std::vector<Element> Interface_elements;            // Contain elemental Objects
+        std::vector<int> neighbour_ids_comm_num_of_nodes;   //Max size of a array =  TotalNumOfProcesses * 2
         int globalNodeIndexBegin = 0;
         int globalElementIndexBegin = 0;
     };
