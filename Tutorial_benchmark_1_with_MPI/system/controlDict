@@ -81,7 +81,7 @@ functions
             nu nu [0 2 -1 0 0 0 0 ] 0.1542;
         }
 
-        debugLevel debug;
+        debugLevel info;
     }
 
     Co1
