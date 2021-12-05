@@ -8,12 +8,12 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-    numberOfSubdomains 4;
+    numberOfSubdomains 2;
 
     method hierarchical;
     hierarchicalCoeffs
     {
-        n (2 2 1);
+        n (2 1 1);
         delta 0.001; //Cell Skew Factor
         order xyz;  //Order of decomposition
     }
