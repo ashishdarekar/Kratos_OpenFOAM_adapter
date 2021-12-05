@@ -2,7 +2,7 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time" : 50.0,
+        "end_time" : 20.0,
         "echo_level" : 1,
         "print_colors" : true,
         "parallel_type" : "MPI"
@@ -67,7 +67,7 @@
                 "type"           : "scaling",
                 "solver"         : "structure",
                 "data_name"      : "load_interface_flap",
-                "scaling_factor" : "(sin(((t)/0.01)/1500*pi/2))**2 ",
+                "scaling_factor" : "(sin(((t)/0.005)/3000*pi/2))**2 ",
                 "echo_level"     : 1,
                 "interval"       : [0.0, 15.0]
             },
