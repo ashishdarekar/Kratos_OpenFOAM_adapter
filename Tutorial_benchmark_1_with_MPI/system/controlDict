@@ -24,9 +24,9 @@ startTime           0;
 
 stopAt              endTime;
 
-endTime             50.0; //25
+endTime             20.0; //25
 
-deltaT              0.01;//0.001
+deltaT              0.005;//0.001
 
 writeControl        adjustableRunTime;
 
@@ -70,7 +70,8 @@ functions
                 importData              (Displacement0);
                 importDataIdentifier    (disp_interface_flap_ordered);
                 exportData              (Force0);
-                exportDataIdentifier    (load_cells_interface_flap_ordered);
+                //exportDataIdentifier    (load_cells_interface_flap_ordered);
+                exportDataIdentifier    (load_interface_flap_ordered);
             }
         }
 

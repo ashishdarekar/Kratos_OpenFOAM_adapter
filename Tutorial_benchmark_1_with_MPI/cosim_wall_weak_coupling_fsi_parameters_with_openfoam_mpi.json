@@ -2,7 +2,7 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time" : 50.0,
+        "end_time" : 20.0,
         "echo_level" : 1,
         "print_colors" : true,
         "parallel_type" : "MPI"
@@ -15,7 +15,8 @@
             {
                 "type" : "average_value_based",
                 "solver"         : "Openfoam_Kratos_Wrapper",
-                "data_name"      : "load_cells_interface_flap",
+                //"data_name"      : "load_cells_interface_flap",
+                "data_name"        : "load_interface_flap_ordered",
                 "echo_level" : 1
             }
         ],
@@ -41,7 +42,7 @@
                     "from_solver"       : "Openfoam_Kratos_Wrapper",
                     "from_solver_data"  : "load_interface_flap",
                     "data_transfer_operator" : "mapper",
-                    "before_data_transfer_operations" : ["mapping_element_node_interface_flap"],
+                    //"before_data_transfer_operations" : ["mapping_element_node_interface_flap"],
                     "after_data_transfer_operations" : ["scaling_loads_interface_flap"],
                     "data_transfer_operator_options" : ["use_transpose"]
                 }
@@ -66,16 +67,16 @@
                 "type"           : "scaling",
                 "solver"         : "structure",
                 "data_name"      : "load_interface_flap",
-                "scaling_factor" : "(sin(((t)/0.01)/1500*pi/2))**2 ",
+                "scaling_factor" : "(sin(((t)/0.005)/3000*pi/2))**2 ",
                 "echo_level"     : 1,
                 "interval"       : [0.0, 15.0]
             },
-            "mapping_element_node_interface_flap" : {
+            /* "mapping_element_node_interface_flap" : {
                 "type"           : "elemental_data_to_nodal_data",
                 "solver"         : "Openfoam_Kratos_Wrapper",
                 "data_name"      : "load_cells_interface_flap",
                 "echo_level"     : 1
-            },
+            }, */
             "coupling_output_1" : {
                 "type"          : "coupling_output",
                 "solver"        : "Openfoam_Kratos_Wrapper",
@@ -100,7 +101,8 @@
                 "solver_wrapper_settings" : {
                     "import_meshes"    : ["interface_flap"],
                     "export_data"      : ["disp_interface_flap_ordered"],
-                    "import_data"      : ["load_cells_interface_flap_ordered"]
+                    //"import_data"      : ["load_cells_interface_flap_ordered"]
+                    "import_data"      : ["load_interface_flap_ordered"]
                 },
                 "io_settings" : {
                     "type"       : "kratos_co_sim_io",
@@ -133,6 +135,11 @@
                     },
                     "load_interface_flap" : { // same as load_cells but has data on nodes => required for the mapper!
                         "model_part_name"   : "interface_flap",
+                        "dimension" : 3,
+                        "variable_name" : "FORCE"
+                    },
+                    "load_interface_flap_ordered" : { // same as load_cells but has data on nodes => required for the mapper!
+                        "model_part_name"   : "interface_flap.original_order",
                         "dimension" : 3,
                         "variable_name" : "FORCE"
                     }

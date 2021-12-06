@@ -34,10 +34,10 @@ fvMeshFunctionObject(name, runTime, dict), runTime_(runTime), dict_(dict)//, CoS
 }
 
 // * * * * * * * * * * * * * * * * Destructor  * * * * * * * * * * * * * * * //
-
 Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::~KratosOpenfoamAdapterFunctionObject()
 {
 }
+
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::read(const dictionary& dict)
@@ -79,11 +79,10 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::end()
 
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::write()
 {
-    debugInfo("CoSimulation Adapter's function object : write()", debugLevel);
+    //debugInfo("CoSimulation Adapter's function object : write()", debugLevel);
 
     return true;
 }
-
 
 
 // ****************************************** Auxillary functions Read config *********************************************** //
@@ -259,9 +258,12 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
     {
         debugInfo( "[OF]Reading mesh data from OF for coupling interface : " + interfaces_.at(j).nameOfInterface, debugLevel );
 
-        // Arrays to exchange the number of nodes with all ranks
+        // Arrays to exchange the number of nodes and Elements with all ranks
         scalarListList sendDataNumNodeIndex(Pstream::nProcs());
         scalarListList recvDataNumNodeIndex(Pstream::nProcs());
+        scalarListList sendDataNumElementIndex(Pstream::nProcs());
+        scalarListList recvDataNumElementIndex(Pstream::nProcs());
+
 
         // Count the Nodes and Elements for all the patches in that interface
         for (std::size_t i = 0; i < interfaces_.at(j).patchIDs.size(); i++)
@@ -275,6 +277,8 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
         {
             sendDataNumNodeIndex[i].setSize(1);
             sendDataNumNodeIndex[i][0] = interfaces_.at(j).numNodes ;
+            sendDataNumElementIndex[i].setSize(1);
+            sendDataNumElementIndex[i][0] = interfaces_.at(j).numElements ;
         }
 
         // Make CoSimIO::ModelPart and push in the array of model_part_interfaces
@@ -282,6 +286,7 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
 
         //MPI Exchange to know start Index for Node formation
         Pstream::exchange<scalarList, scalar>(sendDataNumNodeIndex, recvDataNumNodeIndex);
+        Pstream::exchange<scalarList, scalar>(sendDataNumElementIndex, recvDataNumElementIndex);
 
         int nodeIndex = 1 ; //Default value of Serial run
         int elemIndex = 1;
@@ -289,8 +294,10 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
         for(int i = 0 ; i < MyRank; i++)
         {
             nodeIndex += recvDataNumNodeIndex[i][0];
+            elemIndex += recvDataNumElementIndex[i][0];
         }
-        int globalNodeIndexBegin = nodeIndex; //To presrve its value(use is later)
+        interfaces_.at(j).globalNodeIndexBegin = nodeIndex; //To presrve its value(use is later)
+        interfaces_.at(j).globalElementIndexBegin = elemIndex; //To presrve its value(use is later)
 
         // Accessing the coordinates of all nodes in the Inteface and collecting nodal and elemental data
         for(std::size_t i = 0; i < interfaces_.at(j).patchIDs.size(); i++)
@@ -312,7 +319,7 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
                     auto pointX = mesh_.points()[nodeID1];
                     std::vector<bool> is_common_node(TotalNumOfProcesses , 0); //Total number of max neighbours  = NumOfProcesses-1
 
-                    int result = compare_nodes(pointX); // return nodeIndex(starting from 1) if node is already present and (-1) if node is not present
+                    int result = compare_nodes(pointX , j); // return nodeIndex(starting from interfaces_.at(j).globalNodeIndexBegin) if node is already present and (-1) if node is not present
 
                     if(result == (-1)) // For new node
                     {
@@ -382,15 +389,15 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
                     else{
                         //No need to produce new Node
                         new_element.addNodeIndexInList(result);// connectivity to make that element
-                        new_element.addNodesInList(interfaces_.at(j).Interface_nodes.at(result-1));// Add old node in the List of nodes for that element, result-1 as Vector index starts from 0
+                        new_element.addNodesInList(interfaces_.at(j).Interface_nodes.at( result- interfaces_.at(j).globalNodeIndexBegin));// Add old node in the List of nodes for that element, result-1 as Vector index starts from 0
                     }
                 }
                 //Once Element is set push it to the List of Elements
                 interfaces_.at(j).Interface_elements.push_back(new_element);
             }
 
-            debugInfo( "[OF]Total number of Nodes in coupling interface "  + interfaces_.at(j).nameOfInterface + " are " +  std::to_string(interfaces_.at(j).Interface_nodes.size()), debugLevel);
-            debugInfo( "[OF]Total number of Elements in coupling interface "  + interfaces_.at(j).nameOfInterface + " are " +  std::to_string(interfaces_.at(j).Interface_elements.size()), debugLevel);
+            //debugInfo( "[OF]Total number of Nodes in coupling interface "  + interfaces_.at(j).nameOfInterface + " are " +  std::to_string(interfaces_.at(j).numNodes), debugLevel);
+            //debugInfo( "[OF]Total number of Elements in coupling interface "  + interfaces_.at(j).nameOfInterface + " are " +  std::to_string(interfaces_.at(j).numElements), debugLevel);
 
         }
 
@@ -477,21 +484,52 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
                 model_part_interfaces_.at(j)->CreateNewNode( nodei.getNodeIndexForCoSim(), nodePosition[0], nodePosition[1], nodePosition[2]);
             }
         }
-        debugInfo( "[COSIM]Total number of Nodes formed in coupling interface " + interfaces_.at(j).nameOfInterface +  " (local, Ghost, total) = (" + std::to_string(model_part_interfaces_.at(j)->NumberOfLocalNodes()) + " , " + std::to_string(model_part_interfaces_.at(j)->NumberOfGhostNodes()) +  " , " + std::to_string(model_part_interfaces_.at(j)->NumberOfNodes()) + " )" , debugLevel);
+        //debugInfo( "[COSIM]Total number of Nodes formed in coupling interface " + interfaces_.at(j).nameOfInterface +  " (local, Ghost, total) = (" + std::to_string(model_part_interfaces_.at(j)->NumberOfLocalNodes()) + " , " + std::to_string(model_part_interfaces_.at(j)->NumberOfGhostNodes()) +  " , " + std::to_string(model_part_interfaces_.at(j)->NumberOfNodes()) + " )" , debugLevel);
 
         // Make Cosim elements
-        std::vector<CoSimIO::IdType> connectivity;
-        for(auto& elementi : interfaces_.at(j).Interface_elements)
+        if(0) //No need now (As Data transfer happens only using Nodes)
         {
-            for(auto& elementalNodeIndexi : elementi.getElementalNodes())
-            {
-                connectivity.push_back(interfaces_.at(j).Interface_nodes.at(elementalNodeIndexi.getLocalNodeIndex()-globalNodeIndexBegin).getNodeIndexForCoSim());
-            }
+            std::vector<CoSimIO::IdType> connectivity;
+            int quad_count = 0;
+            int pyramid_count= 0;
+            int prism_count = 0;
 
-            model_part_interfaces_.at(j)->CreateNewElement( elementi.getLocalElementIndex(), CoSimIO::ElementType::Quadrilateral2D4, connectivity );
-            connectivity.clear();
+            for(auto& elementi : interfaces_.at(j).Interface_elements)
+            {
+                for(auto& elementalNodeIndexi : elementi.getElementalNodes())
+                {
+                    connectivity.push_back(interfaces_.at(j).Interface_nodes.at(elementalNodeIndexi.getLocalNodeIndex()- interfaces_.at(j).globalNodeIndexBegin).getNodeIndexForCoSim());
+                }
+
+                // To select the Element from the available list of elements in the CoSimIO
+                if(0)
+                {
+                    switch (connectivity.size())
+                    {
+                    case 4:
+                        model_part_interfaces_.at(j)->CreateNewElement( elementi.getLocalElementIndex(), CoSimIO::ElementType::Quadrilateral2D4, connectivity );
+                        quad_count++;
+                        break;
+                    case 5: // When not written, CoSimIO error
+                        model_part_interfaces_.at(j)->CreateNewElement( elementi.getLocalElementIndex(), CoSimIO::ElementType::Pyramid3D5, connectivity );
+                        pyramid_count++;
+                        break;
+                    case 6: // When not written, these elements got skipped, No CoSimIO error
+                        model_part_interfaces_.at(j)->CreateNewElement( elementi.getLocalElementIndex(), CoSimIO::ElementType::Prism3D6, connectivity );
+                        prism_count++;
+                        break;
+                    default: // Add more cases for more elements
+                        break;
+                    }
+                }
+
+                connectivity.clear();
+            }
+            //debugInfo( "[COSIM]Total number of Quad Elements formed in coupling interface " + interfaces_.at(j).nameOfInterface + " = " + std::to_string(quad_count), debugLevel);
+            //debugInfo( "[COSIM]Total number of Pyramid Elements formed in coupling interface " + interfaces_.at(j).nameOfInterface + " = " + std::to_string(pyramid_count), debugLevel);
+            //debugInfo( "[COSIM]Total number of Prism Elements formed in coupling interface " + interfaces_.at(j).nameOfInterface + " = " + std::to_string(prism_count), debugLevel);
+            //debugInfo( "[COSIM]Total number of Elements formed in coupling interface " + interfaces_.at(j).nameOfInterface + " = " + std::to_string(model_part_interfaces_.at(j)->NumberOfElements()), debugLevel);
         }
-        debugInfo( "[COSIM]Total number of Elements formed in coupling interface " + interfaces_.at(j).nameOfInterface + " = " + std::to_string(model_part_interfaces_.at(j)->NumberOfElements()), debugLevel);
 
         // Export InterfaceMesh/ModelPart to CoSimulation using CoSimIO
         info.Clear();
@@ -509,6 +547,9 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportMeshToCos
     }
     debugInfo( "Exporting All InterfaceMeshes to KRATOS using CoSimIO::ModelPart : End", debugLevel);
 
+    /* Foam::wordList Objectnames_ = mesh_.names(); // calling names() method
+    forAll(Objectnames_,i){
+        std::cout << Objectnames_[i] << ", ";} */
 }
 
 void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::resizeDataVectors()
@@ -538,14 +579,20 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportDataToKra
         debugInfo( "Force calculation started for coupling interface : " + interfaces_.at(i).nameOfInterface , debugLevel);
 
         // For "Write Data" variables which need to send to CoSimulation
-        for(std::size_t j=0; j< interfaces_.at(i).exportData.size(); j++)
+        for(std::size_t j=0; j< interfaces_.at(i).exportData.size(); j++) //Will work for only export data??
         {
             std::string dataName = interfaces_.at(i).exportData.at(j);
 
-            if(dataName.find("Force") == 0 )
-            {
+            interfaces_.at(i).data_to_send.clear();
+            resizeDataVectors();//Resize to Elemental size
+
+            if(dataName.find("Force") == 0){
                 calculateForces(i);
             }
+
+            // Conversion Utilities for converting Elemental Load values to Nodal values (Variable is load/Force/Reaction now)
+            debugInfo( "Conversion of Elemental Force to Nodal Force : " + interfaces_.at(i).nameOfInterface , debugLevel);
+            conversionElementalToNodalValues(i);
         }
 
         // Export this force array to CoSimulation //Elemental Force Data
@@ -579,14 +626,14 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::importDataFromK
         for (std::size_t j = 0; j < interfaces_.at(i).patchNames.size(); j++)
         {
             Foam::pointVectorField* point_disp;
+
             point_disp = const_cast<pointVectorField*>( &mesh_.lookupObject<pointVectorField>("pointDisplacement") );
-            label patchIndex = mesh_.boundaryMesh().findPatchID((interfaces_.at(i).patchNames).at(j));//Remove hardcoded part for finding patchIndex
+            label patchIndex = mesh_.boundaryMesh().findPatchID((interfaces_.at(i).patchNames).at(j));
             fixedValuePointPatchVectorField& pointDisplacementFluidPatch = refCast<fixedValuePointPatchVectorField>(point_disp->boundaryFieldRef()[patchIndex]);
 
             int iterator = 0;
             forAll(point_disp->boundaryFieldRef()[patchIndex] ,k)
             {
-                //Pout<< "Displ node number = " << k <<endl;
                 pointDisplacementFluidPatch[k][0] = interfaces_.at(i).data_to_recv[iterator++];
                 pointDisplacementFluidPatch[k][1] = interfaces_.at(i).data_to_recv[iterator++];
                 if (dim ==3)
@@ -641,7 +688,7 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::is_same_points(
 }
 
 // To Compare the new node with all previous nodes before creating the new CoSimIO::Node
-int Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::compare_nodes(Foam::vector& pointX)
+int Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::compare_nodes(Foam::vector& pointX, std::size_t interface_index)
 {
     int answer = 0;
 
@@ -656,7 +703,7 @@ int Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::compare_nodes(Fo
             if(is_same_points(pointX , nodei)) //current node == previous all nodes
             {
                 auto itr = std::find( array_of_nodes.begin(), array_of_nodes.end(), nodei ) ;
-                answer = std::distance(array_of_nodes.begin(), itr) + 1 ; // nodeindex starts from 1 in CoSimIO
+                answer = std::distance(array_of_nodes.begin(), itr) + interfaces_.at(interface_index).globalNodeIndexBegin ; // nodeindex starts from globalNodeIndexBegin in CoSimIO
                 break; // Once repeated node is found immediate break it. No need to check it later
             }
             else
@@ -864,6 +911,57 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
     }
 
     return true;
+}
+
+// To Convert Elemental force values to Nodal force values
+void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::conversionElementalToNodalValues(std::size_t interface_index)
+{
+    int number_of_nodes_in_element = 0;
+
+    // Travel all Elements and Distribute the forces on the nodes
+    for(auto& elementi : interfaces_.at(interface_index).Interface_elements)
+    {
+        number_of_nodes_in_element = elementi.getNumberOfNodes();
+
+        for(auto& elementalNodeIndexi : elementi.getElementalNodeIndexes())
+        {
+            Node& temp_node = interfaces_.at(interface_index).Interface_nodes.at( elementalNodeIndexi - interfaces_.at(interface_index).globalNodeIndexBegin ); //In MPI, Node Begin Index should deduct
+            std::vector<double>& temp_force = temp_node.getLoadValues();
+
+            temp_force[0] += ( (interfaces_.at(interface_index).data_to_send[ (( elementi.getLocalElementIndex())- interfaces_.at(interface_index).globalElementIndexBegin ) * 3 + 0]) / double(number_of_nodes_in_element) );
+            temp_force[1] += ( (interfaces_.at(interface_index).data_to_send[ (( elementi.getLocalElementIndex())- interfaces_.at(interface_index).globalElementIndexBegin ) * 3 + 1]) / double(number_of_nodes_in_element) );
+            temp_force[2] += ( (interfaces_.at(interface_index).data_to_send[ (( elementi.getLocalElementIndex())- interfaces_.at(interface_index).globalElementIndexBegin ) * 3 + 2]) / double(number_of_nodes_in_element) );
+
+        }
+
+    }
+
+    // Clear all the entried of data_to_send array
+    interfaces_.at(interface_index).data_to_send.clear();
+
+    // Resize the data_to_send to keep nodal data (number of nodes= number of local nodes for this rank)
+    interfaces_.at(interface_index).data_to_send.resize( (( model_part_interfaces_.at(interface_index)->NumberOfNodes() ) * dim ), 0.0);
+
+    // Fill the data_to_send to keep nodal data
+    // Fill the data_to_send in CoSim order OR Data_send will be in the OF order ?? Ask Philipp
+    for(auto& nodei : interfaces_.at(interface_index).Interface_nodes)
+    {
+        //interfaces_.at(interface_index).data_to_send[( ( nodei.getNodeIndexForCoSim() - interfaces_.at(interface_index).globalNodeIndexBegin ) * 3) + 0] = (nodei.getLoadValues()[0]) / double(1.0); // Load scaling in OF
+        interfaces_.at(interface_index).data_to_send[( ( nodei.getLocalNodeIndex() - interfaces_.at(interface_index).globalNodeIndexBegin ) * 3) + 0] = (nodei.getLoadValues()[0]) / double(1.0); // No Load scaling in OF
+
+        //interfaces_.at(interface_index).data_to_send[( ( nodei.getNodeIndexForCoSim() - interfaces_.at(interface_index).globalNodeIndexBegin ) * 3) + 1] = (nodei.getLoadValues()[1]) / double(1.0);
+        interfaces_.at(interface_index).data_to_send[( ( nodei.getLocalNodeIndex() - interfaces_.at(interface_index).globalNodeIndexBegin ) * 3) + 1] = (nodei.getLoadValues()[1]) / double(1.0);
+
+        //interfaces_.at(interface_index).data_to_send[( ( nodei.getNodeIndexForCoSim() - interfaces_.at(interface_index).globalNodeIndexBegin ) * 3) + 2] = (nodei.getLoadValues()[2]) / double(1.0);
+        interfaces_.at(interface_index).data_to_send[( ( nodei.getLocalNodeIndex() - interfaces_.at(interface_index).globalNodeIndexBegin ) * 3) + 2] = (nodei.getLoadValues()[2]) / double(1.0);
+    }
+
+    //Set load value of all the nodes to zero, else it will keep on accumulating
+    for(auto& nodei : interfaces_.at(interface_index).Interface_nodes)
+    {
+        nodei.setLoadValuesToZeros();
+    }
+
 }
 
 // *********************************************** Utilities **************************************************//

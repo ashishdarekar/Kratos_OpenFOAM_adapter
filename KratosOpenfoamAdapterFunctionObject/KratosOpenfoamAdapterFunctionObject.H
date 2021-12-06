@@ -26,7 +26,7 @@ Usage
         Property                    | Description                                                                       | Required | Default value
         type                        | type name: KratosOpenfoamAdapterFunctionObject                                    | yes      |
         libs                        | Excutable: ("libKratosOpenfoamAdapterFunctionObjectFunctionObjects.so")           | yes      |
-        dim                         | Diemension of a problem                                                           | yes      |      3
+        dim                         | Dimension of a problem                                                            | yes      |      3
         interfaces                  | To save the coupling interfaces(Each interface is a subdirectory)                 | yes      |
             name                    | Name of the coupling interface                                                    | yes      |
             patches                 | WordList of the openFOAM patches which contain the coupling faces                 | yes      |
@@ -113,7 +113,8 @@ private:
             int localNodeIndex_;
             int nodeIndexforCoSim_;
             vector position_;
-            std::vector<bool>commonWithWhichRanks; //With howmany Ranks this node is shared
+            std::vector<bool>commonWithWhichRanks; //With how many Ranks this node is shared
+            std::vector<double>force_value; //To Store Nodal force Values
 
         public:
             Node(vector position, int localNodeIndex, int nodeIndexforCoSim, int commonRankFirstTime) : commonWithWhichRanks(Pstream::nProcs(),0){
@@ -121,6 +122,10 @@ private:
                 nodeIndexforCoSim_ = nodeIndexforCoSim;
                 position_ = position;
                 setCommonWithRank(commonRankFirstTime);
+                force_value.resize(3);
+                force_value[0] = 0.0;
+                force_value[1] = 0.0;
+                force_value[2] = 0.0;
             };
 
             vector getNodePosition(){
@@ -175,6 +180,22 @@ private:
                     return Pstream::nProcs(); //Returning highest number
                 }
             };
+
+            void setLoadValues(std::vector<double>& value){
+                force_value[0] = value[0];
+                force_value[1] = value[1];
+                force_value[2] = value[2];
+            };
+
+            std::vector<double>& getLoadValues(){
+                return force_value;
+            };
+
+            void setLoadValuesToZeros(){
+                force_value[0] = 0.0;
+                force_value[1] = 0.0;
+                force_value[2] = 0.0;
+            };
     };
 
     class Element
@@ -198,7 +219,7 @@ private:
                 elementalNodeIndexes_.push_back(nodeIndex);
             };
 
-            std::vector<uint> getElementalNodeIndexes(){
+            std::vector<uint>& getElementalNodeIndexes(){
                 return elementalNodeIndexes_;
             };
 
@@ -208,7 +229,11 @@ private:
 
             std::vector<Node> getElementalNodes(){
                 return elementalNodes_;
-            }
+            };
+
+            int getNumberOfNodes(){
+                return elementalNodeIndexes_.size();
+            };
     };
 
     //- Disallow default bitwise copy construct
@@ -255,9 +280,11 @@ protected:
         std::vector<double> data_to_recv;
         uint numNodes = 0;
         uint numElements = 0;
-        std::vector<Node> Interface_nodes;              // Contain Node objects
-        std::vector<Element> Interface_elements;        // Contain elemental Objects
-        std::vector<int> neighbour_ids_comm_num_of_nodes; //Max size of a array =  TotalNumOfProcesses * 2
+        std::vector<Node> Interface_nodes;                  // Contain Node objects
+        std::vector<Element> Interface_elements;            // Contain elemental Objects
+        std::vector<int> neighbour_ids_comm_num_of_nodes;   //Max size of a array =  TotalNumOfProcesses * 2
+        int globalNodeIndexBegin = 0;
+        int globalElementIndexBegin = 0;
     };
 
     //- Array of strctures to store data for all coupling interfaces
@@ -288,13 +315,15 @@ protected:
     );
 
     //- Auxiliar functions
-    bool calculateForces(std::size_t );
+    bool calculateForces(std::size_t);
+
+    void conversionElementalToNodalValues(std::size_t);
 
     std::string determineSolverType();
 
     bool is_same_points(Foam::vector& , Foam::vector& );
 
-    int compare_nodes(Foam::vector& );
+    int compare_nodes(Foam::vector& , std::size_t );
 
     //- Stress tensor (see the OpenFOAM "Forces" function object)
     Foam::tmp<Foam::volSymmTensorField> devRhoReff() const;
