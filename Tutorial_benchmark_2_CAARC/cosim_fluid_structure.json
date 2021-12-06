@@ -2,7 +2,7 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time" : 120,
+        "end_time" : 50,
         "echo_level" : 4,
         "print_colors" : true,
         "parallel_type" : "OpenMP"
@@ -15,7 +15,8 @@
             {
                 "type" : "average_value_based",
                 "solver"         : "Openfoam_Kratos_Wrapper",
-                "data_name"      : "load_cells_interface_3D_structure"
+                //"data_name"      : "load_cells_interface_3D_structure"
+                "data_name"      : "load_interface_3D_structure"
             }
         ],
         "data_transfer_operators" : {
@@ -43,7 +44,7 @@
                     "from_solver"       : "Openfoam_Kratos_Wrapper",
                     "from_solver_data"  : "load_interface_3D_structure",
                     "data_transfer_operator" : "transfer_forces",
-                    "before_data_transfer_operations" : ["mapping_element_node_interface_3D_structure"],
+                    //"before_data_transfer_operations" : ["mapping_element_node_interface_3D_structure"],
                     "after_data_transfer_operations" : ["scaling_loads_interface_3D_structure"],
                     //"data_transfer_operator_options" : ["swap_sign","use_transpose"]
                     "data_transfer_operator_options" : ["use_transpose"]
@@ -69,9 +70,9 @@
                 "type"           : "scaling",
                 "solver"         : "structure",
                 "data_name"      : "load_interface_3D_structure",
-                "scaling_factor" : "(sin(((t)/0.01)/100*pi/2))**2 ",
+                "scaling_factor" : "(sin(((t)/0.01)/200*pi/2))**2 ",
                 "echo_level"     : 1,
-                "interval"       : [0.0, 1.0]
+                "interval"       : [0.0, 2.0]
             },
             "mapping_element_node_interface_3D_structure" : {
                 "type"           : "elemental_data_to_nodal_data",
@@ -103,7 +104,8 @@
                 "solver_wrapper_settings" : {
                     "import_meshes"    : ["interface_3D_structure"],
                     "export_data"      : ["disp_interface_3D_structure"],
-                    "import_data"      : ["load_cells_interface_3D_structure"]
+                    //"import_data"      : ["load_cells_interface_3D_structure"]
+                    "import_data"      : ["load_interface_3D_structure"]
                 },
                 "io_settings" : {
                     "type"       : "kratos_co_sim_io",

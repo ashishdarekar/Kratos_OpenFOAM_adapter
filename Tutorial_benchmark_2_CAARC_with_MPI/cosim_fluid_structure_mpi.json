@@ -23,19 +23,19 @@
             "transfer_forces" : {
                 "type" : "kratos_mapping",
                 "mapper_settings" : {
-                    "mapper_type" : "nearest_neighbor",
-                    "search_settings" : {
+                    "mapper_type" : "nearest_neighbor"
+                    /* "search_settings" : {
                         "search_radius" : 2
-                    }
+                    } */
                 }
             },
             "transfer_disp" : {
                 "type" : "kratos_mapping",
                 "mapper_settings" : {
-                    "mapper_type" : "nearest_neighbor",
-                    "search_settings" : {
+                    "mapper_type" : "nearest_neighbor"
+                    /* "search_settings" : {
                         "search_radius" : 2
-                    }
+                    } */
                 }
 
             }
@@ -53,6 +53,7 @@
                     //"before_data_transfer_operations" : ["mapping_element_node_interface_3D_structure"],
                     "after_data_transfer_operations" : ["scaling_loads_interface_3D_structure"],
                     "data_transfer_operator_options" : ["use_transpose"]
+                    //"data_transfer_operator_options" : ["swap_sign","use_transpose"]
                 }
             ],
             "output_data_list": [

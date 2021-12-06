@@ -20,19 +20,29 @@ while dis:
 	if splited_data[0] == '#':
 		pass
 	else:
-		#print(len(splited_data))
+		#print(splited_data)
 		time_list_data = splited_data[0]
 		time_list.append(float(time_list_data))
-		#print(time_list)
-		displacement_data = splited_data[2]
+
+		displacement_data = splited_data[1]
+		for word in displacement_data.split():
+			print(word)
+			if word.isdigit():
+				#displacement.append(float(word))
+				print(word)
+
+		print(displacement)
 		if(displacement_data != "-1.79769313486e+307"):
-			displacement.append(float(displacement_data))
+			#displacement.append(float(displacement_data))
 			old_displacement_data = displacement_data
 		else:
 			displacement.append(float(old_displacement_data))
-		#print(displacement)
 
 	dis = file.readline()
+
+#print(time_list)
+#print(displacement)
+
 
 #Plotting
 """ xmin, xmax = plt.xlim()
