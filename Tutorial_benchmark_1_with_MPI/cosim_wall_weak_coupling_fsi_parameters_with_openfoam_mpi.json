@@ -15,9 +15,9 @@
             {
                 "type" : "average_value_based",
                 "solver"         : "Openfoam_Kratos_Wrapper",
+                "data_name"        : "load_interface_flap_ordered",
+                //"data_name"        : "load_interface_flap",
                 //"data_name"      : "load_cells_interface_flap",
-                //"data_name"        : "load_interface_flap_ordered",
-                "data_name"        : "load_interface_flap",
                 "echo_level" : 1
             }
         ],
@@ -101,11 +101,11 @@
                 "type" : "solver_wrappers.external.openfoam_wrapper",
                 "solver_wrapper_settings" : {
                     "import_meshes"    : ["interface_flap"],
-                    //"export_data"      : ["disp_interface_flap_ordered"],
-                    "export_data"      : ["disp_interface_flap"],
+                    "export_data"      : ["disp_interface_flap_ordered"],
+                    "import_data"      : ["load_interface_flap_ordered"]
+                    //"export_data"      : ["disp_interface_flap"],
+                    //"import_data"      : ["load_interface_flap"]
                     //"import_data"      : ["load_cells_interface_flap_ordered"]
-                    //"import_data"      : ["load_interface_flap_ordered"]
-                    "import_data"      : ["load_interface_flap"]
                 },
                 "io_settings" : {
                     "type"       : "kratos_co_sim_io",
@@ -119,33 +119,33 @@
                         "dimension" : 3,
                         "variable_name" : "DISPLACEMENT"
                     },
-                    /* "disp_interface_flap_ordered" : {
+                    "disp_interface_flap_ordered" : {
                         "model_part_name"   : "interface_flap.original_order",
                         "dimension" : 3,
                         "variable_name" : "DISPLACEMENT"
-                    }, */
+                    },
                     "load_cells_interface_flap" : {
                         "model_part_name"   : "interface_flap",
                         "location" : "element",
                         "dimension" : 3,
                         "variable_name" : "FORCE"
                     },
-                    /* "load_cells_interface_flap_ordered" : {
+                    "load_cells_interface_flap_ordered" : {
                         "model_part_name"   : "interface_flap.original_order",
                         "location" : "element",
                         "dimension" : 3,
                         "variable_name" : "FORCE"
-                    }, */
+                    },
                     "load_interface_flap" : { // same as load_cells but has data on nodes => required for the mapper!
                         "model_part_name"   : "interface_flap",
                         "dimension" : 3,
                         "variable_name" : "FORCE"
-                    }/* ,
+                    },
                     "load_interface_flap_ordered" : { // same as load_cells but has data on nodes => required for the mapper!
                         "model_part_name"   : "interface_flap.original_order",
                         "dimension" : 3,
                         "variable_name" : "FORCE"
-                    } */
+                    }
                 }
             },
             "structure" :

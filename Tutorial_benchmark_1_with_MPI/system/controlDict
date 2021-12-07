@@ -68,12 +68,12 @@ functions
                 name                    interface_flap;
                 patches                 (flap);
                 importData              (Displacement0);
-                //importDataIdentifier    (disp_interface_flap_ordered);
-                importDataIdentifier    (disp_interface_flap);
+                importDataIdentifier    (disp_interface_flap_ordered);
+                //importDataIdentifier    (disp_interface_flap);
                 exportData              (Force0);
                 //exportDataIdentifier    (load_cells_interface_flap_ordered);
-                //exportDataIdentifier    (load_interface_flap_ordered);
-                exportDataIdentifier    (load_interface_flap);
+                exportDataIdentifier    (load_interface_flap_ordered);
+                //exportDataIdentifier    (load_interface_flap);
             }
         }
 
