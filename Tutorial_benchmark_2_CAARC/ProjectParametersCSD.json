@@ -1,7 +1,7 @@
 {
     "problem_data"    : {
         "problem_name"  : "mesh_CSD",
-        "parallel_type" : "OpenMP",
+        "parallel_type" : "MPI",
         "echo_level"    : 1,
         "start_time"    : 0.0,
         "end_time"      : 50.0
@@ -24,6 +24,22 @@
         },
         "time_stepping"                      : {
             "time_step" : 0.01
+        },
+        "linear_solver_settings"     : {
+            "solver_type"                  :"amgcl",
+            "preconditioner_type"            : "amg",
+            "max_iteration"                  : 500,
+            "tolerance"                      : 1e-6,
+            "provide_coordinates"            : false,
+            "smoother_type"                  : "ilut",
+            "krylov_type"                    : "bicgstab_with_gmres_fallback",
+            "gmres_krylov_space_dimension"   : 100,
+            "use_block_matrices_if_possible" : false,
+            "coarsening_type"                : "smoothed_aggregation",
+            "scaling"                        : false,
+            "verbosity"                      : 1,
+            "coarse_enough"                  : 100,
+            "max_levels"                     : -1
         },
         "line_search"                        : false,
         "convergence_criterion"              : "displacement_criterion",
