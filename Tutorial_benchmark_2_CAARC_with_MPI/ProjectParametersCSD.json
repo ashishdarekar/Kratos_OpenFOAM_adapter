@@ -1,7 +1,7 @@
 {
     "problem_data"    : {
         "problem_name"  : "mesh_CSD",
-        "parallel_type" : "MPI",
+        "parallel_type" : "OpenMP",
         "echo_level"    : 1,
         "start_time"    : 0.0,
         "end_time"      : 50.0
@@ -286,7 +286,7 @@
                 "Parameters"    : {
                     "model_part_name"                             : "Structure",
                     "output_control_type"                         : "step",
-                    "output_frequency"                            : 1,
+                    "output_frequency"                            : 10,
                     "file_format"                                 : "ascii",
                     "output_precision"                            : 7,
                     "output_sub_model_parts"                      : false,
