@@ -18,14 +18,14 @@ libs            ("libOpenFOAM.so" "libfieldFunctionObjects.so");
 
 application     pimpleFoam;
 
-startFrom       startTime;
+//startFrom       startTime;
+startFrom       latestTime;
 
 startTime       0;
 //startTime       20; // Here FSI starts
 
-
 stopAt          endTime;
-endTime         50;
+endTime         20000;
 // endTime         20;
 //endTime         600;
 
@@ -33,7 +33,7 @@ deltaT          0.01;
 
 writeControl        adjustableRunTime;
 
-writeInterval       0.1;//0.01
+writeInterval       10.0;//0.01
 
 purgeWrite          0;
 
@@ -54,7 +54,7 @@ timePrecision       8;//12
 
 functions
 {
-
+/*
     KratosOpenfoamAdapterFunctionObject1
     {
         type KratosOpenfoamAdapterFunctionObject;
@@ -84,7 +84,7 @@ functions
         }
 
         debugLevel info;
-    }
+    } */
 
     Co1
     {
@@ -94,6 +94,18 @@ functions
         executeInterval     2;
         writeControl        writeTime;
     }
+
+    forces
+    {
+        type                forces;
+        libs                ( "libforces.so" );
+        patches             (tubesfs);
+        rho                 rhoInf;
+        log                 true;
+        rhoInf              1200;//0.00118//1000
+        CofR                (0 0 0);
+    }
+
 
     //- To see the residual plots
     //foamMonitor -l ./postProcessing/residuals/0/residuals.dat
