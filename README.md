@@ -48,13 +48,14 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
         2. Load the KRATOS results from the folder > vtk_output_structure
     5. Displacement of the tip can be seen using:
         ```
-        python plot_displacement.py
+        python3 plot_displacement.py
         ```
     6. To clean all generated files during simulation:
         ```
         ./clean.sh
         ```
-2. **To run the FSI-Benchmarking case with MPI:**
+
+3. **To run the FSI-Benchmarking case with MPI:**
     1. Go to the folder > Tutorial_benchmark_1_with_MPI
     2. In one terminal run the OpneFOAM commands:
         ```
@@ -69,12 +70,48 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
         ```
     4. To see the results in ParaView:
         1.  ```
+            reconstructPar
             paraFoam -case .&
             ```
         2. Load the KRATOS results from the folder > vtk_output_structure
     5. Displacement of the tip can be seen using:
         ```
-        python plot_displacement.py
+        python3 plot_displacement.py
+        ```
+    6. To clean all generated files during simulation:
+        ```
+        ./clean.sh
+        ```
+
+4. **To run the CAARC building Simulation with MPI:**
+    1. Go to the folder > Tutorial_benchmark_2_CAARC_with_MPI
+    2. In one terminal run the OpneFOAM commands:
+        ```
+        blockMesh
+        decomposePar
+        mv 0/ 0_org/
+        mkdir 0
+        mpirun -np <number_of_processes> snappyHexMesh -overwrite -parallel
+        reconstructParMesh -constant
+        rm -r 0/ process0/ processor1/ processor2/ ..... processor<number_of_processes-1>
+        mv 0_org/ 0/
+        decomposePar
+        mpirun -np <number_of_processes> pimpleFoam -parallel
+        ```
+    3. Simultaneously, open another terminal to run KRATOS:
+        ```
+        startkratos
+        runkratosmpi MainKratosCoSim.py <number_of_processes>
+        ```
+    4. To see the results in ParaView:
+        1.  ```
+            reconstructPar
+            paraFoam -case .&
+            ```
+        2. Load the KRATOS results from the folder > vtk_output_structure
+    5. Displacement of the tip can be seen using:
+        ```
+        python3 plot_displacement.py
         ```
     6. To clean all generated files during simulation:
         ```
