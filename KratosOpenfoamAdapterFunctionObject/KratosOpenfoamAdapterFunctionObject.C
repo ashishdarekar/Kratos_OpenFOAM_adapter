@@ -738,7 +738,7 @@ Foam::tmp<Foam::volScalarField> Foam::functionObjects::KratosOpenfoamAdapterFunc
     }
     else if (solverType_.compare("incompressible") == 0)
     {
-        const dictionary& FSIDict = dict_.subOrEmptyDict("Parameters");
+        const dictionary& FSIDict = dict_.subOrEmptyDict("parameters");
 
         return tmp<volScalarField>
         (
@@ -782,7 +782,7 @@ Foam::tmp<Foam::volScalarField> Foam::functionObjects::KratosOpenfoamAdapterFunc
         }
         else
         {
-            const dictionary& FSIDict = dict_.subOrEmptyDict("Parameters");
+            const dictionary& FSIDict = dict_.subOrEmptyDict("parameters");
 
             dimensionedScalar nu(FSIDict.lookup("nu"));
 

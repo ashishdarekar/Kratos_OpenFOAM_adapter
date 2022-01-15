@@ -29,7 +29,7 @@ Usage
         dim                         | Dimension of a problem                                                            | yes      |      3
         interfaces                  | To save the coupling interfaces(Each interface is a subdirectory)                 | yes      |
             name                    | Name of the coupling interface                                                    | yes      |
-            patches                 | WordList of the openFOAM patches which contain the coupling faces                 | yes      |
+            patches                 | WordList of the OpenFOAM patches which contain the coupling faces                 | yes      |
             importDataIdentifier    | Import DataItendifiers required for communication with Kratos                     | yes      |
             exportDataIdentifier    | Export DataItendifiers required for communication with Kratos                     | yes      |
         parameters                  | List of Parameters required for FSI: rho, nu                                      | no       |
