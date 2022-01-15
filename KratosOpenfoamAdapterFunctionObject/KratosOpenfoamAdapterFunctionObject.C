@@ -158,22 +158,10 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::readConfig(cons
                     interfacedata.patchNames.push_back(patch);
                 }
 
-                wordList importData = interfaceSubdict.lookupType<wordList>("importData");
-                for(auto rData : importData)
-                {
-                    interfacedata.importData.push_back(rData);
-                }
-
                 wordList importDataIdentifier = interfaceSubdict.lookupType<wordList>("importDataIdentifier");
                 for(auto rData : importDataIdentifier)
                 {
                     interfacedata.importDataIdentifier.push_back(rData);
-                }
-
-                wordList exportData = interfaceSubdict.lookupType<wordList>("exportData");
-                for(auto wData : exportData)
-                {
-                    interfacedata.exportData.push_back(wData);
                 }
 
                 wordList exportDataIdentifier = interfaceSubdict.lookupType<wordList>("exportDataIdentifier");
@@ -556,19 +544,10 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::resizeDataVecto
 {
     // Resizing the Data Vectors for Import Export operations with CoSimIO
     // Import Data from CoSimulation (Displacement/Delta) present only on faceNodes/Nodes. No need to resize it
+    // As all the data will be on nodes, Need to modify then ????(15.01.2021)
     for(std::size_t i=0; i < num_interfaces_; i++)
     {
-        // Export Data to CoSimulation (force/Stress) present only on faceCenters/Elements
-        for(std::size_t j=0; j< interfaces_.at(i).exportData.size(); j++)
-        {
-            std::string dataName = interfaces_.at(i).exportData.at(j);
-
-            if(dataName.find("Force") == 0 || dataName.find("Stress") == 0) //If "force" or "stress" string is found it will return 0
-            {
-                interfaces_.at(i).data_to_send.resize((interfaces_.at(i).numElements) * dim);
-            }
-        }
-
+        interfaces_.at(i).data_to_send.resize((interfaces_.at(i).numElements) * dim);
     }
 }
 
@@ -578,22 +557,15 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::exportDataToKra
     {
         debugInfo( "Force calculation started for coupling interface : " + interfaces_.at(i).nameOfInterface , debugLevel);
 
-        // For "Write Data" variables which need to send to CoSimulation
-        for(std::size_t j=0; j< interfaces_.at(i).exportData.size(); j++) //Will work for only export data??
-        {
-            std::string dataName = interfaces_.at(i).exportData.at(j);
+        interfaces_.at(i).data_to_send.clear();
+        resizeDataVectors(); //Resize to Elemental size
 
-            interfaces_.at(i).data_to_send.clear();
-            resizeDataVectors();//Resize to Elemental size
+        // Force Calculations
+        calculateForces(i);
 
-            if(dataName.find("Force") == 0){
-                calculateForces(i);
-            }
-
-            // Conversion Utilities for converting Elemental Load values to Nodal values (Variable is load/Force/Reaction now)
-            debugInfo( "Conversion of Elemental Force to Nodal Force : " + interfaces_.at(i).nameOfInterface , debugLevel);
-            conversionElementalToNodalValues(i);
-        }
+        // Conversion Utilities for converting Elemental Load values to Nodal values (Variable is load/Force/Reaction now)
+        debugInfo( "Conversion of Elemental Force to Nodal Force : " + interfaces_.at(i).nameOfInterface , debugLevel);
+        conversionElementalToNodalValues(i);
 
         // Export this force array to CoSimulation //Elemental Force Data
         CoSimIO::Info connect_info;

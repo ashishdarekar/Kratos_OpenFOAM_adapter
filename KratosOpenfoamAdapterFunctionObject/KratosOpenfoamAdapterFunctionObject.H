@@ -30,11 +30,9 @@ Usage
         interfaces                  | To save the coupling interfaces(Each interface is a subdirectory)                 | yes      |
             name                    | Name of the coupling interface                                                    | yes      |
             patches                 | WordList of the openFOAM patches which contain the coupling faces                 | yes      |
-            importData              | WordList of the variables to Read by OpenFOAM                                     | yes      |
             importDataIdentifier    | Import DataItendifiers required for communication with Kratos                     | yes      |
-            exportData              | WordList of the variables to write by OpenFOAM                                    | yes      |
             exportDataIdentifier    | Export DataItendifiers required for communication with Kratos                     | yes      |
-        parameters                  | List of Parameters required for FSI: rho, mu                                      | no       |
+        parameters                  | List of Parameters required for FSI: rho, nu                                      | no       |
         debugLevel                  | Debug level either "info" or "debug" to see printed information                   | no       |     info
     \endtable
 SourceFiles
@@ -272,9 +270,7 @@ protected:
         std::string nameOfInterface;
         std::vector<std::string> patchNames;
         std::vector<int> patchIDs;
-        std::vector<std::string> importData;
         std::vector<std::string> importDataIdentifier;
-        std::vector<std::string> exportData;
         std::vector<std::string> exportDataIdentifier;
         std::vector<double> data_to_send;
         std::vector<double> data_to_recv;
