@@ -15,6 +15,7 @@ FoamFile
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 libs            ("libOpenFOAM.so" "libfieldFunctionObjects.so");
+libs ( "libOpenFOAM.so" "libgroovyBC.so" ) ;
 
 application     pimpleFoam;
 
@@ -33,7 +34,7 @@ deltaT          0.01;
 
 writeControl        adjustableRunTime;
 
-writeInterval       10.0;//0.01
+writeInterval       10.0;//10.0
 
 purgeWrite          0;
 
@@ -54,8 +55,8 @@ timePrecision       8;//12
 
 functions
 {
-/*
-    KratosOpenfoamAdapterFunctionObject1
+
+    /*KratosOpenfoamAdapterFunctionObject1
     {
         type KratosOpenfoamAdapterFunctionObject;
         libs ("../KratosOpenfoamAdapterFunctionObject/libKratosOpenfoamAdapterFunctionObjectFunctionObjects.so");
@@ -84,7 +85,7 @@ functions
         }
 
         debugLevel info;
-    } */
+    }*/
 
     Co1
     {
@@ -95,7 +96,7 @@ functions
         writeControl        writeTime;
     }
 
-    forces
+    /*forces
     {
         type                forces;
         libs                ( "libforces.so" );
@@ -104,7 +105,7 @@ functions
         log                 true;
         rhoInf              1200;//0.00118//1000
         CofR                (0 0 0);
-    }
+    }*/
 
 
     //- To see the residual plots
