@@ -26,8 +26,17 @@ boundaryField
     {
         //type            fixedValue;
         //value           uniform (11.11 0 0);
+
+        // Time-varying parabolic inlet profile
         type               groovyBC;
-        valueExpression   "95 * pow(pos().z/180 , 0.25)"
+        valueExpression   "time() < 20  ?   ((95 * time()/4) * pow( (pos().z) / 180 , 0.25))*normal() : (95 * pow( (pos().z) / 180 , 0.25))*normal()";
+	    value              uniform (0 0 0);
+
+        //type            groovyBC;
+        //variables "yp=pts().y;minY=min(yp);maxY=max(yp);para=-1.5*(maxY-pos().y)*(pos().y-minY)/(0.25*pow(maxY-minY,2))*normal();";
+        //valueExpression "time()<20 ? 0.5*(1-cos(0.5*pi*time()))*2*para : 2*para";
+        //value           uniform (2 0 0);
+
         //type            timeVaryingMappedFixedValue;
         //type          timeVaryingMappedHDF5FixedValue
         //setAverage      0;
