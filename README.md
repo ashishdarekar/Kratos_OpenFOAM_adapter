@@ -93,7 +93,7 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
         mkdir 0
         mpirun -np <number_of_processes> snappyHexMesh -overwrite -parallel
         reconstructParMesh -constant
-        rm -r 0/ process0/ processor1/ processor2/ ..... processor<number_of_processes-1>
+        rm -r 0/ processor0/ processor1/ processor2/ ..... processor<number_of_processes-1>
         mv 0_org/ 0/
         decomposePar
         mpirun -np <number_of_processes> pimpleFoam -parallel
