@@ -59,7 +59,7 @@
                 "output_variables" : ["DISPLACEMENT_Y"],
                 "output_file_name" : "fsi_wall/fsi_wall_csm_results_disp.json",
                 "model_part_name"  : "Structure",
-                "time_frequency"   : 0.02
+                "time_frequency"   : 0.01
             }
         }],
         "loads_process_list"       : [],

@@ -18,16 +18,6 @@ solvers
         smoother         DICGaussSeidel;
     }
 
-    /*
-    p
-    {
-        solver           PCG;
-        tolerance        1e-5;
-        relTol           0.01;
-        preconditioner         DIC;
-    }*/
-
-
     pFinal
     {
         $p;
@@ -56,12 +46,6 @@ solvers
 
     "(U|cellDisplacement)"
     {
-        /*
-        solver          PCG;
-        preconditioner  DIC;
-        tolerance       1e-08;
-        relTol          0;
-        */
 
         solver          smoothSolver;
         smoother        symGaussSeidel;
@@ -78,11 +62,12 @@ solvers
 
 PIMPLE
 {
-    nOuterCorrectors 5;//2,5
-    nCorrectors 2;//2,2
-    nNonOrthogonalCorrectors 5;//5,5
+    nOuterCorrectors 5;
+    nCorrectors 2;
+    nNonOrthogonalCorrectors 5;
     tolerance 1.0e-5;
     relTol 0.01;
+
 
     correctPhi          yes;
 
@@ -92,19 +77,18 @@ PIMPLE
     {
         fields
         {
-            p       0.3;//0.4
-            pFinal  1.0;//0.4
-            pcorr       0.3;//0.3
-            pcorrFinal  1.0;//0.4
+            p       0.3;
+            pFinal  1.0;
+            pcorr       0.3;
+            pcorrFinal  1.0;
         }
         equations
         {
-            U       0.7;//0.6
-            UFinal  1.0;//0.6
+            U       0.7;
+            UFinal  1.0;
         }
     }
 
-    // OpenFOAM 6 (.org) or newer
     residualControl
     {
         U 1e-5;
@@ -116,11 +100,11 @@ PIMPLE
 
 PISO
 {
-    nNonOrthogonalCorrectors 5;//10
+    nNonOrthogonalCorrectors 5;
 }
 potentialFlow
 {
-    nNonOrthogonalCorrectors 5;//10
+    nNonOrthogonalCorrectors 5;
 }
 
 

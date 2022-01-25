@@ -15,6 +15,7 @@ file = open(disp_file,"r")
 dis = file.readline()
 time_list = []
 displacement = []
+old_displacement_data=0.0
 while dis:
 	splited_data = dis.split()
 	if splited_data[0] == '#':
@@ -43,7 +44,7 @@ plt.xlabel('Time')
 plt.ylabel('Displacement value')
 plt.title(" Displacement of interface flap's tip ")
 x = [0 , 0]
-y = [0, 50]
+y = [0, 20]
 plt.plot(y,x,'--', color = 'k')
 plt.show()
 

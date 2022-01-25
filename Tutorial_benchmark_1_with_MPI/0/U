@@ -9,7 +9,6 @@ FoamFile
 
 dimensions      [0 1 -1 0 0 0 0];
 
-//internalField   uniform (51.3 0 0);
 internalField   uniform (0 0 0);
 
 boundaryField
@@ -28,28 +27,19 @@ boundaryField
 
     top
     {
-        //type            noSlip;
-        //type            symmetryPlane;
         type            slip;
 
     }
 
     bottom
     {
-        //type            noSlip;
-        //type            symmetryPlane;
         type            slip;
     }
 
     inlet
     {
-        //type            fixedValue;
-        //value           uniform (51.3 0 0);
-
-        //value         $internalField;
-
         type            uniformFixedValue;
-        uniformValue    constant (51.3 0 0);// try with (20 0 0)
+        uniformValue    constant (51.3 0 0);
 
     }
 

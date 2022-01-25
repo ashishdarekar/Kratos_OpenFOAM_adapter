@@ -26,13 +26,11 @@ boundaryField
     top
     {
         type            zeroGradient;
-        //type            symmetryPlane;
     }
 
     bottom
     {
         type            zeroGradient;
-        //type            symmetryPlane;
     }
 
     inlet
@@ -42,11 +40,8 @@ boundaryField
 
     outlet
     {
-        //type            zeroGradient;
         type            fixedValue;
         value           uniform 0;
-        //type            pressureInletOutletVelocity;
-        //value           $internalField;
     }
 
     front

@@ -11,12 +11,10 @@ FoamFile
 ddtSchemes
     {
         default backward;
-        //default Euler;
     }
 
     gradSchemes
     {
-        //default     cellMDLimited Gauss linear 0.5;
         default     cellMDLimited leastSquares 1.0;
     }
 
@@ -34,15 +32,12 @@ ddtSchemes
 
     laplacianSchemes
     {
-        //default     Gauss linear limited 1.0;
         default     Gauss linear limited 0.5;
     }
 
     snGradSchemes
     {
-        //default     limited 1.0;
         default     limited 0.5;
-
     }
 
     wallDist
