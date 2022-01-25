@@ -92,19 +92,28 @@ class KratosOpenfoamAdapterFunctionObject
 
 private:
 
-    const Foam::Time& runTime_; //Copy of RunTime Time object
+    //- Copy of OpenFOAM's RunTime Time object
+    const Foam::Time& runTime_;
+
+    //- Copy of OpenFOAM's Control Dict
     const dictionary& dict_; //Copy of Control Dict
 
     //- Member variables required for CoSimIO
     std::string connection_name;
 
-    //- CoSimIO info object- one is sufficient
+    //- CoSimIO info object
     CoSimIO::Info info;
 
-    //- Member for OpenFOAM
-    std::size_t time_step_ = 0 ;
+    //- For comparing with the nodes, while making mesh of a interface(Model Part)
+    std::vector<vector> array_of_nodes;
 
-    //- Node and Element class for an Adapter to save Mesh data
+    //- Total number of processes in MPI Parallel Simulations
+    int TotalNumOfProcesses = Pstream::nProcs();
+
+    //- Rank of the process
+    int MyRank = Pstream::myProcNo();
+
+    //- Node class : for an Adapter to save Node data of an interface mesh
     class Node
     {
         private:
@@ -196,6 +205,7 @@ private:
             };
     };
 
+    //- Element class : for an Adapter to save Element data of an interface mesh
     class Element
     {
         private:
@@ -240,21 +250,14 @@ private:
     //- Disallow default bitwise assignment
     void operator=(const KratosOpenfoamAdapterFunctionObject&) = delete;
 
-    //- For making geometry of a interface Mesh(Model Part)
-    std::vector<vector> array_of_nodes; //Can we replace this?
-
-    // Parallel Related
-    int TotalNumOfProcesses = Pstream::nProcs();
-    int MyRank = Pstream::myProcNo();
-
 protected:
-    //- Dimension of the problem, need to check how we can get this? We will provide this in config file. (default = 3)
+    //- Dimension of the problem(default = 3)
     int dim ;
 
-    //- Thickness of the problem , Added to make the force value independent of the Thickess for 2D (default = 1.0)
+    //- Thickness of the problem(default = 1.0)
     double thick ;
 
-    // - Debug Level for printing the Adapter related information, 2 Levels availale: "debug" and "info"(default)
+    //- Debug Level for printing the Adapter related information, 2 Levels availale: "debug" and "info"(default)
     std::string debugLevel ;
 
     //- Solver type compressible/incompressible
@@ -264,7 +267,7 @@ protected:
     std::size_t num_interfaces_ = 0;
 
     //- Create different interface for different FSI coupling interface (or OpenFOAM patches)
-    //- This strucutre is made to save all the data related to an interface
+    //- This strucutre is made to store all the data related to an interface
     struct InterfaceData
     {
         std::string nameOfInterface;
@@ -278,19 +281,18 @@ protected:
         uint numElements = 0;
         std::vector<Node> Interface_nodes;                  // Contain Node objects
         std::vector<Element> Interface_elements;            // Contain elemental Objects
-        std::vector<int> neighbour_ids_comm_num_of_nodes;   //Max size of a array =  TotalNumOfProcesses * 2
+        std::vector<int> neighbour_ids_comm_num_of_nodes;   // Max size of a array =  TotalNumOfProcesses * 2
         int globalNodeIndexBegin = 0;
         int globalElementIndexBegin = 0;
     };
 
-    //- Array of strctures to store data for all coupling interfaces
+    //- Array of interface-strctures to store data for all coupling interfaces
     std::vector<struct InterfaceData> interfaces_;
 
-    //- Array of CoSimIO::Model parts for all coupling interfaces
+    //- Array of CoSimIO::Model parts(to store mesh info) for all coupling interfaces
     std::vector<std::unique_ptr<CoSimIO::ModelPart>> model_part_interfaces_;
 
-    //- For Force Field
-    //- Initialize the Force -> Need to check
+    //- For Force Field calculations
     Foam::volVectorField*  Force_ = new volVectorField
     (
         IOobject
@@ -310,73 +312,90 @@ protected:
         )
     );
 
-    //- Auxiliar functions
-    bool calculateForces(std::size_t);
+    // ********************************* Auxiliar functions for configuration ****************************************//
+    //- To read all user sepcified input from controlDict
+    bool readConfig(const dictionary& );
 
-    void conversionElementalToNodalValues(std::size_t);
+    //- To print the console ouput from this adapter
+    void debugInfo(const std::string, const std::string );
 
+    //- Determine the type of the solver (using pressure dimension)
     std::string determineSolverType();
 
+    //- To compare two points
     bool is_same_points(Foam::vector& , Foam::vector& );
 
+    //- To Compare the new node with all previous nodes before creating the new CoSimIO::Node
     int compare_nodes(Foam::vector& , std::size_t );
+
+
+    // *********************************** Auxiliar functions for load calculation ************************************//
+    //- Calculate Total Force on each element or cell in the interface mesh
+    bool calculateForces(std::size_t);
 
     //- Stress tensor (see the OpenFOAM "Forces" function object)
     Foam::tmp<Foam::volSymmTensorField> devRhoReff() const;
 
+    //- To get or read the value of density
     Foam::tmp<Foam::volScalarField> rho() const;
 
+    //- To get or read the value of dynamic viscosity
     Foam::tmp<Foam::volScalarField> mu() const;
 
+    //- To find the cell or face normal vectors
     Foam::vectorField getFaceVectors(const unsigned int ) const;
 
-    bool readConfig(const dictionary& );
+    //- Conversion of Elemental Force values to the nodal force vales
+    void conversionElementalToNodalValues(std::size_t);
 
+
+    // *********************************** Auxiliar functions for interaction with CoSimulation *************************//
+    //- Connection with CoSimulation
     void connectKratos();
 
+    //- DisConnect from CoSimulation
     void disconnectKratos();
 
+    //- Export Mesh to CoSimulation
     void exportMeshToCosim();
 
+    //- Resize the data vectors for communication with CoSimulation
     void resizeDataVectors();
 
+    //- Export vector data to CoSimulation
     void exportDataToKratos();
 
+    //- Import vector data from CoSimulation
     void importDataFromKratos();
-
-    void debugInfo(const std::string, const std::string );
 
 public:
 
     //- Runtime type information
     TypeName("KratosOpenfoamAdapterFunctionObject");
 
-    //- Constructors
-
-        //- Construct from Time and dictionary
-        KratosOpenfoamAdapterFunctionObject
-        (
-            const word& name,
-            const Time& runTime,
-            const dictionary& dict
-        );
+    //- Construct from Time and dictionary
+    KratosOpenfoamAdapterFunctionObject
+    (
+        const word& name,
+        const Time& runTime,
+        const dictionary& dict
+    );
 
     //- Destructor
     virtual ~KratosOpenfoamAdapterFunctionObject();
 
-    // Member Functions
+    // ********************************* FunctionObject's Member Functions *********************************** //
+    //- Read the data/after each change and connection with CoSimIO
+    virtual bool read(const dictionary&);
 
-        //- Read the data/after each change and connection with CoSimIO
-        virtual bool read(const dictionary&);
+    //- Execute, Exchaging required data on the coupling interfaces
+    virtual bool execute();
 
-        //- Execute, Exchaging required data on the coupling interfaces
-        virtual bool execute();
+    //- Execute at the final time-loop/ Disconection from CoSimIO
+    virtual bool end();
 
-        //- Execute at the final time-loop/ Disconection from CoSimIO
-        virtual bool end();
-
-        //- Write data after each loop??/ Currently not doing anything
-        virtual bool write();
+    //- Write data after each loop??/ Currently not doing anything
+    virtual bool write();
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
