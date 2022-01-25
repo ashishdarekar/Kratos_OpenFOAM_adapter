@@ -1,4 +1,4 @@
-/*-----------------------------------------------------------------------*\
+/*-------------------------------------------------------------------------------------------------------------------------------------*\
 
 Master-Thesis Work
 Ashish Darekar
@@ -38,7 +38,7 @@ Usage
 SourceFiles
     KratosOpenfoamAdapterFunctionObject.C
 
-\*-----------------------------------------------------------------------*/
+\*--------------------------------------------------------------------------------------------------------------------------------------------*/
 
 #ifndef KRATOSOPENFOAMADAPTERFUNCTIONOBJECT_H
 #define KRATOSOPENFOAMADAPTERFUNCTIONOBJECT_H
@@ -47,25 +47,25 @@ SourceFiles
 #include "fvMeshFunctionObject.H"
 #include "Time.H"
 #include "fvMesh.H"
-#include "volFields.H" //To use volumeVectorfield
+#include "volFields.H"
 
 #include "addToRunTimeSelectionTable.H"
-#include "IOstreams.H" //Useful for IO operations
+#include "IOstreams.H"
 
-//Displacement Calculation
-#include "pointMesh.H" //To use pointVectorfield
-#include "pointPatchField.H" //To use pointVectorfield
+// Displacement Calculation related
+#include "pointMesh.H"
+#include "pointPatchField.H"
 #include "fvCFD.H"
 #include "fixedValuePointPatchFields.H"
 
-//Force Calculation
+// Force Calculation related
 #include "pointFields.H"
 #include "vectorField.H"
 #include "immiscibleIncompressibleTwoPhaseMixture.H"
 #include "turbulentTransportModel.H"
 #include "turbulentFluidThermoModel.H"
 
-//CoSimIO header file
+// CoSimIO header file
 #include "co_sim_io_mpi.hpp"
 
 #define COSIMIO_CHECK_EQUAL(a, b)                                 \
@@ -263,9 +263,6 @@ protected:
     //- Solver type compressible/incompressible
     std::string solverType_;
 
-    //- Number of Coupling interfaces
-    std::size_t num_interfaces_ = 0;
-
     //- Create different interface for different FSI coupling interface (or OpenFOAM patches)
     //- This strucutre is made to store all the data related to an interface
     struct InterfaceData
@@ -288,6 +285,9 @@ protected:
 
     //- Array of interface-strctures to store data for all coupling interfaces
     std::vector<struct InterfaceData> interfaces_;
+
+    //- Number of Coupling interfaces
+    std::size_t num_interfaces_ = 0;
 
     //- Array of CoSimIO::Model parts(to store mesh info) for all coupling interfaces
     std::vector<std::unique_ptr<CoSimIO::ModelPart>> model_part_interfaces_;
@@ -384,7 +384,7 @@ public:
     //- Destructor
     virtual ~KratosOpenfoamAdapterFunctionObject();
 
-    // ********************************* FunctionObject's Member Functions *********************************** //
+    // ************************************** FunctionObject's Member Functions ****************************************** //
     //- Read the data/after each change and connection with CoSimIO
     virtual bool read(const dictionary&);
 
