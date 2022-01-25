@@ -17,7 +17,6 @@ FoamFile
 
 application         pimpleFoam;
 
-
 //startFrom           startTime;
 startFrom           latestTime;
 
@@ -47,7 +46,7 @@ timePrecision       8;
 
 functions
 {
-
+    // Function object "KratosOpenfoamAdapterFunctionObject" to couple OpenFOAM with CoSimulation (kratos)
     KratosOpenfoamAdapterFunctionObject1
     {
         type KratosOpenfoamAdapterFunctionObject;
@@ -74,7 +73,7 @@ functions
         debugLevel info;
     }
 
-
+    // Function object "CourantNo" to see courant number
     Co1
     {
         type                CourantNo;
@@ -84,6 +83,7 @@ functions
         writeControl        writeTime;
     }
 
+    // Function object "forces" to calcuate the total force on interface
     forces
     {
         type                forces;
@@ -95,15 +95,14 @@ functions
         CofR                (0 0 0);
     }
 
-    //- To see the residual plots
-    //foamMonitor -l ./postProcessing/residuals/0/residuals.dat
+    // Fcuntion object "Residual", To see the residual plots
+    // foamMonitor -l ./postProcessing/residuals/0/residuals.dat
     #includeFunc residuals
 
-    // TO plot the displacements of the flap
+    // Function object "probes", To plot the displacements of the flap
     // Specify this point in the system/probes file - > (9.45 6.05 0.0)
     #includeFunc probes
 
 }
-
 
 // ************************************************************************* //

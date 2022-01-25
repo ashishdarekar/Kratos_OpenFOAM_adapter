@@ -16,8 +16,6 @@
                 "type" : "average_value_based",
                 "solver"         : "Openfoam_Kratos_Wrapper",
                 "data_name"        : "load_interface_flap_ordered",
-                //"data_name"        : "load_interface_flap",
-                //"data_name"      : "load_cells_interface_flap",
                 "echo_level" : 1
             }
         ],
@@ -43,7 +41,6 @@
                     "from_solver"       : "Openfoam_Kratos_Wrapper",
                     "from_solver_data"  : "load_interface_flap",
                     "data_transfer_operator" : "mapper",
-                    //"before_data_transfer_operations" : ["mapping_element_node_interface_flap"],
                     "after_data_transfer_operations" : ["scaling_loads_interface_flap"],
                     "data_transfer_operator_options" : ["use_transpose"]
                 }
@@ -71,27 +68,6 @@
                 "scaling_factor" : "(sin(((t)/0.005)/3000*pi/2))**2 ",
                 "echo_level"     : 1,
                 "interval"       : [0.0, 15.0]
-            },
-            /* "mapping_element_node_interface_flap" : {
-                "type"           : "elemental_data_to_nodal_data",
-                "solver"         : "Openfoam_Kratos_Wrapper",
-                "data_name"      : "load_cells_interface_flap",
-                "echo_level"     : 1
-            }, */
-            "coupling_output_1" : {
-                "type"          : "coupling_output",
-                "solver"        : "Openfoam_Kratos_Wrapper",
-                "execution_point" : "finalize_solution_step",
-                "output_parameters" :  {
-                    "model_part_name"                             : "interface_flap",
-                    "output_control_type"                         : "step",
-                    "output_interval"                             : 1,
-                    "output_sub_model_parts"                      : false,
-                    "output_path"                                 : "vtk_output_coupling",
-                    "save_output_files_in_folder"                 : true,
-                    "nodal_solution_step_data_variables"          : ["FORCE"],
-                    "element_data_value_variables"                : ["FORCE"]
-                }
             }
         },
         "solvers" :
@@ -103,14 +79,10 @@
                     "import_meshes"    : ["interface_flap"],
                     "export_data"      : ["disp_interface_flap_ordered"],
                     "import_data"      : ["load_interface_flap_ordered"]
-                    //"export_data"      : ["disp_interface_flap"],
-                    //"import_data"      : ["load_interface_flap"]
-                    //"import_data"      : ["load_cells_interface_flap_ordered"]
                 },
                 "io_settings" : {
                     "type"       : "kratos_co_sim_io",
                     "echo_level" : 1,
-                    //"communication_format" : "pipe",
                     "connect_to" : "Openfoam_Adapter"
                 },
                 "data" : {
@@ -124,24 +96,12 @@
                         "dimension" : 3,
                         "variable_name" : "DISPLACEMENT"
                     },
-                    "load_cells_interface_flap" : {
-                        "model_part_name"   : "interface_flap",
-                        "location" : "element",
-                        "dimension" : 3,
-                        "variable_name" : "FORCE"
-                    },
-                    "load_cells_interface_flap_ordered" : {
-                        "model_part_name"   : "interface_flap.original_order",
-                        "location" : "element",
-                        "dimension" : 3,
-                        "variable_name" : "FORCE"
-                    },
-                    "load_interface_flap" : { // same as load_cells but has data on nodes => required for the mapper!
+                    "load_interface_flap" : {
                         "model_part_name"   : "interface_flap",
                         "dimension" : 3,
                         "variable_name" : "FORCE"
                     },
-                    "load_interface_flap_ordered" : { // same as load_cells but has data on nodes => required for the mapper!
+                    "load_interface_flap_ordered" : {
                         "model_part_name"   : "interface_flap.original_order",
                         "dimension" : 3,
                         "variable_name" : "FORCE"
