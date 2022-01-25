@@ -8,13 +8,13 @@ Class
 
 Description
     This function object tries to access the real time field data
-    from OpenFOAM solver and make it available to the COsimIO
+    from OpenFOAM solver and make it available to the CoSimIO
     for further coupling in Kratos-CoSimualtion application
     NOTE:This function object is created using the template given in the $FOAM_ETC/codeTemplates/ directory.
 
     Example of function object specification:
     \verbatim
-    CoSimulation_Adapter
+    KratosOpenfoamAdapterFunctionObject1
     {
         type KratosOpenfoamAdapterFunctionObject;
         libs ("<Path_to_KratosOpenfoamAdapterFunctionObject>/libKratosOpenfoamAdapterFunctionObject.so");
@@ -26,13 +26,13 @@ Usage
         Property                    | Description                                                                       | Required | Default value
         type                        | type name: KratosOpenfoamAdapterFunctionObject                                    | yes      |
         libs                        | Excutable: ("libKratosOpenfoamAdapterFunctionObjectFunctionObjects.so")           | yes      |
-        dim                         | Dimension of a problem                                                            | yes      |      3
+        dim                         | Dimension of a problem                                                            | no       |      3
         interfaces                  | To save the coupling interfaces(Each interface is a subdirectory)                 | yes      |
             name                    | Name of the coupling interface                                                    | yes      |
             patches                 | WordList of the OpenFOAM patches which contain the coupling faces                 | yes      |
             importDataIdentifier    | Import DataItendifiers required for communication with Kratos                     | yes      |
             exportDataIdentifier    | Export DataItendifiers required for communication with Kratos                     | yes      |
-        parameters                  | List of Parameters required for FSI: rho, nu                                      | no       |
+        parameters                  | List of Parameters required for FSI: rho, nu                                      | yes      |
         debugLevel                  | Debug level either "info" or "debug" to see printed information                   | no       |     info
     \endtable
 SourceFiles
@@ -91,7 +91,6 @@ class KratosOpenfoamAdapterFunctionObject
 {
 
 private:
-
     //- Copy of OpenFOAM's RunTime Time object
     const Foam::Time& runTime_;
 
