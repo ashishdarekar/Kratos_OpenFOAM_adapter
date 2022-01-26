@@ -19,7 +19,3 @@ fi
 echo "--- Cleaning logfiles"
 rm -rfv logopenfoam
 rm -rfv logkratos
-
-echo "--- Cleaning Post-processing files in $(pwd)"
-rm -rfv disp.txt
-rm -rfv forces.txt

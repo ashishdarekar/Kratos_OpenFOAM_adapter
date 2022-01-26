@@ -1,4 +1,4 @@
-# Kratos_OpenFOAM_adapter
+# Kratos-OpenFOAM-adapter
 For more information about this Master Thesis: [Abstract of this Master thesis](https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/blob/main/Abstract_of_Master_Thesis_ashish_darekar.pdf)
 
 # Requirements:
@@ -85,7 +85,7 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
         ```
 
 3. **Case 2 - FSI of the CAARC building simulation (with MPI):**
-    1. Go to the folder > Tutorial_benchmark_2_CAARC_with_MPI
+    1. Go to the folder > Tutorial_case_2_CAARC
     2. In one terminal run the OpneFOAM commands:
         ```
         blockMesh
@@ -110,7 +110,7 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
             paraFoam -case .&
             ```
         2. Load the KRATOS results from the folder > vtk_output_structure
-    5. Displacement of the tip can be seen using:
+    5. Displacement of the points specified in the *ProjectParametesCSD.json* can be seen using:
         ```
         python3 plot_displacement.py
         ```

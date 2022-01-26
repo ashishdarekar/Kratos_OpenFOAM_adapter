@@ -15,7 +15,6 @@
             {
                 "type" : "average_value_based",
                 "solver"         : "Openfoam_Kratos_Wrapper",
-                //"data_name"      : "load_cells_interface_3D_structure",
                 "data_name"      : "load_interface_3D_structure_ordered"
             }
         ],
@@ -49,10 +48,8 @@
                     "from_solver"       : "Openfoam_Kratos_Wrapper",
                     "from_solver_data"  : "load_interface_3D_structure",
                     "data_transfer_operator" : "transfer_forces",
-                    //"before_data_transfer_operations" : ["mapping_element_node_interface_3D_structure"],
                     "after_data_transfer_operations" : ["scaling_loads_interface_3D_structure"],
                     "data_transfer_operator_options" : ["use_transpose"]
-                    //"data_transfer_operator_options" : ["swap_sign","use_transpose"]
                 }
             ],
             "output_data_list": [
@@ -78,28 +75,7 @@
                 "scaling_factor" : "(sin(((t)/0.01)/1000*pi/2))**2 ",
                 "echo_level"     : 1,
                 "interval"       : [0.0, 10.0]
-            }/* ,
-            "mapping_element_node_interface_3D_structure" : {
-                "type"           : "elemental_data_to_nodal_data",
-                "solver"         : "Openfoam_Kratos_Wrapper",
-                "data_name"      : "load_cells_interface_3D_structure",
-                "echo_level"     : 1
-            } */ /*,
-            "coupling_output_1" : {
-                "type"          : "coupling_output",
-                "solver"        : "Openfoam_Kratos_Wrapper",
-                "execution_point" : "finalize_solution_step",
-                "output_parameters" :  {
-                    "model_part_name"                             : "interface_3D_structure",
-                    "output_control_type"                         : "step",
-                    "output_interval"                             : 1,
-                    "output_sub_model_parts"                      : false,
-                    "output_path"                                 : "vtk_output_coupling",
-                    "save_output_files_in_folder"                 : true,
-                    "nodal_solution_step_data_variables"          : ["REACTION"],
-                    "element_data_value_variables"                : ["REACTION"]
-                }
-            } */
+            }
         },
         "solvers" :
         {
@@ -109,13 +85,11 @@
                 "solver_wrapper_settings" : {
                     "import_meshes"    : ["interface_3D_structure"],
                     "export_data"      : ["disp_interface_3D_structure_ordered"],
-                    //"import_data"      : ["load_cells_interface_3D_structure_ordered"]
                     "import_data"      : ["load_interface_3D_structure_ordered"]
                 },
                 "io_settings" : {
                     "type"       : "kratos_co_sim_io",
                     "echo_level" : 1,
-                    //"communication_format" : "pipe",
                     "connect_to" : "Openfoam_Adapter"
                 },
                 "data" : {
@@ -124,13 +98,7 @@
                         "variable_name" : "MESH_DISPLACEMENT",
                         "dimension"     : 3
                     },
-                    "load_cells_interface_3D_structure" : {
-                        "model_part_name" : "interface_3D_structure",
-                        "location" : "element",
-                        "variable_name" : "REACTION",
-                        "dimension"     : 3
-                    },
-                    "load_interface_3D_structure" : { // same as load_cells but has data on nodes => required for the mapper!
+                    "load_interface_3D_structure" : {
                         "model_part_name"   : "interface_3D_structure",
                         "dimension" : 3,
                         "variable_name" : "REACTION"
@@ -140,13 +108,7 @@
                         "variable_name" : "MESH_DISPLACEMENT",
                         "dimension"     : 3
                     },
-                    "load_cells_interface_3D_structure_ordered" : {
-                        "model_part_name" : "interface_3D_structure.original_order",
-                        "location" : "element",
-                        "variable_name" : "REACTION",
-                        "dimension"     : 3
-                    },
-                    "load_interface_3D_structure_ordered" : { // same as load_cells but has data on nodes => required for the mapper!
+                    "load_interface_3D_structure_ordered" : {
                         "model_part_name"   : "interface_3D_structure.original_order",
                         "dimension" : 3,
                         "variable_name" : "REACTION"
