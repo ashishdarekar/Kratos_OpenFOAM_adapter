@@ -1,0 +1,219 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.2.2                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+libs            ("libOpenFOAM.so" "libfieldFunctionObjects.so");
+libs ( "libOpenFOAM.so" "libgroovyBC.so" ) ;
+
+application     pimpleFoam;
+
+//startFrom       startTime;
+startFrom       latestTime;
+
+startTime       0;
+//startTime       20; // Here FSI starts
+
+stopAt          endTime;
+endTime         20000;
+// endTime         20;
+//endTime         600;
+
+deltaT          0.01;
+
+writeControl        adjustableRunTime;
+
+writeInterval       10.0;//10.0
+
+purgeWrite          0;
+
+//writeFormat         ascii;
+writeFormat         binary;
+
+//writePrecision      12;//10
+writePrecision      8;//10
+
+writeCompression    off;
+
+timeFormat          general;
+
+timePrecision       8;//12
+
+//runTimeModifiable true;
+
+
+functions
+{
+
+    /*KratosOpenfoamAdapterFunctionObject1
+    {
+        type KratosOpenfoamAdapterFunctionObject;
+        libs ("../KratosOpenfoamAdapterFunctionObject/libKratosOpenfoamAdapterFunctionObjectFunctionObjects.so");
+
+        dim 3;
+        //thick 1;
+
+        interfaces
+        {
+            Interface1
+            {
+                name                    interface_3D_structure;
+                patches                 (tubesfs);
+                importData              (Displacement0);
+                importDataIdentifier    (disp_interface_3D_structure_ordered);
+                exportData              (Force0);
+                //exportDataIdentifier    (load_cells_interface_3D_structure_ordered);
+                exportDataIdentifier    (load_interface_3D_structure_ordered);
+            }
+        }
+
+        parameters
+        {
+            rho rho [1 -3 0 0 0 0 0] 1.2;
+            nu nu [0 2 -1 0 0 0 0 ] 1.511e-05;
+        }
+
+        debugLevel info;
+    }*/
+
+    Co1
+    {
+        type                CourantNo;
+        libs                ("libfieldFunctionObjects.so");
+        executeControl      timeStep;
+        executeInterval     2;
+        writeControl        writeTime;
+    }
+
+    /*forces
+    {
+        type                forces;
+        libs                ( "libforces.so" );
+        patches             (tubesfs);
+        rho                 rhoInf;
+        log                 true;
+        rhoInf              1200;//0.00118//1000
+        CofR                (0 0 0);
+    }*/
+
+
+    //- To see the residual plots
+    //foamMonitor -l ./postProcessing/residuals/0/residuals.dat
+    #includeFunc residuals
+
+    // TO plot the displacements of the flap
+    // Chosse the flap-tip position manually. - > (9.45 6.05 0.0)
+    #includeFunc probes
+
+
+   /* probes1
+    {
+        type	probes;
+        functionObjectLibs	( "libsampling.so" );
+        writeControl    timeStep;
+        writeInterval   1;
+        probeLocations
+        (
+            (-720 0.0 160)
+            (-670 0.0 160)
+            (-620 0.0 160)
+            (-570 0.0 160)
+            (-520 0.0 160)
+            (-470 0.0 160)
+            (-420 0.0 160)
+            (-370 0.0 160)
+            (-320 0.0 160)
+            (-270 0.0 160)
+            (-220 0.0 160)
+            (-170 0.0 160)
+            (-120 0.0 160)
+            (-70 0.0 160)
+            (-20 0.0 160)
+            (0.0 0.0 160)
+        );
+
+        fields (U);
+    }
+
+   probes2
+    {
+        type	probes;
+        functionObjectLibs	( "libsampling.so" );
+        writeControl    timeStep;
+        writeInterval   1;
+        probeLocations
+        (
+            (0.0 0.0 10)
+            (0.0 0.0 20)
+            (0.0 0.0 30)
+            (0.0 0.0 40)
+            (0.0 0.0 50)
+            (0.0 0.0 60)
+            (0.0 0.0 70)
+            (0.0 0.0 80)
+            (0.0 0.0 90)
+            (0.0 0.0 100)
+            (0.0 0.0 110)
+            (0.0 0.0 120)
+            (0.0 0.0 130)
+            (0.0 0.0 140)
+            (0.0 0.0 150)
+            (0.0 0.0 160)
+            (0.0 0.0 170)
+            (0.0 0.0 180)
+            (0.0 0.0 190)
+            (0.0 0.0 200)
+            (0.0 0.0 210)
+        );
+
+        fields (U);
+    }
+
+    probes3
+    {
+        type	probes;
+        functionObjectLibs	( "libsampling.so" );
+        writeControl    timeStep;
+        writeInterval   1;
+        probeLocations
+        (
+            (-60 0.0 10)
+            (-60 0.0 20)
+            (-60 0.0 30)
+            (-60 0.0 40)
+            (-60 0.0 50)
+            (-60 0.0 60)
+            (-60 0.0 70)
+            (-60 0.0 80)
+            (-60 0.0 90)
+            (-60 0.0 100)
+            (-60 0.0 110)
+            (-60 0.0 120)
+            (-60 0.0 130)
+            (-60 0.0 140)
+            (-60 0.0 150)
+            (-60 0.0 160)
+            (-60 0.0 170)
+            (-60 0.0 180)
+            (-60 0.0 190)
+            (-60 0.0 200)
+            (-60 0.0 210)
+        );
+
+        fields (U);
+    } */
+}
+
+
+// ************************************************************************* //
