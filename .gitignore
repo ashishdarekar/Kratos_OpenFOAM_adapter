@@ -7,5 +7,16 @@
 *KratosOpenfoamAdapterFunctionObject/lnInclude/
 *KratosOpenfoamAdapterFunctionObject/Make/
 
+*Tutorial_case_1_flap/
+
+*Tutorial_case_2_CAARC/
+*Tutorial_case_2_CAARC/constant/polyMesh
+*Tutorial_case_2_CAARC/__pycache__
+*Tutorial_case_2_CAARC/output_csd/
+*Tutorial_case_2_CAARC/postProcessing/
+*Tutorial_case_2_CAARC/restart/
+*Tutorial_case_2_CAARC/vtk_output_coupling
+*Tutorial_case_2_CAARC/.CoSimIOComm_Openfoam_Adapter_Openfoam_Kratos_Wrapper
+*Tutorial_case_2_CAARC/hdf5_output
 
 
