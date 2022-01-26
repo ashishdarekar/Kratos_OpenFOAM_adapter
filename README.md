@@ -1,4 +1,4 @@
-# OpenFoam_Kratos_adapter
+# Kratos_OpenFOAM_adapter
 For more information about this Master Thesis: [Abstract of this Master thesis](https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/blob/main/Abstract_of_Master_Thesis_ashish_darekar.pdf)
 
 # Requirements:
@@ -7,30 +7,31 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
 3. [Scripts](https://github.com/philbucher/bash_scripts) - Bash scripts for consistent & convenient use of Kratos
 4. [CoSimIO](https://github.com/KratosMultiphysics/CoSimIO)
 
-# How to run the first tutorial: Cavity
-1. **To Build the KratosOpenfomaAdapterFunctionObject:**
-    1. Go to the folder > KratosOpenfoamAdapterfunctionObject
-    2. Make linker related modifications in the file KratosOpenfoamAdapterfunctionObject/Make/options
-        1. ```
-            -I$<Path_to_directory_CoSimIO>/co_sim_io \
-            -I$<Path_to_directory_CoSimIO> \
-            -L$<Path_to_directory_CoSimIO>/bin
-           ```
-
-        2. To MPI related error *MPI_ROOT* should direct to *openmpi/include* in your system:
-        e.g. using following commad (For future use its better to add this in *bashrc*)
-           ```
-           export MPI_ROOT=/usr/lib/x86_64-linux-gnu/openmpi/include
-           ```
-
-    3.  Give following Commands to compile:
-        ```
-        wclean
-        wmake
+# Configuration of the Adapter function object:
+1. Go to the folder > KratosOpenfoamAdapterfunctionObject
+2. Make linker related modifications in the file KratosOpenfoamAdapterfunctionObject/Make/options
+    1. ```
+        -I$<Path_to_directory_CoSimIO>/co_sim_io \
+        -I$<Path_to_directory_CoSimIO> \
+        -L$<Path_to_directory_CoSimIO>/bin
         ```
 
-2. **To run the FSI-Benchmarking case without MPI:**
-    1. Go to the folder > Tutorial_benchmark_1
+    2. If MPI related error occurs, *MPI_ROOT* should direct to *openmpi/include* in your system:
+    e.g. using following commad (For future use its better to add this in *bashrc*)
+        ```
+        export MPI_ROOT=/usr/lib/x86_64-linux-gnu/openmpi/include
+        ```
+
+3.  Give following Commands to compile:
+    ```
+    wclean
+    wmake
+    ```
+4. It will generate *"libKratosOpenfoamAdapterFunctionObjectFunctionObjects.so"* shared library file in the same folder. One need to add this file in controlDict while using this function object.
+
+# Tutorials:
+1. **Case 1 - Flow-induced vibration of a flexible beam or flap (without MPI):**
+    1. Go to the folder > Tutorial_case_1_flap
     2. In one terminal run the OpneFOAM commands:
         ```
         blockMesh
@@ -55,8 +56,8 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
         ./clean.sh
         ```
 
-3. **To run the FSI-Benchmarking case with MPI:**
-    1. Go to the folder > Tutorial_benchmark_1_with_MPI
+2. **Case 1 - Flow-induced vibration of a flexible beam or flap (with MPI):**
+    1. Go to the folder > Tutorial_case_1_flap
     2. In one terminal run the OpneFOAM commands:
         ```
         blockMesh
@@ -83,7 +84,7 @@ For more information about this Master Thesis: [Abstract of this Master thesis](
         ./clean.sh
         ```
 
-4. **To run the CAARC building Simulation with MPI:**
+3. **Case 2 - FSI of the CAARC building simulation (with MPI):**
     1. Go to the folder > Tutorial_benchmark_2_CAARC_with_MPI
     2. In one terminal run the OpneFOAM commands:
         ```
