@@ -119,8 +119,8 @@ private:
             int localNodeIndex_;
             int nodeIndexforCoSim_;
             vector position_;
-            std::vector<bool>commonWithWhichRanks; //With how many Ranks this node is shared
-            std::vector<double>force_value; //To Store Nodal force Values
+            std::vector<bool>commonWithWhichRanks;  //With how many Ranks this node is shared
+            std::vector<double>force_value;         //To Store Nodal force Values
 
         public:
             Node(vector position, int localNodeIndex, int nodeIndexforCoSim, int commonRankFirstTime) : commonWithWhichRanks(Pstream::nProcs(),0){
@@ -156,7 +156,7 @@ private:
 
             void setCommonWithRank(int rank)
             {
-                if(rank != Pstream::myProcNo()) //As if rank ==MyRank, it means  node is local
+                if(rank != Pstream::myProcNo())
                 {
                     commonWithWhichRanks.at(rank) = 1 ;
                 }
@@ -168,7 +168,7 @@ private:
 
             int getHighestCommRank()
             {
-                int highest_Rank = Pstream::nProcs(); //for local number returning highest number
+                int highest_Rank = Pstream::nProcs();
                 for(std::size_t i = 0 ;  i < commonWithWhichRanks.size() ; i++)
                 {
                     if(commonWithWhichRanks[i] == 1)
@@ -183,7 +183,7 @@ private:
                 }
                 else
                 {
-                    return Pstream::nProcs(); //Returning highest number
+                    return Pstream::nProcs();
                 }
             };
 
@@ -210,7 +210,7 @@ private:
         private:
             uint localElementIndex_;
             std::vector<uint> elementalNodeIndexes_;
-            std::vector<Node> elementalNodes_; //Not useful unless it contains the actual nodes make it Pointer
+            std::vector<Node> elementalNodes_;
             double forceValue;
 
         public:
@@ -342,7 +342,7 @@ protected:
     Foam::tmp<Foam::volScalarField> mu() const;
 
     //- To find the cell or face normal vectors
-    Foam::vectorField getFaceVectors(const unsigned int ) const;
+    Foam::tmp<Foam::vectorField> getFaceVectors(const unsigned int ) const;
 
     //- Conversion of Elemental Force values to the nodal force vales
     void conversionElementalToNodalValues(std::size_t);

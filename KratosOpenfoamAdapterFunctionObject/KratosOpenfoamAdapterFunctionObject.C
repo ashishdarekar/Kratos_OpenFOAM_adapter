@@ -314,7 +314,8 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
     {
         int patchID = interfaces_.at(interface_index).patchIDs.at(j);
 
-        const auto& surface = getFaceVectors(patchID);
+        tmp<vectorField> tempsurface = getFaceVectors(patchID);
+        const auto& surface = tempsurface();
 
         // Pressure forces
         if(solverType_.compare("incompressible") == 0)
@@ -472,7 +473,7 @@ Foam::tmp<Foam::volScalarField> Foam::functionObjects::KratosOpenfoamAdapterFunc
     }
 }
 
-Foam::vectorField Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::getFaceVectors(const unsigned int patchID) const
+Foam::tmp<Foam::vectorField> Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::getFaceVectors(const unsigned int patchID) const
 {
     // Normal vectors multiplied by face area
     return mesh_.boundary()[patchID].Sf();
