@@ -1,4 +1,4 @@
-# Kratos-OpenFOAM-adapter
+# Kratos-OpenFOAM adapter
 For more information about this Master Thesis: [Abstract of this Master thesis](https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/blob/main/Abstract_of_Master_Thesis_ashish_darekar.pdf)
 
 # Requirements:

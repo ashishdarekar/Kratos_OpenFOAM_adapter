@@ -2,7 +2,7 @@
     "problem_data" :
     {
         "start_time" : 0.0,
-        "end_time" : 50,
+        "end_time" : 200,
         "echo_level" : 1,
         "print_colors" : true,
         "parallel_type" : "MPI"

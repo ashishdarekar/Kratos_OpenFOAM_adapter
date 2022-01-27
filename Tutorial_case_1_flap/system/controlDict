@@ -95,7 +95,7 @@ functions
         CofR                (0 0 0);
     }
 
-    // Fcuntion object "Residual", To see the residual plots
+    // Function object "Residual", To see the residual plots
     // foamMonitor -l ./postProcessing/residuals/0/residuals.dat
     #includeFunc residuals
 

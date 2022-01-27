@@ -8,7 +8,7 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-    transportModel Newtonian;
+transportModel Newtonian;
 
-    nu nu [0 2 -1 0 0 0 0 ] 0.1542;
-    pRef pRef [1 -1 -2 0 0 0 0 ] 0.0; //By default value . no need to specify explicitly
+nu          nu [0 2 -1 0 0 0 0 ] 0.1542;
+pRef        pRef [1 -1 -2 0 0 0 0 ] 0.0; //By default value . no need to specify explicitly

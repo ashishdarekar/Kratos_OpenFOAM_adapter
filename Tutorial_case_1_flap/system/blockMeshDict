@@ -7,8 +7,8 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-f -0.5;   // z-front -0.25
-b 0.5;    // z-backs 0.25
+f -0.5;
+b  0.5;
 
 vertices
 (
@@ -132,33 +132,15 @@ vertices
 );
 
 
-// Grid refinement parameters - Fine Mesh
-//H0 50;      // Nx for 0th, 15th//40
-//H1 50;      // Nx for 1st, 6th, 10th, 16th and Ny for 4th//40
-//H2 150;      // Nx for 2nd, 8th, 12th, 17th//140
-//H3 170;      // Nx for 3rd, 9th, 13th, 14th, 18th//150
-
-//V1 50;      // Ny 0th, 1st, 2nd, 3rd, 15th, 16th, 17th, 18th//30
-//V2 15;      // Ny for 6th, 10th and Nx for 5th, 7th, 11th //15
-//V3 25;      // Ny for 7th, 8th, 9th, 11th, 12th, 14th//20
-//V4 3;       // Ny for 13th(in front of flap)
-
-//GP1 4;      // Circular mesh gradient
-//GN1 0.25;
-//GP2 2;      // Flap gradient
-//GN2 0.50;
-//GO 8;       // Outlet grading//4
-
-
 // Grid refinement parameters - Coarse Mesh
-H0 20;      // Nx for 0th, 15th//40
-H1 20;      // Nx for 1st, 6th, 10th, 16th and Ny for 4th//40
-H2 70;      // Nx for 2nd, 8th, 12th, 17th//140
-H3 80;      // Nx for 3rd, 9th, 13th, 14th, 18th//150
+H0 20;      // Nx for 0th, 15th
+H1 20;      // Nx for 1st, 6th, 10th, 16th and Ny for 4th
+H2 70;      // Nx for 2nd, 8th, 12th, 17th
+H3 80;      // Nx for 3rd, 9th, 13th, 14th, 18th
 
-V1 20;      // Ny 0th, 1st, 2nd, 3rd, 15th, 16th, 17th, 18th//30
-V2 10;      // Ny for 6th, 10th and Nx for 5th, 7th, 11th //15
-V3 20;      // Ny for 7th, 8th, 9th, 11th, 12th, 14th//20
+V1 20;      // Ny 0th, 1st, 2nd, 3rd, 15th, 16th, 17th, 18th
+V2 10;      // Ny for 6th, 10th and Nx for 5th, 7th, 11th
+V3 20;      // Ny for 7th, 8th, 9th, 11th, 12th, 14th
 V4 1;       // Ny for 13th(in front of flap)
 
 GP1 1;      // Circular mesh gradient
@@ -283,7 +265,7 @@ boundary
 
     top
     {
-        type wall;          //symmetryPlane
+        type wall;
         faces
         (
             (55 54 56 57)
@@ -295,7 +277,7 @@ boundary
 
     bottom
     {
-        type wall;     //symmetryPlane
+        type wall;
         faces
         (
             (0 1 5 4)

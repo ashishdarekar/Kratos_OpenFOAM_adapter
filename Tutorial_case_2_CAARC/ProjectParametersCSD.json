@@ -1,10 +1,10 @@
 {
     "problem_data"    : {
         "problem_name"  : "mesh_CSD",
-        "parallel_type" : "OpenMP",
+        "parallel_type" : "MPI",
         "echo_level"    : 1,
         "start_time"    : 0.0,
-        "end_time"      : 50.0
+        "end_time"      : 200.0
     },
     "solver_settings"  : {
         "solver_type"                        : "dynamic",
