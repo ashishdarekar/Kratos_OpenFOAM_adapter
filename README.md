@@ -2,14 +2,14 @@
 For more information about this Master Thesis: [Abstract of this Master thesis](https://github.com/ashishdarekar/OpenFoam_Kratos_adapter/blob/main/Abstract_of_Master_Thesis_ashish_darekar.pdf)
 
 # Requirements:
-1. [OpenFOAM-7](https://openfoam.org/download/7-ubuntu/)
-2. [KRATOS](https://github.com/KratosMultiphysics/Kratos)
-3. [Scripts](https://github.com/philbucher/bash_scripts) - Bash scripts for consistent & convenient use of Kratos
-4. [CoSimIO](https://github.com/KratosMultiphysics/CoSimIO)
+1. [OpenFOAM-7](https://openfoam.org/download/7-ubuntu/) - Fluid Solver
+2. [KRATOS](https://github.com/KratosMultiphysics/Kratos) - Structural Solver and "CoSimulation" Coupling tool
+3. [CoSimIO](https://github.com/KratosMultiphysics/CoSimIO) - Communication tool between the solvers
+4. [Scripts](https://github.com/philbucher/bash_scripts) - Bash scripts for consistent & convenient use of Kratos
 
 # Configuration of the Adapter function object:
-1. Go to the folder > KratosOpenfoamAdapterfunctionObject
-2. Make linker related modifications in the file KratosOpenfoamAdapterfunctionObject/Make/options
+1. Go to the folder > KratosOpenfoamAdapterFunctionObject
+2. Make linker related modifications in the file KratosOpenfoamAdapterFunctionObject/Make/options
     1. ```
         -I$<Path_to_directory_CoSimIO>/co_sim_io \
         -I$<Path_to_directory_CoSimIO> \
