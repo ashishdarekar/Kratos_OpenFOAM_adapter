@@ -25,7 +25,7 @@ Usage
     \table
         Property                    | Description                                                                       | Required | Default value
         type                        | type name: KratosOpenfoamAdapterFunctionObject                                    | yes      |
-        libs                        | Excutable: ("libKratosOpenfoamAdapterFunctionObjectFunctionObjects.so")           | yes      |
+        libs                        | Excutable: ("<path_to_libKratosOpenfoamAdapterFunctionObjectFunctionObjects.so>") | yes      |
         dim                         | Dimension of a problem                                                            | no       |      3
         interfaces                  | To save the coupling interfaces(Each interface is a subdirectory)                 | yes      |
             name                    | Name of the coupling interface                                                    | yes      |
@@ -48,7 +48,6 @@ SourceFiles
 #include "Time.H"
 #include "fvMesh.H"
 #include "volFields.H"
-
 #include "addToRunTimeSelectionTable.H"
 #include "IOstreams.H"
 
@@ -95,7 +94,7 @@ private:
     const Foam::Time& runTime_;
 
     //- Copy of OpenFOAM's Control Dict
-    const dictionary& dict_; //Copy of Control Dict
+    const dictionary& dict_;
 
     //- Member variables required for CoSimIO
     std::string connection_name;
@@ -119,8 +118,8 @@ private:
             int localNodeIndex_;
             int nodeIndexforCoSim_;
             vector position_;
-            std::vector<bool>commonWithWhichRanks;  //With how many Ranks this node is shared
-            std::vector<double>force_value;         //To Store Nodal force Values
+            std::vector<bool>commonWithWhichRanks;  // With how many Ranks this node is shared
+            std::vector<double>force_value;         // To Store Nodal force Values
 
         public:
             Node(vector position, int localNodeIndex, int nodeIndexforCoSim, int commonRankFirstTime) : commonWithWhichRanks(Pstream::nProcs(),0){
@@ -387,13 +386,13 @@ public:
     //- Read the data/after each change and connection with CoSimIO
     virtual bool read(const dictionary&);
 
-    //- Execute, Exchaging required data on the coupling interfaces
+    //- Execute, Exchanging required data on the coupling interfaces
     virtual bool execute();
 
     //- Execute at the final time-loop/ Disconection from CoSimIO
     virtual bool end();
 
-    //- Write data after each loop??/ Currently not doing anything
+    //- Write data after each loop/ Currently not doing anything
     virtual bool write();
 };
 
