@@ -24,7 +24,7 @@
                 "type" : "kratos_mapping",
                 "mapper_settings" : {
                     "mapper_type" : "nearest_neighbor",
-                    "echo_level" : 1,
+                    "echo_level" : 0,
                     "search_settings" : {
                         "search_radius" : 2
                     }
