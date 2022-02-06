@@ -1,7 +1,7 @@
 {
     "problem_data"    : {
         "problem_name"  : "mesh_CSD",
-        "parallel_type" : "MPI",
+        "parallel_type" : "OpenMP",
         "echo_level"    : 1,
         "start_time"    : 0.0,
         "end_time"      : 200.0
@@ -95,7 +95,8 @@
                     "variable_name"   : "VOLUME_ACCELERATION",
                     "interval"        : [0.0,20],
                     "constrained"     : false,
-                    "modulus"         : "9.81*t/20",
+                    //"modulus"         : "9.81*t/20",
+                    "modulus"         : 0,
                     "direction"       : [0.0,0.0,-1.0]
                 }
             }],

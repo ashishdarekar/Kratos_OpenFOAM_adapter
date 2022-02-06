@@ -18,7 +18,6 @@ FoamFile
 transportModel  Newtonian;
 
 nu              nu [ 0 2 -1 0 0 0 0 ] 1.508e-05;
-pRef            pRef [1 -1 -2 0 0 0 0 ] 0.0; //By default value . no need to specify explicitly
 
 
 // ************************************************************************* //
