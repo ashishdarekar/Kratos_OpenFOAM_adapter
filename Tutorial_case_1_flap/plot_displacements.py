@@ -21,24 +21,18 @@ while dis:
 	if splited_data[0] == '#':
 		pass
 	else:
-		#print(len(splited_data))
 		time_list_data = splited_data[0]
 		time_list.append(float(time_list_data))
-		#print(time_list)
 		displacement_data = splited_data[2]
 		if(displacement_data != "-1.79769313486e+307"):
 			displacement.append(float(displacement_data))
 			old_displacement_data = displacement_data
 		else:
 			displacement.append(float(old_displacement_data))
-		#print(displacement)
 
 	dis = file.readline()
 
 #Plotting
-""" xmin, xmax = plt.xlim()
-ymin, ymax = plt.ylim() """
-
 plt.plot(time_list, displacement,color='b', linewidth=0.5)
 plt.xlabel('Time')
 plt.ylabel('Displacement value')
