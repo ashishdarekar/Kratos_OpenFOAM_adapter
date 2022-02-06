@@ -96,9 +96,6 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::readConfig(cons
     dim = dict.lookupOrDefault<int>("dim", 3);
     debugInfo( "Dimension of a problem is: "  + std::to_string(dim), debugLevel);
 
-    //thick = dict.lookupOrDefault<double>("thick", 1.0);
-    //debugInfo( "Thickness of a domain is: "  + std::to_string(thick), debugLevel);
-
     if(runTime_.controlDict().lookupOrDefault("adjustTimeStep", false))
     {
         debugInfo( "Cannot support adjustable time step", debugLevel);
@@ -291,6 +288,25 @@ int Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::compare_nodes(Fo
 bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces(std::size_t interface_index)
 {
     // Get different force fields from OpenFOAM, Refering Force-Function Object (OpenFOAM User guide)
+    Force_ = new volVectorField
+    (
+        IOobject
+        (
+            "Force",
+            mesh_.time().timeName(),
+            mesh_,
+            IOobject::NO_READ,
+            IOobject::AUTO_WRITE
+        ),
+        mesh_,
+        dimensionedVector
+        (
+            "fdim",
+            dimensionSet(1,1,-2,0,0,0,0),
+            Foam::vector::zero
+        )
+    );
+
     // 1.Stress tensor boundary field
     tmp<volSymmTensorField> tdevRhoReff(devRhoReff());
     const volSymmTensorField::Boundary& devRhoReffb
@@ -354,6 +370,8 @@ bool Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::calculateForces
         }
 
     }
+
+    delete Force_;
 
     return true;
 }

@@ -1,6 +1,7 @@
 /*-------------------------------------------------------------------------------------------------------------------------------------*\
 
 Master-Thesis Work
+OpenFOAM-coupling-adapter for Kratos-CoSimulation Solver.
 Ashish Darekar
 
 Class
@@ -252,9 +253,6 @@ protected:
     //- Dimension of the problem(default = 3)
     int dim ;
 
-    //- Thickness of the problem(default = 1.0)
-    double thick ;
-
     //- Debug Level for printing the Adapter related information, 2 Levels availale: "debug" and "info"(default)
     std::string debugLevel ;
 
@@ -291,24 +289,7 @@ protected:
     std::vector<std::unique_ptr<CoSimIO::ModelPart>> model_part_interfaces_;
 
     //- For Force Field calculations
-    Foam::volVectorField*  Force_ = new volVectorField
-    (
-        IOobject
-        (
-            "Force",
-            mesh_.time().timeName(),
-            mesh_,
-            IOobject::NO_READ,
-            IOobject::AUTO_WRITE
-        ),
-        mesh_,
-        dimensionedVector
-        (
-            "fdim",
-            dimensionSet(1,1,-2,0,0,0,0),
-            Foam::vector::zero
-        )
-    );
+    Foam::volVectorField* Force_;
 
     // ********************************* Auxiliar functions for configuration ****************************************//
     //- To read all user sepcified input from controlDict
