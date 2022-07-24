@@ -15,7 +15,7 @@
             {
                 "type" : "average_value_based",
                 "solver"         : "Openfoam_Kratos_Wrapper",
-                "data_name"        : "load_interface_flap_ordered",
+                "data_name"        : "load_interface_flap",
                 "echo_level" : 1
             }
         ],
@@ -77,13 +77,14 @@
                 "type" : "solver_wrappers.external.openfoam_wrapper",
                 "solver_wrapper_settings" : {
                     "import_meshes"    : ["interface_flap"],
-                    "export_data"      : ["disp_interface_flap_ordered"],
-                    "import_data"      : ["load_interface_flap_ordered"]
+                    "export_data"      : ["disp_interface_flap"],
+                    "import_data"      : ["load_interface_flap"]
                 },
                 "io_settings" : {
                     "type"       : "kratos_co_sim_io",
-                    "echo_level" : 1,
-                    "connect_to" : "Openfoam_Adapter"
+                    "echo_level" : 4,
+                    "connect_to" : "Openfoam_Adapter",
+                    "communication_format" : "file"
                 },
                 "data" : {
                     "disp_interface_flap" : {
@@ -91,18 +92,8 @@
                         "dimension" : 3,
                         "variable_name" : "DISPLACEMENT"
                     },
-                    "disp_interface_flap_ordered" : {
-                        "model_part_name"   : "interface_flap.original_order",
-                        "dimension" : 3,
-                        "variable_name" : "DISPLACEMENT"
-                    },
                     "load_interface_flap" : {
                         "model_part_name"   : "interface_flap",
-                        "dimension" : 3,
-                        "variable_name" : "FORCE"
-                    },
-                    "load_interface_flap_ordered" : {
-                        "model_part_name"   : "interface_flap.original_order",
                         "dimension" : 3,
                         "variable_name" : "FORCE"
                     }
