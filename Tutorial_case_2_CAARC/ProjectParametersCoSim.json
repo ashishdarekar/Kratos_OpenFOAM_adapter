@@ -23,12 +23,19 @@
                 "type" : "kratos_mapping",
                 "mapper_settings" : {
                     "mapper_type" : "nearest_neighbor"
+                    /* "search_settings" : {
+                        "search_radius" : 2
+                    } */
                 }
             },
             "transfer_disp" : {
                 "type" : "kratos_mapping",
                 "mapper_settings" : {
                     "mapper_type" : "nearest_neighbor"
+                    /* "search_settings" : {
+                        "search_radius" : 2
+                    } */
+                }
             }
         },
         "coupling_sequence":
@@ -41,6 +48,7 @@
                     "from_solver"       : "Openfoam_Kratos_Wrapper",
                     "from_solver_data"  : "load_interface_3D_structure",
                     "data_transfer_operator" : "transfer_forces",
+                    "after_data_transfer_operations" : ["scaling_loads_interface_3D_structure"],
                     "data_transfer_operator_options" : ["use_transpose"]
                 }
             ],
