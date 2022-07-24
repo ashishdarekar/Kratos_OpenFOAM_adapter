@@ -602,6 +602,7 @@ void Foam::functionObjects::KratosOpenfoamAdapterFunctionObject::connectKratos()
     CoSimIO::Info settings;
     settings.Set("my_name", "Openfoam_Adapter");
     settings.Set("connect_to", "Openfoam_Kratos_Wrapper");
+    settings.Set("communication_format", "file");
     settings.Set("echo_level", 0);
     settings.Set("version", "1.25");
     CoSimIO::Info connect_info;
