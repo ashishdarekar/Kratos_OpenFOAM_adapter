@@ -15,7 +15,7 @@
             {
                 "type" : "average_value_based",
                 "solver"         : "Openfoam_Kratos_Wrapper",
-                "data_name"      : "load_interface_3D_structure_ordered"
+                "data_name"      : "load_interface_3D_structure"
             }
         ],
         "data_transfer_operators" : {
@@ -23,19 +23,12 @@
                 "type" : "kratos_mapping",
                 "mapper_settings" : {
                     "mapper_type" : "nearest_neighbor"
-                    /* "search_settings" : {
-                        "search_radius" : 2
-                    } */
                 }
             },
             "transfer_disp" : {
                 "type" : "kratos_mapping",
                 "mapper_settings" : {
                     "mapper_type" : "nearest_neighbor"
-                    /* "search_settings" : {
-                        "search_radius" : 2
-                    } */
-                }
             }
         },
         "coupling_sequence":
@@ -48,7 +41,6 @@
                     "from_solver"       : "Openfoam_Kratos_Wrapper",
                     "from_solver_data"  : "load_interface_3D_structure",
                     "data_transfer_operator" : "transfer_forces",
-                    //"after_data_transfer_operations" : ["scaling_loads_interface_3D_structure"],
                     "data_transfer_operator_options" : ["use_transpose"]
                 }
             ],
@@ -72,7 +64,7 @@
                 "type"           : "scaling",
                 "solver"         : "structure",
                 "data_name"      : "load_interface_3D_structure",
-                "scaling_factor" : "(sin(((t)/0.01)/1000*pi/2))**2 ",
+                "scaling_factor" : "(sin(((t)/0.001)/10000*pi/2))**2 ",
                 "echo_level"     : 1,
                 "interval"       : [0.0, 10.0]
             }
@@ -84,13 +76,14 @@
                 "type" : "solver_wrappers.external.openfoam_wrapper",
                 "solver_wrapper_settings" : {
                     "import_meshes"    : ["interface_3D_structure"],
-                    "export_data"      : ["disp_interface_3D_structure_ordered"],
-                    "import_data"      : ["load_interface_3D_structure_ordered"]
+                    "export_data"      : ["disp_interface_3D_structure"],
+                    "import_data"      : ["load_interface_3D_structure"]
                 },
                 "io_settings" : {
                     "type"       : "kratos_co_sim_io",
                     "echo_level" : 1,
-                    "connect_to" : "Openfoam_Adapter"
+                    "connect_to" : "Openfoam_Adapter",
+                    "communication_format" : "file"
                 },
                 "data" : {
                     "disp_interface_3D_structure" : {
@@ -100,16 +93,6 @@
                     },
                     "load_interface_3D_structure" : {
                         "model_part_name"   : "interface_3D_structure",
-                        "dimension" : 3,
-                        "variable_name" : "REACTION"
-                    },
-                    "disp_interface_3D_structure_ordered" : {
-                        "model_part_name" : "interface_3D_structure.original_order",
-                        "variable_name" : "MESH_DISPLACEMENT",
-                        "dimension"     : 3
-                    },
-                    "load_interface_3D_structure_ordered" : {
-                        "model_part_name"   : "interface_3D_structure.original_order",
                         "dimension" : 3,
                         "variable_name" : "REACTION"
                     }

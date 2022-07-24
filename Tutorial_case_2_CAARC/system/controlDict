@@ -19,9 +19,10 @@ libs                ("libOpenFOAM.so" "libfieldFunctionObjects.so");
 libs                ("libOpenFOAM.so" "libgroovyBC.so") ;
 
 application         pimpleFoam;
+//application     pisoFoam;
 
-startFrom         startTime;
-//startFrom           latestTime;
+//startFrom         startTime;
+startFrom           latestTime;
 
 startTime           0;
 
@@ -29,11 +30,11 @@ stopAt              endTime;
 
 endTime             2000;
 
-deltaT              0.01;
+deltaT              0.001;
 
 writeControl        adjustableRunTime;
 
-writeInterval       0.01;
+writeInterval       0.001;
 
 purgeWrite          0;
 
@@ -62,8 +63,8 @@ functions
             {
                 name                    interface_3D_structure;
                 patches                 (tubesfs);
-                importDataIdentifier    (disp_interface_3D_structure_ordered);
-                exportDataIdentifier    (load_interface_3D_structure_ordered);
+                importDataIdentifier    (disp_interface_3D_structure);
+                exportDataIdentifier    (load_interface_3D_structure);
             }
         }
 

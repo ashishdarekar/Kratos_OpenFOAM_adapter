@@ -24,32 +24,23 @@ boundaryField
 {
     inlet
     {
-        type            fixedValue;
-        value           uniform (11.11 0 0);
-
-        // Time-varying parabolic inlet profile
-        //type               groovyBC;
-        //valueExpression   "time() < 20  ?   ((95 * time()/20) * pow( (pos().z) / 180 , 0.25))*normal() : (95 * pow( (pos().z) / 180 , 0.25))*normal()";
-	    //value              uniform (0 0 0);
-
-        //type            timeVaryingMappedFixedValue;
+//      type            fixedValue;
+//      value           uniform (11.11 0 0);
+        type            timeVaryingMappedFixedValue;
         //type          timeVaryingMappedHDF5FixedValue
-        //setAverage      0;
-	    //offset          (0 0 0);
-        //perturb         0;
-        //hdf5FileName    windgen.h5;
-        //hdf5PointsDatasetName    points;
-        //hdf5SampleTimesDatasetName    time;
-        //hdf5FieldValuesDatasetName    velocity;
+        setAverage      0;
+	    offset          (0 0 0);
+        perturb         0;
+        hdf5FileName    windgen.h5;
+        hdf5PointsDatasetName    points;
+        hdf5SampleTimesDatasetName    time;
+        hdf5FieldValuesDatasetName    velocity;
     }
 
     upperWall
     {
         type            fixedValue;
-        //value           uniform (11.11 0 0);
-        value           uniform (134.35 0 0);
-        //type            fixedValue;
-        //value           uniform (0 0 0);
+        value           uniform (11.11 0 0);
 
     }
 
